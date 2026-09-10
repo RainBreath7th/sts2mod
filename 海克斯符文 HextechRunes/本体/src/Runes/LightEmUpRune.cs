@@ -5,7 +5,7 @@ namespace HextechRunes;
 public sealed class LightEmUpRune : HextechRelicBase
 {
 	internal const int AttacksPerVolley = 4;
-	internal const int MissileCount = 5;
+	internal const int MissileCount = 6;
 
 	private int _attacksPlayedThisCombat;
 

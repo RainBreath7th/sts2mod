@@ -143,5 +143,10 @@ internal enum MonsterHexKind
 	Stats = 131,               // 属性！（白银）
 	StatsOnStats = 132,        // 属性叠属性！（黄金）
 	StatsOnStatsOnStats = 133, // 属性叠属性叠属性！（棱彩）
-	MiserableFate = 134        // 悲惨命运（棱彩）
+	MiserableFate = 134,       // 悲惨命运（棱彩）
+	LivingFog = 135,          // 升级：活雾（棱彩）
+	CeremonialBeast = 136,    // 升级：仪式兽（棱彩）
+	SoulFysh = 137,           // 升级：灵魂异鱼（黄金）
+	ThievingHopper = 138,     // 升级：偷窃草蜢（黄金）
+	HauntedShip = 139         // 升级：幽灵船（白银）
 }

@@ -6,7 +6,7 @@ internal readonly record struct HextechRuneSelectionJournalEntry(
 	ModelId SelectedId,
 	// Applied 以遗物已进入背包为提交边界；AfterObtained 若在插入后失败，不可重跑 Obtain，
 	// 否则会重复遗物及已执行的拾取副作用。该异常必须中止联机事务并保留诊断。
-	bool Applied);
+	bool Applied, string SelectionData = "");
 
 internal sealed class HextechRuneSelectionJournalState
 {
@@ -14,6 +14,21 @@ internal sealed class HextechRuneSelectionJournalState
 
 	private readonly object _syncRoot = new();
 	private readonly Dictionary<JournalKey, HextechRuneSelectionJournalEntry> _entries = new();
+	private readonly SortedDictionary<ulong, int> _characterWeights = new();
+
+	internal int GetCharacterWeight(ulong playerNetId)
+	{
+		lock (_syncRoot)
+			return _characterWeights.GetValueOrDefault(playerNetId, HextechWeightedRuneOptions.InitialCharacterWeightPercent);
+	}
+
+	internal void CommitCharacterWeight(ulong playerNetId, int weight)
+	{
+		if (weight < 0 || weight % HextechWeightedRuneOptions.WeightStep != 0)
+			throw new ArgumentOutOfRangeException(nameof(weight));
+		// 提交绝对值而非增量：恢复检查点或重复确认不能再次推进掉落权重。
+		lock (_syncRoot) _characterWeights[playerNetId] = weight;
+	}
 
 	internal static bool RequiresRelicObtain(bool applied, bool currentlyOwned)
 	{
@@ -50,7 +65,7 @@ internal sealed class HextechRuneSelectionJournalState
 		int actIndex,
 		int choiceOrdinal,
 		ulong playerNetId,
-		ModelId selectedId)
+		ModelId selectedId, string selectionData = "")
 	{
 		JournalKey key = CreateKey(actIndex, choiceOrdinal, playerNetId);
 		ValidateModelId(selectedId);
@@ -59,7 +74,7 @@ internal sealed class HextechRuneSelectionJournalState
 		{
 			if (_entries.TryGetValue(key, out HextechRuneSelectionJournalEntry existing))
 			{
-				if (!HasSameModelId(existing.SelectedId, selectedId))
+				if (!HasSameModelId(existing.SelectedId, selectedId) || existing.SelectionData != selectionData)
 				{
 					throw new InvalidOperationException(
 						$"[{ModInfo.Id}][Mayhem] Rune selection journal conflict: "
@@ -70,7 +85,7 @@ internal sealed class HextechRuneSelectionJournalState
 				return false;
 			}
 
-			_entries.Add(key, new HextechRuneSelectionJournalEntry(selectedId, Applied: false));
+			_entries.Add(key, new HextechRuneSelectionJournalEntry(selectedId, Applied: false, selectionData));
 			return true;
 		}
 	}
@@ -115,7 +130,7 @@ internal sealed class HextechRuneSelectionJournalState
 	{
 		lock (_syncRoot)
 		{
-			if (_entries.Count == 0)
+			if (_entries.Count == 0 && _characterWeights.Count == 0)
 			{
 				return "";
 			}
@@ -130,10 +145,10 @@ internal sealed class HextechRuneSelectionJournalState
 					pair.Key.PlayerNetId,
 					pair.Value.SelectedId.Category,
 					pair.Value.SelectedId.Entry,
-					pair.Value.Applied))
+					pair.Value.Applied, pair.Value.SelectionData))
 				.ToArray();
 			return JsonSerializer.Serialize(
-				new JournalJsonSnapshot(CurrentVersion, entries),
+				new JournalJsonSnapshot(CurrentVersion, entries, _characterWeights),
 				HextechTelemetry.JsonOptions);
 		}
 	}
@@ -143,6 +158,7 @@ internal sealed class HextechRuneSelectionJournalState
 		lock (_syncRoot)
 		{
 			_entries.Clear();
+			_characterWeights.Clear();
 			if (string.IsNullOrWhiteSpace(json))
 			{
 				return;
@@ -170,6 +186,12 @@ internal sealed class HextechRuneSelectionJournalState
 			}
 
 			int ignored = 0;
+			if (snapshot.CharacterWeights != null)
+			{
+				foreach ((ulong playerId, int weight) in snapshot.CharacterWeights)
+					if (weight >= 0 && weight % HextechWeightedRuneOptions.WeightStep == 0)
+						_characterWeights[playerId] = weight;
+			}
 			HashSet<JournalKey> conflictedKeys = [];
 			foreach (JournalJsonEntry? serialized in snapshot.Entries)
 			{
@@ -188,11 +210,12 @@ internal sealed class HextechRuneSelectionJournalState
 		}
 	}
 
-	public void Reset()
+	public void Reset(bool preserveCharacterWeights = false)
 	{
 		lock (_syncRoot)
 		{
 			_entries.Clear();
+			if (!preserveCharacterWeights) _characterWeights.Clear();
 		}
 	}
 
@@ -228,14 +251,14 @@ internal sealed class HextechRuneSelectionJournalState
 			return false;
 		}
 
-		HextechRuneSelectionJournalEntry restored = new(selectedId, serialized.Applied);
+		HextechRuneSelectionJournalEntry restored = new(selectedId, serialized.Applied, serialized.SelectionData ?? "");
 		if (!_entries.TryGetValue(key, out HextechRuneSelectionJournalEntry existing))
 		{
 			_entries.Add(key, restored);
 			return true;
 		}
 
-		if (HasSameModelId(existing.SelectedId, selectedId))
+		if (HasSameModelId(existing.SelectedId, selectedId) && existing.SelectionData == restored.SelectionData)
 		{
 			_entries[key] = existing with { Applied = existing.Applied || restored.Applied };
 			return true;
@@ -290,7 +313,8 @@ internal sealed class HextechRuneSelectionJournalState
 
 	private sealed record JournalJsonSnapshot(
 		int Version,
-		JournalJsonEntry?[]? Entries);
+		JournalJsonEntry?[]? Entries,
+		SortedDictionary<ulong, int>? CharacterWeights = null);
 
 	private sealed record JournalJsonEntry(
 		int ActIndex,
@@ -298,5 +322,5 @@ internal sealed class HextechRuneSelectionJournalState
 		ulong PlayerNetId,
 		string Category,
 		string Entry,
-		bool Applied);
+		bool Applied, string SelectionData = "");
 }

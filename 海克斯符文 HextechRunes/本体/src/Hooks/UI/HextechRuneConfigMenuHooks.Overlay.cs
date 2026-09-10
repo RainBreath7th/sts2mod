@@ -175,6 +175,7 @@ internal static partial class HextechRuneConfigMenuHooks
 			.Select(ToWeightArray)
 			.ToArray();
 		int[] pendingGoldenRerollChancePercent = [ pendingSnapshot.GoldenRerollChancePercent ];
+		int[] pendingChaosRuneChancePercent = [ pendingSnapshot.ChaosRuneChancePercent ];
 		int[] pendingForgeWeights = ToWeightArray(pendingSnapshot.ForgeRarityWeights);
 		int[] pendingForgePrice = [ pendingSnapshot.RandomForgeShopPrice ];
 		bool[] pendingShowHiddenRelicsToggle = [ HextechRelicVisibilityHooks.GetShowHiddenRelicsToggle() ];
@@ -231,6 +232,7 @@ internal static partial class HextechRuneConfigMenuHooks
 			pendingPlayerRuneRerollLimit,
 			pendingMonsterHexRerollLimit,
 			pendingGoldenRerollChancePercent,
+			pendingChaosRuneChancePercent,
 			numericBindings,
 			compactLayout);
 		Control runePoolPage = CreateRunePoolPage(playerEntries, pendingDisabledPlayerIds, enemyEntries, pendingDisabledMonsterHexIds, loadTargets, badgeRefreshers, compactLayout);
@@ -354,6 +356,7 @@ internal static partial class HextechRuneConfigMenuHooks
 			pendingRuneWeightsByAct,
 			pendingForgeWeights,
 			pendingGoldenRerollChancePercent,
+			pendingChaosRuneChancePercent,
 			pendingForgePrice,
 			pendingShowHiddenRelicsToggle,
 			pendingShowUpdateNotice,

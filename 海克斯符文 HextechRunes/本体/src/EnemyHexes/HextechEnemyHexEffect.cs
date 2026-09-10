@@ -127,6 +127,11 @@ internal abstract class HextechEnemyHexEffect
 		return Task.CompletedTask;
 	}
 
+	internal virtual Task BeforeCardPlayed(HextechEnemyHexContext context, CardPlay cardPlay)
+	{
+		return Task.CompletedTask;
+	}
+
 	internal virtual Task AfterCardPlayed(HextechEnemyHexContext context, PlayerChoiceContext choiceContext, CardPlay cardPlay)
 	{
 		return Task.CompletedTask;

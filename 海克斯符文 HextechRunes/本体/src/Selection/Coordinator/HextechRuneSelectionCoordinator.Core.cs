@@ -92,6 +92,18 @@ internal static partial class HextechRuneSelectionCoordinator
 			}
 
 			(HextechRarityTier rarity, MonsterHexKind? monsterHex, int playerHexCount) = await ResolveActRoll(runState, modifier, actIndex);
+			// 必须先完成房主配置同步，再决定是否生成内容；禁用分支不能先抽取
+			// 多个敌方海克斯再丢弃，否则仍会推进原版 Niche 随机流。
+			if (modifier.FreezeModActiveForRunAndCheckDisabled())
+			{
+				modifier.SetMonsterHexesForAct(actIndex, []);
+				modifier.SetStageResolved(actIndex, true);
+				HextechEnemyUi.Refresh(modifier);
+				await PersistActSelection(runState, actIndex);
+				HextechLog.Info($"[{ModInfo.Id}][Mayhem] Skipped content generation for disabled run: act={actIndex}");
+				return;
+			}
+
 			HextechLog.Info($"[{ModInfo.Id}][Mayhem] HandleHextechActSelection rarity: act={actIndex} rarity={rarity}");
 			HextechLog.Info($"[{ModInfo.Id}][Mayhem] HandleHextechActSelection monsterHex: act={actIndex} hex={monsterHex}");
 			IReadOnlyList<MonsterHexKind> previousMonsterHexes = modifier.GetActiveMonsterHexesBeforeAct(actIndex);
@@ -99,18 +111,6 @@ internal static partial class HextechRuneSelectionCoordinator
 			IReadOnlyList<MonsterHexKind> finalMonsterHexes = CombineMonsterHexes(previousMonsterHexes, newMonsterHexes);
 			MonsterHexKind? visibleMonsterHex = FirstMonsterHexOrNull(newMonsterHexes);
 			RelicModel? monsterHexRelic = CreateMonsterHexRelic(visibleMonsterHex);
-			// 模组总开关:在 act-roll(已完成两端握手/房主同步)之后冻结本局值。禁用则不发放任何玩家符文、
-			// 不分配敌方海克斯——本局表现为原版。仍走到下方 SetMonsterHexesForAct(空)+SetActResolved(true) 正常收尾,
-			// 两端对称、不破坏联机同步。
-			if (modifier.FreezeModActiveForRunAndCheckDisabled())
-			{
-				HextechLog.Info($"[{ModInfo.Id}][Mayhem] HandleHextechActSelection: mod disabled for this run; vanilla act={actIndex} (no player runes / enemy hexes)");
-				finalMonsterHexes = [];
-				visibleMonsterHex = null;
-				monsterHexRelic = null;
-				playerHexCount = 0;
-			}
-
 			NetGameType gameType = RunManager.Instance.NetService.Type;
 			for (int choiceOrdinal = 0; choiceOrdinal < playerHexCount; choiceOrdinal++)
 			{
@@ -186,6 +186,7 @@ internal static partial class HextechRuneSelectionCoordinator
 							selection.SelectedRelic,
 							$"singleplayer act={actIndex} ordinal={choiceOrdinal} player={player.NetId}");
 						HextechTelemetry.RecordRuneChoice(runState, actIndex, rarity, player, selection.FinalOptions, selected, selection.RerollCount, choiceOrdinal);
+						modifier.CommitCharacterRuneWeight(player, selection.FinalOptions);
 						await RelicCmd.Obtain(selected, player);
 						HextechLog.Info($"[{ModInfo.Id}][Mayhem] HandleHextechActSelection obtained: player={player.NetId} ordinal={choiceOrdinal} relic={(selected.CanonicalInstance?.Id ?? selected.Id).Entry}");
 					}

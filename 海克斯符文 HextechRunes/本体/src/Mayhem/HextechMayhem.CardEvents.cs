@@ -57,7 +57,9 @@ internal sealed partial class HextechMayhemModifier
 			}
 		}
 
-		return Task.CompletedTask;
+		return HextechEnemyHexDispatcher.ForEachActive(
+			this,
+			(effect, context) => effect.BeforeCardPlayed(context, cardPlay));
 	}
 
 	public override async Task AfterCardPlayedLate(PlayerChoiceContext choiceContext, CardPlay cardPlay)

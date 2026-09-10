@@ -84,14 +84,14 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 
 		string oldRelic = (_relics[slotIndex].CanonicalInstance?.Id ?? _relics[slotIndex].Id).Entry;
 		string newRelic = (rerolled[slotIndex].CanonicalInstance?.Id ?? rerolled[slotIndex].Id).Entry;
-		if (oldRelic == newRelic)
+		if (HextechSelectionHelpers.SameRuneCandidate(_relics[slotIndex], rerolled[slotIndex]))
 		{
 			return;
 		}
 
 		HextechLog.Info($"[{ModInfo.Id}][Mayhem] SelectionScreen.OnRerollPressed: slot={slotIndex} old={oldRelic} new={newRelic}");
 		PlayRerollSfx();
-		_relics = rerolled.ToList();
+		_relics = HextechWeightedRuneOptions.Copy(rerolled);
 		_playerRuneRerollCounts[slotIndex]++;
 		_rerollHistory.Add(slotIndex);
 		if (goldenRerollWasActive)

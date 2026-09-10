@@ -148,5 +148,8 @@
   "HEXTECH_COMMUNITY_ERR_BANNED": "このアカウントはアップロードを禁止されています。",
   "HEXTECH_COMMUNITY_SUMMARY": "自分のヘクス {0}/{1}\n敵のヘクス {2}/{3}\n自分の数 {4}　敵の数 {5}",
   "HEXTECH_COMMUNITY_TAB_MINE": "自分",
-  "HEXTECH_COMMUNITY_HIDDEN": "（非表示）"
+  "HEXTECH_COMMUNITY_HIDDEN": "（非表示）",
+  "HEXTECH_CHAOS_RUNE_CHANCE_LABEL": "東尼実験室：混沌ルーン",
+  "HEXTECH_CHAOS_RUNE_CHANCE_DESCRIPTION": "各候補を個別に判定して混沌ルーンに変換します。0%で無効、100%ですべて変換。リロール時に再判定し、取得済みの効果は変わりません。次のランから適用され、マルチプレイではホストの設定を使用します。",
+  "HEXTECH_CHAOS_RUNE_CHANCE_VALUE_LABEL": "生成確率"
 }

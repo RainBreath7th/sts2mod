@@ -120,7 +120,7 @@ internal static class HextechPlayerRuneRegistry
 		Rune<PiggyBankRune>(HextechRarityTier.Gold, flags: PlayerRuneFlags.Disabled, tagKey: "ECONOMY"),
 		Rune<OrobasBlessingRune>(HextechRarityTier.Gold, tagKey: "COMPREHENSIVE"),
 		Rune<CrossOrbRune>(HextechRarityTier.Gold, tagKey: "COMPREHENSIVE"),
-		Rune<IllusoryWeaponRune>(HextechRarityTier.Gold, tagKey: "OUTPUT"),
+		Rune<IllusoryWeaponRune>(HextechRarityTier.Gold, flags: PlayerRuneFlags.Disabled, tagKey: "OUTPUT"),
 		Rune<NeowsGrudgeRune>(HextechRarityTier.Gold, flags: PlayerRuneFlags.Disabled, tagKey: "OUTPUT"),
 		Rune<SuperBrainRune>(HextechRarityTier.Gold, flags: PlayerRuneFlags.Disabled, tagKey: "COMPREHENSIVE"),
 		Rune<OverflowRune>(HextechRarityTier.Gold, tagKey: "COMPREHENSIVE"),
@@ -203,7 +203,7 @@ internal static class HextechPlayerRuneRegistry
 		Rune<NeutralizeUpgradeRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Silent, characterOrder: 20, tagKey: "OUTPUT"),
 		Rune<VoidFormUpgradeRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Regent, characterOrder: 19, tagKey: "COMPREHENSIVE"),
 		Rune<EchoFormUpgradeRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Defect, characterOrder: 21, tagKey: "COMPREHENSIVE"),
-		Rune<SerpentFormUpgradeRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Silent, characterOrder: 19, tagKey: "COMPREHENSIVE"),
+		Rune<SerpentFormUpgradeRune>(HextechRarityTier.Prismatic, characterPool: PlayerRuneCharacterPool.Silent, characterOrder: 19, tagKey: "COMPREHENSIVE"),
 		Rune<DemonFormUpgradeRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Ironclad, characterOrder: 20, tagKey: "COMPREHENSIVE"),
 		Rune<ReaperFormUpgradeRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Necrobinder, characterOrder: 23, tagKey: "COMPREHENSIVE"),
 		Rune<SwordFlightRune>(HextechRarityTier.Gold, flags: PlayerRuneFlags.Disabled, characterPool: PlayerRuneCharacterPool.Regent, characterOrder: 13, tagKey: "COMPREHENSIVE"),
@@ -234,7 +234,7 @@ internal static class HextechPlayerRuneRegistry
 		Rune<TrinityRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Regent, characterOrder: 22, tagKey: "STARLIGHT"),
 		Rune<CrashLandingUpgradeRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Regent, characterOrder: 23, tagKey: "OUTPUT"),
 		Rune<ChargeUpRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Regent, characterOrder: 26, tagKey: "RESOURCE"),
-		Rune<AutoPatrolRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Necrobinder, characterOrder: 31, tagKey: "SUMMON"),
+		Rune<AutoPatrolRune>(HextechRarityTier.Gold, flags: PlayerRuneFlags.Disabled, characterPool: PlayerRuneCharacterPool.Necrobinder, characterOrder: 31, tagKey: "SUMMON"),
 		Rune<DeathHarvestRune>(HextechRarityTier.Gold, flags: PlayerRuneFlags.Disabled, tagKey: "SURVIVAL"),
 		Rune<TwilightVeilRune>(HextechRarityTier.Gold, tagKey: "COMPREHENSIVE"),
 		Rune<LingeringMightRune>(HextechRarityTier.Gold, tagKey: "COMPREHENSIVE"),
@@ -355,7 +355,15 @@ internal static class HextechPlayerRuneRegistry
 		Rune<OblivionUpgradeRune>(HextechRarityTier.Prismatic, characterPool: PlayerRuneCharacterPool.Necrobinder, characterOrder: 36, tagKey: "DOOM"),
 		Rune<StormUpgradeRune>(HextechRarityTier.Prismatic, characterPool: PlayerRuneCharacterPool.Defect, characterOrder: 32, tagKey: "ORB"),
 		Rune<DecisionsDecisionsUpgradeRune>(HextechRarityTier.Prismatic, characterPool: PlayerRuneCharacterPool.Regent, characterOrder: 30, tagKey: "COMPREHENSIVE"),
-		Rune<SomethingForNothingRune>(HextechRarityTier.Prismatic, tagKey: "RESOURCE")
+		Rune<SomethingForNothingRune>(HextechRarityTier.Prismatic, tagKey: "RESOURCE"),
+		Rune<RallyingCallRune>(HextechRarityTier.Gold, tagKey: "RESOURCE"),
+		Rune<EndlessRotationRune>(HextechRarityTier.Prismatic, tagKey: "RESOURCE"),
+		Rune<VenomousBladeRune>(HextechRarityTier.Prismatic, characterPool: PlayerRuneCharacterPool.Silent, characterOrder: 31, tagKey: "SHIV"),
+		Rune<MyriadManifestationsRune>(HextechRarityTier.Prismatic, characterPool: PlayerRuneCharacterPool.Defect, characterOrder: 34, tagKey: "ORB"),
+		Rune<KingdomArmyRune>(HextechRarityTier.Prismatic, characterPool: PlayerRuneCharacterPool.Regent, characterOrder: 31, tagKey: "SWORDCRAFT"),
+		Rune<ScapegoatRune>(HextechRarityTier.Gold, tagKey: "COMPREHENSIVE"),
+		Rune<BloodDebtRune>(HextechRarityTier.Silver, characterPool: PlayerRuneCharacterPool.Ironclad, characterOrder: 34, tagKey: "BLOODLETTING"),
+		Rune<NetherSoulRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Necrobinder, characterOrder: 37, tagKey: "VOID")
 	];
 
 	private static PlayerRuneRegistration Rune<TRune>(

@@ -1,0 +1,4 @@
+{
+  "HEXTECH_STRENGTH.label": "+{Amount}",
+  "HEXTECH_STRENGTH.description": "この敵は行動後に[gold]筋力[/gold]を[blue]{Amount}[/blue]得る。"
+}

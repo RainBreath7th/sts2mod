@@ -4,7 +4,7 @@ namespace HextechRunes;
 
 public sealed class TwinFlamesRune : HextechRelicBase
 {
-	internal const int MissileCount = 2;
+	internal const int MissileCount = 3;
 
 	private int _targetRollsThisCombat;
 

@@ -148,5 +148,8 @@
   "HEXTECH_COMMUNITY_ERR_BANNED": "이 계정은 업로드가 금지되었습니다.",
   "HEXTECH_COMMUNITY_SUMMARY": "아군 증강 {0}/{1}\n적 증강 {2}/{3}\n아군 수량 {4}   적 수량 {5}",
   "HEXTECH_COMMUNITY_TAB_MINE": "내 업로드",
-  "HEXTECH_COMMUNITY_HIDDEN": "(숨겨짐)"
+  "HEXTECH_COMMUNITY_HIDDEN": "(숨겨짐)",
+  "HEXTECH_CHAOS_RUNE_CHANCE_LABEL": "토니의 실험실: 혼돈 룬",
+  "HEXTECH_CHAOS_RUNE_CHANCE_DESCRIPTION": "각 후보가 독립적으로 혼돈 룬으로 바뀔 확률입니다. 0%는 비활성화, 100%는 모든 후보를 변환합니다. 다시 뽑으면 재판정하며 획득한 조합은 유지됩니다. 다음 게임부터 적용되고 멀티플레이에서는 호스트 설정을 따릅니다.",
+  "HEXTECH_CHAOS_RUNE_CHANCE_VALUE_LABEL": "생성 확률"
 }

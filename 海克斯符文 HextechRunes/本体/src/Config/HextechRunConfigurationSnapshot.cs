@@ -14,7 +14,8 @@ internal sealed record HextechRunConfigurationSnapshot(
 	HextechForgeRarityWeights ForgeRarityWeights,
 	int RandomForgeShopPrice,
 	bool RandomForgeDirectGrant,
-	bool ModEnabled)
+	bool ModEnabled,
+	int ChaosRuneChancePercent = 33)
 {
 	public HextechRunConfigurationSnapshot Copy()
 	{

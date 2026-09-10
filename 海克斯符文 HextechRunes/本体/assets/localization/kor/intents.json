@@ -1,0 +1,4 @@
+{
+  "HEXTECH_STRENGTH.label": "+{Amount}",
+  "HEXTECH_STRENGTH.description": "이 적은 행동 후 [gold]힘[/gold]을 [blue]{Amount}[/blue] 얻습니다."
+}

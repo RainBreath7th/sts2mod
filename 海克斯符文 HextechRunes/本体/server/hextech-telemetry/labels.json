@@ -1,6 +1,11 @@
 {
   "generatedFrom": "HextechRunes + HextechRunesSponsorPack zhs relics.json (0.9.0 补全，含退役海克斯历史标签)",
   "runes": {
+    "RALLYING_CALL_RUNE": "一呼百应",
+    "ENDLESS_ROTATION_RUNE": "轮转不息",
+    "VENOMOUS_BLADE_RUNE": "见血封喉",
+    "MYRIAD_MANIFESTATIONS_RUNE": "森罗万象",
+    "KINGDOM_ARMY_RUNE": "王国军势",
     "JUDICATOR_RUNE": "裁决使",
     "SLAP_RUNE": "扇巴掌",
     "TANK_ENGINE_RUNE": "坦克引擎",
@@ -459,7 +464,10 @@
     "MIND_PURIFICATION_RUNE": "心灵净化",
     "HOLY_FIRE_RUNE": "圣火",
     "OLD_IDOL_RUNE": "旧日雕像",
-    "CRACK_THE_EGG_RUNE": "砸开那颗蛋"
+    "CRACK_THE_EGG_RUNE": "砸开那颗蛋",
+    "SCAPEGOAT_RUNE": "祸水东引",
+    "BLOOD_DEBT_RUNE": "血债血偿",
+    "NETHER_SOUL_RUNE": "冥土追魂"
   },
   "monsterHexes": {
     "Slap": "扇巴掌",
@@ -595,7 +603,12 @@
     "StatsOnStats": "属性叠属性！",
     "StatsOnStatsOnStats": "属性叠属性叠属性！",
     "MiserableFate": "悲惨命运",
-    "BlankCheck": "空白支票"
+    "BlankCheck": "空白支票",
+    "LivingFog": "升级：活雾",
+    "CeremonialBeast": "升级：仪式兽",
+    "SoulFysh": "升级：灵魂异鱼",
+    "ThievingHopper": "升级：偷窃草蜢",
+    "HauntedShip": "升级：幽灵船"
   },
   "characters": {
     "IRONCLAD": "战士",

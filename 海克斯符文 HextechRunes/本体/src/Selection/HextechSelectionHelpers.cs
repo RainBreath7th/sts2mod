@@ -6,6 +6,14 @@ namespace HextechRunes;
 
 internal static class HextechSelectionHelpers
 {
+	internal static bool SameRuneCandidate(RelicModel left, RelicModel right)
+	{
+		if ((left.CanonicalInstance?.Id ?? left.Id) != (right.CanonicalInstance?.Id ?? right.Id)) return false;
+		if (left is IHextechGeneratedRune a && right is IHextechGeneratedRune b)
+			return string.Equals(a.ExportSelectionData(), b.ExportSelectionData(), StringComparison.Ordinal);
+		return true;
+	}
+
 	public static int IndexOfRelicInstance(IReadOnlyList<RelicModel> relics, RelicModel? selected)
 	{
 		if (selected == null)

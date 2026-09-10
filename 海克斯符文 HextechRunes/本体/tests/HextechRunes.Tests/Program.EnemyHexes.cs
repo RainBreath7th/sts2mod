@@ -308,11 +308,11 @@ internal static partial class Program
 		Equal(5, AncientStatueEnemyHex.ResolveCardSlowGain(2), "Ancient Statue tier two Slow gain");
 		Equal(8, AncientStatueEnemyHex.ResolveCardSlowGain(3), "Ancient Statue tier three Slow gain");
 		Equal(8, AncientStatueEnemyHex.ResolveCardSlowGain(99), "Ancient Statue high-tier Slow gain clamp");
-		Equal(-3, HundredRefinementsEnemyHex.ResolveSlowReduction(0), "Hundred Refinements tier zero fallback Slow reduction");
-		Equal(-3, HundredRefinementsEnemyHex.ResolveSlowReduction(1), "Hundred Refinements tier one Slow reduction");
-		Equal(-5, HundredRefinementsEnemyHex.ResolveSlowReduction(2), "Hundred Refinements tier two Slow reduction");
-		Equal(-8, HundredRefinementsEnemyHex.ResolveSlowReduction(3), "Hundred Refinements tier three Slow reduction");
-		Equal(-8, HundredRefinementsEnemyHex.ResolveSlowReduction(99), "Hundred Refinements high-tier Slow reduction clamp");
+		Equal(-2, HundredRefinementsEnemyHex.ResolveSlowReduction(0), "Hundred Refinements tier zero fallback Slow reduction");
+		Equal(-2, HundredRefinementsEnemyHex.ResolveSlowReduction(1), "Hundred Refinements tier one Slow reduction");
+		Equal(-4, HundredRefinementsEnemyHex.ResolveSlowReduction(2), "Hundred Refinements tier two Slow reduction");
+		Equal(-6, HundredRefinementsEnemyHex.ResolveSlowReduction(3), "Hundred Refinements tier three Slow reduction");
+		Equal(-6, HundredRefinementsEnemyHex.ResolveSlowReduction(99), "Hundred Refinements high-tier Slow reduction clamp");
 		MethodInfo[] ancientStatueMethods = typeof(AncientStatueEnemyHex).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
 		Expect(
 			ancientStatueMethods.All(static method => method.Name is not nameof(AncientStatueEnemyHex.ApplyCombatStartPlayerDebuffs) and not nameof(AncientStatueEnemyHex.BeforePlayerSideTurnStart)),
@@ -446,7 +446,7 @@ internal static partial class Program
 
 		Equal(1m, HextechMonsterSustainHelper.ResolveProteinShakeSustainMultiplier(9m, 2), "two-player Protein Shake below 10-HP threshold");
 		Equal(1.01m, HextechMonsterSustainHelper.ResolveProteinShakeSustainMultiplier(10m, 2), "two-player Protein Shake first threshold");
-		Equal(2m, HextechMonsterSustainHelper.ResolveProteinShakeSustainMultiplier(1000m, 2), "two-player Protein Shake cap");
+		Equal(2m, HextechMonsterSustainHelper.ResolveProteinShakeSustainMultiplier(1000m, 2), "two-player Protein Shake at 100 percent bonus");
 	}
 
 	private static void EnemyCuttingEdgeAlchemistHalvesSuccessfulPotionRolls()

@@ -10,9 +10,11 @@ internal sealed class FinalFormEnemyHex : HextechEnemyHexEffect
 			&& dealer.CombatId != null
 			&& context.Tracking.FinalFormTriggeredThisTurn.Add(dealer.CombatId.Value))
 		{
-			decimal blockPercent = context.TierValue(Kind, 0.15m, 0.20m, 0.25m);
-			int block = Math.Max(1, (int)Math.Floor(dealer.MaxHp * blockPercent));
-			await CreatureCmd.GainBlock(dealer, block, ValueProp.Unpowered, null);
+			int plating = ResolvePlating(dealer.MaxHp, context.GetStrengthTier(Kind));
+			await HextechEnemyPowerScalingHooks.Apply<PlatingPower>(dealer, plating, dealer, null);
 		}
 	}
+
+	internal static int ResolvePlating(int maxHp, int tier)
+		=> Math.Max(1, (int)Math.Floor(maxHp * (tier <= 1 ? 0.03m : tier == 2 ? 0.04m : 0.05m)));
 }

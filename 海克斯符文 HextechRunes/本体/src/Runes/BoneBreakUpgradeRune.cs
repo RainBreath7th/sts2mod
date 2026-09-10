@@ -23,7 +23,8 @@ public sealed class BoneBreakUpgradeRune : CardUpgradeRuneBase<BoneShards>
 			&& Owner.IsOstyAlive
 			&& Owner.Osty is { } osty)
 		{
-			_pendingOstyHp = Math.Max(0, osty.CurrentHp);
+			// 碎骨会在结算中牺牲奥斯提，必须在打出前快照最大生命值。
+			_pendingOstyHp = Math.Max(0, osty.MaxHp);
 		}
 
 		return Task.CompletedTask;

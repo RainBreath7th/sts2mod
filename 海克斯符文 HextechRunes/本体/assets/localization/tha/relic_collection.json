@@ -148,5 +148,8 @@
   "HEXTECH_COMMUNITY_ERR_BANNED": "บัญชีนี้ถูกห้ามอัปโหลด",
   "HEXTECH_COMMUNITY_SUMMARY": "เฮ็กซ์ฝ่ายเรา {0}/{1}\nเฮ็กซ์ศัตรู {2}/{3}\nจำนวนฝ่ายเรา {4}   ศัตรู {5}",
   "HEXTECH_COMMUNITY_TAB_MINE": "ของฉัน",
-  "HEXTECH_COMMUNITY_HIDDEN": "(ถูกซ่อน)"
+  "HEXTECH_COMMUNITY_HIDDEN": "(ถูกซ่อน)",
+  "HEXTECH_CHAOS_RUNE_CHANCE_LABEL": "Tony’s Chaos Lab: Chaos Runes",
+  "HEXTECH_CHAOS_RUNE_CHANCE_DESCRIPTION": "Each candidate independently has this chance to become a chaos rune. 0% disables conversion; 100% converts all candidates. Rerolls roll again; acquired recipes stay fixed. Applies to new runs and uses the host’s setting in multiplayer.",
+  "HEXTECH_CHAOS_RUNE_CHANCE_VALUE_LABEL": "Conversion chance"
 }

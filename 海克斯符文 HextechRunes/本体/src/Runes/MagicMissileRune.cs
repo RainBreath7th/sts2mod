@@ -5,7 +5,7 @@ namespace HextechRunes;
 public sealed class MagicMissileRune : HextechRelicBase
 {
 	internal const int MissileCount = 3;
-	internal const decimal MaxHpDamagePercent = 2m;
+	internal const decimal MaxHpDamagePercent = 3m;
 
 	private bool _triggeredThisTurn;
 

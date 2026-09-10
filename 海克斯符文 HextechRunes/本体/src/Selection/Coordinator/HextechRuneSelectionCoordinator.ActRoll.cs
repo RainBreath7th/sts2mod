@@ -102,7 +102,9 @@ internal static partial class HextechRuneSelectionCoordinator
 		HextechRarityTier? effectiveForcedRarity = forcedRarity.HasValue && enabledRarities.Contains(forcedRarity.Value)
 			? forcedRarity
 			: null;
-		HextechRarityTier localRarity = savedRarity
+		// 禁用局仍交换房主配置，但不为不会发放的内容抽取 RNG。占位稀有度只用于
+		// 既有 act-roll 协议；Core 在同步后按房主冻结值跳过所有内容生成。
+		HextechRarityTier localRarity = !modifier.IsModActiveForRun ? HextechRarityTier.Silver : savedRarity
 			?? challengeAct?.PlayerRarity
 			?? effectiveForcedRarity
 			?? (isMultiplayer ? RollStableRarity(modifier, actIndex, runState, enabledRarities) : RollRandomRarity(modifier, actIndex, runState, enabledRarities));
@@ -129,7 +131,7 @@ internal static partial class HextechRuneSelectionCoordinator
 			.Where(hex => !previousHexes.Contains(hex))
 			.Cast<MonsterHexKind?>()
 			.FirstOrDefault();
-		MonsterHexKind? localMonsterHex = newEnemyHexCount <= 0
+		MonsterHexKind? localMonsterHex = !modifier.IsModActiveForRun || newEnemyHexCount <= 0
 			? null
 			: savedPrimaryMonsterHex
 				?? challengeAct?.EnemyHexes.FirstOrDefault()

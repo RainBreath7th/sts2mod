@@ -70,15 +70,7 @@ internal static class HextechShopForgeHooks
 	// MerchantInventory 模型写入,按本地配置各走一边会库存分叉);单机局退回实时配置。
 	private static bool IsModEnabledForRun(Player? player)
 	{
-		HextechMayhemModifier? modifier = (player?.RunState as RunState)?.Modifiers
-			.OfType<HextechMayhemModifier>()
-			.LastOrDefault();
-		if (modifier != null)
-		{
-			return modifier.IsModActiveForRun;
-		}
-
-		return !HextechPlayerContextHelper.IsNetworkMultiplayerRun() && HextechRuneConfiguration.GetModEnabled();
+		return HextechMayhemModifier.IsEnabledForRun(player?.RunState);
 	}
 
 	private static async Task<(bool, int)> PurchaseRandomForge(MerchantRelicEntry entry, MerchantInventory inventory, bool ignoreCost)

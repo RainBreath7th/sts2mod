@@ -79,6 +79,7 @@ HextechRunes.HextechRunLifecycleHooks._subscribedRoomExited : Boolean
 HextechRunes.HextechRunLifecycleHooks._subscribedRoomExitedManager : RunManager
 HextechRunes.HextechRuneConfiguration._config : RuneConfig
 HextechRunes.HextechRuneConfiguration._loaded : Boolean
+HextechRunes.HextechRuneGeneration._chaosTransform : CandidateTransform
 HextechRunes.HextechRuneSelectionScreen.RerollSfxPlayer : AudioStreamPlayer
 HextechRunes.HextechRuneSelectionScreen.SelectSfxPlayer : AudioStreamPlayer
 HextechRunes.HextechSavedPropertyNetIdHooks._canonicalized : Boolean

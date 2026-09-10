@@ -130,7 +130,12 @@ internal static class HextechEnemyHexEffects
 		new StatsEnemyHex(),
 		new StatsOnStatsEnemyHex(),
 		new StatsOnStatsOnStatsEnemyHex(),
-		new MiserableFateEnemyHex()
+		new MiserableFateEnemyHex(),
+		new LivingFogEnemyHex(),
+		new CeremonialBeastEnemyHex(),
+		new SoulFyshEnemyHex(),
+		new ThievingHopperEnemyHex(),
+		new HauntedShipEnemyHex()
 	]);
 
 	internal static IEnumerable<HextechEnemyHexEffect> GetActive(HextechMayhemModifier modifier)

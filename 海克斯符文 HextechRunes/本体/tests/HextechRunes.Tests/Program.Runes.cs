@@ -310,18 +310,18 @@ internal static partial class Program
 			"load continuation should finish pending initial forge grants before resuming act selection");
 	}
 
-	private static void HappyAccidentUsesExhaustedStatusesAtTurnStart()
+	private static void HappyAccidentUsesAllCombatPilesAtTurnStart()
 	{
-		CardModel[] exhaustedCards =
+		CardModel[] combatPileCards =
 		[
 			CreateMutableTestModel<Dazed>(),
 			CreateMutableTestModel<StrikeIronclad>(),
 			CreateMutableTestModel<Slimed>()
 		];
-		Equal(2, HappyAccidentRune.CountStatusCards(exhaustedCards), "Happy Accident exhausted Status count");
+		Equal(2, HappyAccidentRune.CountStatusCards(combatPileCards), "Happy Accident combat pile Status count");
 		Equal(0, HappyAccidentRune.ResolveOrbCount(-1, 1), "Happy Accident negative Status fallback");
 		Equal(0, HappyAccidentRune.ResolveOrbCount(3, 0), "Happy Accident disabled orb count");
-		Equal(3, HappyAccidentRune.ResolveOrbCount(3, 1), "Happy Accident one orb per exhausted Status");
+		Equal(3, HappyAccidentRune.ResolveOrbCount(3, 1), "Happy Accident one orb per Status");
 
 		MethodInfo[] declaredMethods = typeof(HappyAccidentRune).GetMethods(
 			BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
@@ -347,10 +347,30 @@ internal static partial class Program
 		Expect(!MirrorReflectionRune.ShouldDuplicate(CreateMutableTestModel<DefendIronclad>()), "Mirror Reflection should not duplicate basic Defend cards");
 	}
 
-	private static void DrainTargetsFirstEnemyWithHighestCurrentHp()
+	private static void MiseryRandomTargetPreservesAttributeTransfer()
 	{
-		Equal(1, DrainRune.FindHighestCurrentHpIndex([ 8, 25, 25, 12 ]), "Drain should target the first enemy tied for highest current HP");
-		Equal(0, DrainRune.FindHighestCurrentHpIndex([ 30 ]), "Drain should target the only hittable enemy");
+		MethodInfo handler = GetAsyncStateMachineMoveNext(typeof(MiseryRune).GetMethod(nameof(MiseryRune.AfterPlayerTurnStart))!);
+		MethodInfo[] calls = PatchProcessor.GetOriginalInstructions(handler)
+			.Select(static instruction => instruction.operand).OfType<MethodInfo>().ToArray();
+		Equal(1, calls.Count(static call => call.DeclaringType == typeof(HextechRuneTargeting) && call.Name == "PickRandomHittableEnemy"), "one deterministic target shared by both debuffs");
+		Expect(calls.All(static call => call.Name != "get_CurrentHp"), "target does not depend on current HP");
+		Equal(4, calls.Count(static call => call.Name == "Apply" && call.IsGenericMethod), "both enemy debuffs and both player gains remain");
+		MiseryRune rune = CreateMutableTestModel<MiseryRune>();
+		Equal(-1m, rune.DynamicVars.Strength.BaseValue, "unchanged Strength transfer");
+		Equal(-1m, rune.DynamicVars.Dexterity.BaseValue, "unchanged Dexterity transfer");
+	}
+
+	private static void DrainAppliesSummonAmountToAllEnemies()
+	{
+		MethodInfo handler = GetAsyncStateMachineMoveNext(typeof(DrainRune).GetMethod(nameof(DrainRune.AfterSummon))!);
+		MethodInfo[] calls = PatchProcessor.GetOriginalInstructions(handler)
+			.Select(static instruction => instruction.operand).OfType<MethodInfo>().ToArray();
+		MethodInfo apply = calls.Single(static method => method.Name == "Apply" && method.IsGenericMethod
+			&& method.GetGenericArguments().SequenceEqual(new[] { typeof(DoomPower) }));
+		Equal(typeof(IEnumerable<Creature>), apply.GetParameters()[1].ParameterType, "Drain must apply Doom to the enemy collection");
+		Expect(calls.Any(static method => method.Name == "get_HittableEnemies"), "Drain uses all hittable enemies");
+		Expect(calls.All(static method => method.Name is not "get_CurrentHp" and not "op_Multiply" and not "get_DynamicVars"),
+			"Drain neither selects by current HP nor multiplies the summon amount");
 	}
 
 	private static void FeyMagicUsesThreeCostWithoutTurnLimit()
@@ -393,10 +413,10 @@ internal static partial class Program
 			"Something for Nothing should reset its paid-card trigger each turn");
 	}
 
-	private static void MagicMissileUsesThreeTwoPercentHits()
+	private static void MagicMissileUsesThreeThreePercentHits()
 	{
 		Equal(3, MagicMissileRune.MissileCount, "Magic Missile hit count");
-		Equal(2m, MagicMissileRune.MaxHpDamagePercent, "Magic Missile max-HP damage percent");
+		Equal(3m, MagicMissileRune.MaxHpDamagePercent, "Magic Missile max-HP damage percent");
 		Equal(0.055f, HextechCombatVfx.MagicMissileLaunchIntervalSeconds, "Magic Missile launch interval");
 		Equal(0.28f, HextechCombatVfx.MagicMissileBaseFlightSeconds, "Magic Missile base flight duration");
 		Equal(0.025f, HextechCombatVfx.MagicMissileFlightStepSeconds, "Magic Missile flight duration step");
@@ -408,13 +428,13 @@ internal static partial class Program
 			afterCardPlayed?.GetCustomAttribute<AsyncStateMachineAttribute>(),
 			"Magic Missile should not hold the card-play hook open while projectiles resolve");
 		Equal(1, MagicMissileRune.CalculateMissileDamage(1), "Magic Missile should deal at least one damage");
-		Equal(2, MagicMissileRune.CalculateMissileDamage(100), "Magic Missile should deal two percent of 100 max HP");
-		Equal(3, MagicMissileRune.CalculateMissileDamage(199), "Magic Missile should round max-HP damage down");
+		Equal(3, MagicMissileRune.CalculateMissileDamage(100), "Magic Missile should deal three percent of 100 max HP");
+		Equal(5, MagicMissileRune.CalculateMissileDamage(199), "Magic Missile should round max-HP damage down");
 	}
 
-	private static void TwinFlamesUsesTwoEnergyScaledHits()
+	private static void TwinFlamesUsesThreeEnergyScaledHits()
 	{
-		Equal(2, TwinFlamesRune.MissileCount, "Twin Flames hit count");
+		Equal(3, TwinFlamesRune.MissileCount, "Twin Flames hit count");
 		Equal(0m, TwinFlamesRune.ResolveMissileDamage(-1m), "Twin Flames should not create negative damage");
 		Equal(0m, TwinFlamesRune.ResolveMissileDamage(0m), "zero-cost Skills should resolve to zero missile damage");
 		Equal(3m, TwinFlamesRune.ResolveMissileDamage(3m), "Twin Flames damage should equal the played Skill's Energy cost");
@@ -491,10 +511,10 @@ internal static partial class Program
 		}
 	}
 
-	private static void LightEmUpUsesFiveEnergyScaledTwinFlameMissiles()
+	private static void LightEmUpUsesSixEnergyScaledTwinFlameMissiles()
 	{
 		Equal(4, LightEmUpRune.AttacksPerVolley, "Light Em Up attacks per volley");
-		Equal(5, LightEmUpRune.MissileCount, "Light Em Up missile count");
+		Equal(6, LightEmUpRune.MissileCount, "Light Em Up missile count");
 		Equal(0m, LightEmUpRune.ResolveMissileDamage(-1m), "Light Em Up should not create negative damage");
 		Equal(3m, LightEmUpRune.ResolveMissileDamage(3m), "Light Em Up damage should equal the triggering Attack's Energy cost");
 
@@ -1036,8 +1056,8 @@ internal static partial class Program
 		Equal(0, DevilsDanceRune.CountMaxHpTriggers(0, 2, 3), "Devil's Dance should wait for three Attacks");
 		Equal(1, DevilsDanceRune.CountMaxHpTriggers(2, 3, 3), "Devil's Dance should trigger on the third Attack");
 		Equal(2, DevilsDanceRune.CountMaxHpTriggers(2, 7, 3), "Devil's Dance should preserve thresholds across turns");
-		Equal(1, AncientWineRune.CalculateHealAmount(99, 1m), "Ancient Wine should floor one-percent healing with a minimum of one");
-		Equal(2, AncientWineRune.CalculateHealAmount(250, 1m), "Ancient Wine should heal one percent of Max HP");
+		Equal(1, AncientWineRune.CalculateHealAmount(99, 2m), "Ancient Wine should floor two-percent healing with a minimum of one");
+		Equal(5, AncientWineRune.CalculateHealAmount(250, 2m), "Ancient Wine should heal two percent of Max HP");
 		Equal(2, SturdyRune.CalculateHealAmount(100, 50, 2m, 50m, 5m), "Sturdy should use two percent at exactly half HP");
 		Equal(5, SturdyRune.CalculateHealAmount(100, 49, 2m, 50m, 5m), "Sturdy should use five percent below half HP");
 	}

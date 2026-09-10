@@ -10,7 +10,7 @@ internal sealed class ShrinkEngineEnemyHex : HextechEnemyHexEffect
 		{
 			if (enemy.GetPowerAmount<SlipperyPower>() <= 0m)
 			{
-				await HextechEnemyPowerScalingHooks.Apply<SlipperyPower>(enemy, HextechMayhemModifier.ShrinkEngineSlipperyStacks, enemy, null);
+				await HextechEnemyPowerScalingHooks.ApplyExact<SlipperyPower>(enemy, context.TierValue(Kind, 0, 1, 2), enemy, null);
 			}
 		}
 	}

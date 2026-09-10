@@ -10,7 +10,5 @@ internal sealed partial class HextechMayhemModifier
 	internal const int MikaelsBlessingMaxTriggers = 2;
 	internal const decimal ShrinkRayStacks = 1m;
 	internal const decimal FirebrandBurnStacks = 2m;
-	internal const decimal ShrinkEngineSlipperyStacks = 1m;
-	internal const decimal CourageOfColossusPlatingPercent = 0.03m;
 	internal const decimal CantTouchThisBufferStacks = 1m;
 }

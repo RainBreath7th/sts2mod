@@ -19,6 +19,7 @@ internal static partial class HextechRuneConfigMenuHooks
 		int[] pendingPlayerRuneRerollLimit,
 		int[] pendingMonsterHexRerollLimit,
 		int[] pendingGoldenRerollChancePercent,
+		int[] pendingChaosRuneChancePercent,
 		List<NumericValueBinding> numericBindings,
 		bool compactLayout)
 	{
@@ -46,6 +47,8 @@ internal static partial class HextechRuneConfigMenuHooks
 			pendingGoldenRerollChancePercent,
 			numericBindings,
 			compactLayout));
+		if (HextechRuneGeneration.ChaosAvailable)
+			page.AddChild(CreateChaosRuneChanceSection(pendingChaosRuneChancePercent, numericBindings, compactLayout));
 		return page;
 	}
 
@@ -79,6 +82,40 @@ internal static partial class HextechRuneConfigMenuHooks
 			numericBindings,
 			compactLayout,
 			getDisplayText: () => $"{goldenRerollChancePercent[0]}%"));
+		section.AddChild(row);
+		return card;
+	}
+
+	private static Control CreateChaosRuneChanceSection(
+		int[] chaosRuneChancePercent,
+		List<NumericValueBinding> numericBindings,
+		bool compactLayout)
+	{
+		VBoxContainer section = CreateCardSection(
+			L("HEXTECH_CHAOS_RUNE_CHANCE_LABEL"),
+			null,
+			compactLayout,
+			out PanelContainer card);
+		Label description = CreateLabel(
+			L("HEXTECH_CHAOS_RUNE_CHANCE_DESCRIPTION"),
+			compactLayout ? 13 : 14,
+			new Color(0.78f, 0.84f, 0.9f, 0.9f));
+		description.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+		section.AddChild(description);
+
+		HBoxContainer row = new()
+		{
+			Alignment = BoxContainer.AlignmentMode.Center,
+			SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+			MouseFilter = Control.MouseFilterEnum.Pass
+		};
+		row.AddChild(CreateNumericStepper(
+			L("HEXTECH_CHAOS_RUNE_CHANCE_VALUE_LABEL"),
+			() => chaosRuneChancePercent[0],
+			value => chaosRuneChancePercent[0] = HextechRuneConfiguration.ClampGoldenRerollChancePercent(value),
+			numericBindings,
+			compactLayout,
+			getDisplayText: () => $"{chaosRuneChancePercent[0]}%"));
 		section.AddChild(row);
 		return card;
 	}

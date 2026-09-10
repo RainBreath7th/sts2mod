@@ -2,11 +2,6 @@ namespace HextechRunes;
 
 public sealed class DrainRune : HextechRelicBase
 {
-	protected override IEnumerable<DynamicVar> CanonicalVars =>
-	[
-		new DynamicVar("DoomMultiplier", 2m)
-	];
-
 	protected override IEnumerable<IHoverTip> ExtraHoverTips =>
 	[
 		HoverTipFactory.FromPower<DoomPower>()
@@ -30,27 +25,7 @@ public sealed class DrainRune : HextechRelicBase
 			return;
 		}
 
-		Creature target = enemies[FindHighestCurrentHpIndex(enemies.Select(static enemy => enemy.CurrentHp).ToArray())];
-		Flash([target]);
-		await PowerCmd.Apply<DoomPower>(target, amount * DynamicVars["DoomMultiplier"].BaseValue, Owner.Creature, null);
-	}
-
-	internal static int FindHighestCurrentHpIndex(IReadOnlyList<int> currentHpValues)
-	{
-		if (currentHpValues.Count == 0)
-		{
-			throw new ArgumentException("At least one current HP value is required.", nameof(currentHpValues));
-		}
-
-		int highestIndex = 0;
-		for (int i = 1; i < currentHpValues.Count; i++)
-		{
-			if (currentHpValues[i] > currentHpValues[highestIndex])
-			{
-				highestIndex = i;
-			}
-		}
-
-		return highestIndex;
+		Flash(enemies);
+		await MegaCrit.Sts2.Core.Commands.PowerCmd.Apply<DoomPower>(choiceContext, enemies, amount, Owner.Creature, null);
 	}
 }

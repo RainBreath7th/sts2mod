@@ -2,7 +2,6 @@ namespace HextechRunes;
 
 internal static class HextechRunePoolBuilder
 {
-	internal const int CharacterReservedSlotIndex = 0;
 	private const int RuneTagBiasBaseWeight = 100;
 	private const int RuneTagBiasNormalBonusPerMatch = 25;
 	private const int RuneTagBiasEndlessBonusPerMatch = 20;
@@ -44,28 +43,28 @@ internal static class HextechRunePoolBuilder
 		Dictionary<string, int> tagCounts = BuildOwnedRuneTagCounts(player, useEndlessTagWindow);
 
 		List<RelicModel> options = [];
+		int characterWeight = GetSavedCharacterWeight(player);
 		int picks = Math.Min(3, pool.Count);
 		for (int i = 0; i < picks; i++)
 		{
 			bool upgradeAlreadySelected = options.Any(IsUpgradeRune);
-			List<RelicModel> candidates = ConstrainCandidatesForSlot(
+			List<RelicModel> candidates = ConstrainCandidates(
 				pool,
-				GetRuneCharacterPool(player),
-				i,
 				upgradeAlreadySelected);
 			if (candidates.Count == 0)
 			{
 				break;
 			}
 
-			List<int> weights = BuildRuneTagWeights(candidates, tagCounts, useEndlessTagWindow, out int totalWeight);
+			List<int> weights = BuildSelectionWeights(candidates, tagCounts, useEndlessTagWindow, GetRuneCharacterPool(player), characterWeight, out int totalWeight);
 			int index = SelectWeightedIndex(weights, runState.Rng.Niche.NextInt(totalWeight));
 			RelicModel selected = candidates[index];
 			options.Add(CreateSelectableRuneOption(player, selected));
+			characterWeight = AdvanceCharacterWeight(player, characterWeight, selected);
 			RemoveById(pool, GetRelicId(selected));
 		}
 
-		return options;
+		return new HextechWeightedRuneOptions(HextechRuneGeneration.Transform(player, rarity, runState, -1, options), characterWeight);
 	}
 
 	public static List<RelicModel> BuildStableSelectableRunesForRarity(
@@ -96,7 +95,7 @@ internal static class HextechRunePoolBuilder
 
 		Dictionary<string, int> tagCounts = BuildOwnedRuneTagCounts(player, useEndlessTagWindow);
 		int picks = Math.Min(3, pool.Count);
-		return PickStableWeightedDistinct(
+		List<RelicModel> options = PickStableWeightedDistinct(
 			player,
 			pool,
 			picks,
@@ -107,9 +106,9 @@ internal static class HextechRunePoolBuilder
 			selectionStageIndex.ToString(),
 			HextechStableRandom.PlayerKey(player),
 			((int)rarity).ToString(),
-			effectiveExcludedIds == null ? "" : string.Join(",", effectiveExcludedIds.Select(static id => id.Entry).OrderBy(static entry => entry, StringComparer.Ordinal)))
-			.Select(relic => CreateSelectableRuneOption(player, relic))
-			.ToList();
+			effectiveExcludedIds == null ? "" : string.Join(",", effectiveExcludedIds.Select(static id => id.Entry).OrderBy(static entry => entry, StringComparer.Ordinal)));
+		return new HextechWeightedRuneOptions(HextechRuneGeneration.Transform(player, rarity, runState, selectionStageIndex,
+			options.Select(relic => CreateSelectableRuneOption(player, relic)).ToList()), HextechWeightedRuneOptions.GetWeight(options));
 	}
 
 	public static Dictionary<string, int> BuildOwnedRuneTagCounts(Player player, bool useEndlessTagWindow)
@@ -149,6 +148,35 @@ internal static class HextechRunePoolBuilder
 		return weights;
 	}
 
+	internal static int GetSavedCharacterWeight(Player player)
+	{
+		return player.RunState.Modifiers.OfType<HextechMayhemModifier>().LastOrDefault()
+			?.GetCharacterRuneWeight(player.NetId) ?? HextechWeightedRuneOptions.InitialCharacterWeightPercent;
+	}
+
+	internal static int AdvanceCharacterWeight(Player player, int weight, RelicModel drawn)
+	{
+		PlayerRuneCharacterPool? character = GetRuneCharacterPool(player);
+		return character.HasValue
+			? HextechWeightedRuneOptions.Advance(weight, IsRuneForCharacter(drawn, character)) : weight;
+	}
+
+	internal static List<int> BuildSelectionWeights(IReadOnlyList<RelicModel> pool,
+		IReadOnlyDictionary<string, int> tagCounts, bool useEndlessTagWindow,
+		PlayerRuneCharacterPool? character, int characterWeightPercent, out int totalWeight)
+	{
+		List<int> weights = BuildRuneTagWeights(pool, tagCounts, useEndlessTagWindow, out _);
+		totalWeight = 0;
+		for (int i = 0; i < weights.Count; i++)
+		{
+			// 同时放大通用权重，保留 125 × 150% 等组合的小数精度。
+			weights[i] = checked(weights[i] * (IsRuneForCharacter(pool[i], character) ? characterWeightPercent : 100));
+			totalWeight = checked(totalWeight + weights[i]);
+		}
+		// 配置可能只留下专属池；权重归零时仍须给出合法选项，不能让选择流程卡死。
+		return totalWeight > 0 ? weights : BuildRuneTagWeights(pool, tagCounts, useEndlessTagWindow, out totalWeight);
+	}
+
 	public static int SelectWeightedIndex(IReadOnlyList<int> weights, int roll)
 	{
 		for (int i = 0; i < weights.Count; i++)
@@ -177,32 +205,14 @@ internal static class HextechRunePoolBuilder
 		return type.Name.EndsWith("UpgradeRune", StringComparison.Ordinal);
 	}
 
-	internal static List<RelicModel> ConstrainCandidatesForSlot(
+	internal static List<RelicModel> ConstrainCandidates(
 		IEnumerable<RelicModel> candidates,
-		PlayerRuneCharacterPool? playerCharacterPool,
-		int slotIndex,
 		bool upgradeAlreadySelected)
 	{
 		List<RelicModel> eligible = candidates
 			.Where(relic => !upgradeAlreadySelected || !IsUpgradeRune(relic))
 			.ToList();
-		if (slotIndex != CharacterReservedSlotIndex)
-		{
-			return eligible;
-		}
-
-		List<RelicModel> characterCandidates = eligible
-			.Where(relic => IsRuneForCharacter(relic, playerCharacterPool))
-			.ToList();
-		if (characterCandidates.Count > 0)
-		{
-			return characterCandidates;
-		}
-
-		List<RelicModel> genericCandidates = eligible
-			.Where(IsGenericRune)
-			.ToList();
-		return genericCandidates.Count > 0 ? genericCandidates : eligible;
+		return eligible;
 	}
 
 	public static HextechRarityTier GetRarityForOptions(IReadOnlyList<RelicModel> relics)
@@ -323,20 +333,19 @@ internal static class HextechRunePoolBuilder
 			.OrderBy(static relic => (relic.CanonicalInstance?.Id ?? relic.Id).Entry, StringComparer.Ordinal)
 			.ToList();
 		List<RelicModel> selected = new(Math.Min(Math.Max(0, count), pool.Count));
+		int characterWeight = GetSavedCharacterWeight(player);
 		for (int i = 0; i < count && pool.Count > 0; i++)
 		{
 			bool upgradeAlreadySelected = selected.Any(IsUpgradeRune);
-			List<RelicModel> slotCandidates = ConstrainCandidatesForSlot(
+			List<RelicModel> slotCandidates = ConstrainCandidates(
 				pool,
-				GetRuneCharacterPool(player),
-				i,
 				upgradeAlreadySelected);
 			if (slotCandidates.Count == 0)
 			{
 				break;
 			}
 
-			List<int> weights = BuildRuneTagWeights(slotCandidates, tagCounts, useEndlessTagWindow, out int totalWeight);
+			List<int> weights = BuildSelectionWeights(slotCandidates, tagCounts, useEndlessTagWindow, GetRuneCharacterPool(player), characterWeight, out int totalWeight);
 			string poolKey = BuildWeightedPoolKey(slotCandidates, weights);
 			int roll = HextechStableRandom.Index(
 				runState,
@@ -345,8 +354,6 @@ internal static class HextechRunePoolBuilder
 					saltParts,
 					"pick",
 					i.ToString(),
-					"slot-role",
-					i == CharacterReservedSlotIndex ? "character-reserved" : "open",
 					"player",
 					HextechStableRandom.PlayerKey(player),
 					"pool",
@@ -354,20 +361,21 @@ internal static class HextechRunePoolBuilder
 			int index = SelectWeightedIndex(weights, roll);
 			RelicModel chosen = slotCandidates[index];
 			selected.Add(chosen);
+			characterWeight = AdvanceCharacterWeight(player, characterWeight, chosen);
 			RemoveById(pool, GetRelicId(chosen));
 		}
 
-		return selected;
+		return new HextechWeightedRuneOptions(selected, characterWeight);
 	}
 
-	private static PlayerRuneCharacterPool? GetRuneCharacterPool(Player player)
+	internal static PlayerRuneCharacterPool? GetRuneCharacterPool(Player player)
 	{
 		return HextechPlayerContextHelper.TryGetRuneCharacterPool(player, out PlayerRuneCharacterPool characterPool)
 			? characterPool
 			: null;
 	}
 
-	private static bool IsRuneForCharacter(RelicModel relic, PlayerRuneCharacterPool? characterPool)
+	internal static bool IsRuneForCharacter(RelicModel relic, PlayerRuneCharacterPool? characterPool)
 	{
 		return characterPool.HasValue
 			&& HextechContentRegistry.PlayerRuneMetadata.TryGetRegistration(
@@ -376,13 +384,6 @@ internal static class HextechRunePoolBuilder
 			&& registration.CharacterPool == characterPool;
 	}
 
-	private static bool IsGenericRune(RelicModel relic)
-	{
-		return HextechContentRegistry.PlayerRuneMetadata.TryGetRegistration(
-				(relic.CanonicalInstance ?? relic).GetType(),
-				out PlayerRuneRegistration registration)
-			&& !registration.CharacterPool.HasValue;
-	}
 
 	private static ModelId GetRelicId(RelicModel relic)
 	{

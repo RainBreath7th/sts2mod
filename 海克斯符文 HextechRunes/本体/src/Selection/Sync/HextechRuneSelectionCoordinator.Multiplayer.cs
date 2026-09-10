@@ -48,6 +48,9 @@ internal static partial class HextechRuneSelectionCoordinator
 			if (hasJournalEntry)
 			{
 				RelicModel recoveredRelic = ModelDb.GetById<RelicModel>(journalEntry.SelectedId).ToMutable();
+				if (!journalEntry.Applied && recoveredRelic is IHextechGeneratedRune generated
+					&& !generated.TryImportSelectionData(journalEntry.SelectionData))
+					throw CreateProtocolFailure("generated rune recovery", "Checkpoint omitted a valid generated recipe.");
 				// Applied 是不可重放的提交边界；符文之后可能自我消耗、替换或被其他机制移除，
 				// 因此当前背包缺席不能反证当时未成功发放。
 				resolvedSelections.Add((player, recoveredRelic, journalEntry.Applied));
@@ -156,8 +159,9 @@ internal static partial class HextechRuneSelectionCoordinator
 					actIndex,
 					choiceOrdinal,
 					selection.Player.NetId,
-					selectedId);
+					selectedId, (selectedRelic as IHextechGeneratedRune)?.ExportSelectionData() ?? "");
 				resolvedSelections.Add((selection.Player, selectedRelic, Applied: false));
+				modifier.CommitCharacterRuneWeight(selection.Player, selectedResult.FinalOptions);
 				HextechTelemetry.RecordRuneChoice(runState, actIndex, rarity, selection.Player, selectedResult.FinalOptions, selectedRelic, selectedResult.RerollCount, choiceOrdinal);
 			}
 
@@ -177,7 +181,9 @@ internal static partial class HextechRuneSelectionCoordinator
 				}
 
 				ModelId selectedId = selectedRelic.CanonicalInstance?.Id ?? selectedRelic.Id;
-				bool currentlyOwned = PlayerHasRelicId(player, selectedId);
+				bool currentlyOwned = selectedRelic is IHextechGeneratedRune generatedSelection
+					? player.Relics.OfType<IHextechGeneratedRune>().Any(owned => owned.ExportSelectionData() == generatedSelection.ExportSelectionData())
+					: PlayerHasRelicId(player, selectedId);
 				if (!HextechRuneSelectionJournalState.RequiresRelicObtain(applied, currentlyOwned))
 				{
 					if (!applied)

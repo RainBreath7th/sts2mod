@@ -136,7 +136,12 @@ internal static class HextechMonsterHexRegistry
 		Monster<StatsRune>(MonsterHexKind.Stats, HextechRarityTier.Silver),
 		Monster<StatsOnStatsRune>(MonsterHexKind.StatsOnStats, HextechRarityTier.Gold),
 		Monster<StatsOnStatsOnStatsRune>(MonsterHexKind.StatsOnStatsOnStats, HextechRarityTier.Prismatic),
-		Monster<MiserableFateRune>(MonsterHexKind.MiserableFate, HextechRarityTier.Prismatic)
+		Monster<MiserableFateRune>(MonsterHexKind.MiserableFate, HextechRarityTier.Prismatic),
+		Monster<LivingFogHex>(MonsterHexKind.LivingFog, HextechRarityTier.Prismatic),
+		Monster<CeremonialBeastHex>(MonsterHexKind.CeremonialBeast, HextechRarityTier.Prismatic),
+		Monster<SoulFyshHex>(MonsterHexKind.SoulFysh, HextechRarityTier.Gold),
+		Monster<ThievingHopperHex>(MonsterHexKind.ThievingHopper, HextechRarityTier.Gold),
+		Monster<HauntedShipHex>(MonsterHexKind.HauntedShip, HextechRarityTier.Silver)
 	];
 
 	private static MonsterHexRegistration Monster<TRelic>(

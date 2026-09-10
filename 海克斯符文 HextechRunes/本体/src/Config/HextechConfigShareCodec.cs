@@ -41,7 +41,8 @@ internal static class HextechConfigShareCodec
 		[property: JsonPropertyName("w2")] int[]? SecondActAfterSilverRuneRarityWeights,
 		[property: JsonPropertyName("wf")] int[]? ForgeRarityWeights,
 		[property: JsonPropertyName("fp")] int RandomForgeShopPrice,
-		[property: JsonPropertyName("fg")] bool RandomForgeDirectGrant);
+		[property: JsonPropertyName("fg")] bool RandomForgeDirectGrant,
+		[property: JsonPropertyName("cc")] int? ChaosRuneChancePercent = null);
 
 	private static readonly JsonSerializerOptions JsonOptions = new()
 	{
@@ -73,7 +74,8 @@ internal static class HextechConfigShareCodec
 			SecondActAfterSilverRuneRarityWeights: null,
 			ForgeRarityWeights: [snapshot.ForgeRarityWeights.Silver, snapshot.ForgeRarityWeights.Gold, snapshot.ForgeRarityWeights.Prismatic],
 			RandomForgeShopPrice: snapshot.RandomForgeShopPrice,
-			RandomForgeDirectGrant: snapshot.RandomForgeDirectGrant);
+			RandomForgeDirectGrant: snapshot.RandomForgeDirectGrant,
+			ChaosRuneChancePercent: snapshot.ChaosRuneChancePercent);
 
 		byte[] json = JsonSerializer.SerializeToUtf8Bytes(payload, JsonOptions);
 		using MemoryStream output = new();
@@ -164,7 +166,8 @@ internal static class HextechConfigShareCodec
 			ForgeRarityWeights: ToForgeRarityWeights(payload.ForgeRarityWeights, HextechRuneConfiguration.GetDefaultForgeRarityWeights()),
 			RandomForgeShopPrice: HextechRuneConfiguration.ClampRandomForgeShopPrice(payload.RandomForgeShopPrice),
 			RandomForgeDirectGrant: payload.RandomForgeDirectGrant,
-			ModEnabled: current.ModEnabled);
+			ModEnabled: current.ModEnabled,
+			ChaosRuneChancePercent: Math.Clamp(payload.ChaosRuneChancePercent ?? 33, 0, 100));
 
 		int normalizedDisabledCount = disabledPlayerRuneIds.Count + disabledMonsterHexIds.Count + disabledForgeIds.Count;
 		return new ImportPreview(

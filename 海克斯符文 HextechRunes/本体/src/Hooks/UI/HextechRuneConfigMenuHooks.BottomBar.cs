@@ -28,6 +28,7 @@ internal static partial class HextechRuneConfigMenuHooks
 		int[][] pendingRuneWeightsByAct,
 		int[] pendingForgeWeights,
 		int[] pendingGoldenRerollChancePercent,
+		int[] pendingChaosRuneChancePercent,
 		int[] pendingForgePrice,
 		bool[] pendingShowHiddenRelicsToggle,
 		bool[] pendingShowUpdateNotice,
@@ -115,6 +116,7 @@ internal static partial class HextechRuneConfigMenuHooks
 					CopyArray(defaults.EnemyHexCountsByAct, pendingEnemyHexCounts);
 					pendingPlayerRuneRerollLimit[0] = defaults.PlayerRuneRerollLimit;
 					pendingMonsterHexRerollLimit[0] = defaults.MonsterHexRerollLimit;
+					pendingChaosRuneChancePercent[0] = defaults.ChaosRuneChancePercent;
 					UpdateNumericLabels(numericBindings);
 					break;
 				case 1:
@@ -168,7 +170,7 @@ internal static partial class HextechRuneConfigMenuHooks
 				ToForgeRarityWeights(pendingForgeWeights),
 				pendingForgePrice[0],
 				pendingRandomForgeDirectGrant[0],
-				pendingModEnabled[0]));
+				pendingModEnabled[0], pendingChaosRuneChancePercent[0]));
 			HextechRelicVisibilityHooks.SetShowHiddenRelicsToggle(pendingShowHiddenRelicsToggle[0]);
 			HextechRelicVisibilityHooks.SetShowUpdateNotice(pendingShowUpdateNotice[0]);
 			HextechRelicVisibilityHooks.SetCollapseEnemyHexes(pendingCollapseEnemyHexes[0]);
@@ -197,7 +199,7 @@ internal static partial class HextechRuneConfigMenuHooks
 			ToForgeRarityWeights(pendingForgeWeights),
 			pendingForgePrice[0],
 			pendingRandomForgeDirectGrant[0],
-			pendingModEnabled[0]));
+			pendingModEnabled[0], pendingChaosRuneChancePercent[0]));
 		shareActions[0] = () =>
 		{
 			string code = buildPendingCode();
@@ -228,6 +230,7 @@ internal static partial class HextechRuneConfigMenuHooks
 			pendingRandomForgeDirectGrant[0] = imported.RandomForgeDirectGrant;
 			pendingPreventConsecutiveSilverRunes[0] = imported.PreventConsecutiveSilverRunes;
 			pendingGoldenRerollChancePercent[0] = imported.GoldenRerollChancePercent;
+			pendingChaosRuneChancePercent[0] = imported.ChaosRuneChancePercent;
 			// ModEnabled 与 UI 偏好(折叠/隐藏遗物开关等)不随导入改变。
 			UpdateNumericLabels(numericBindings);
 			UpdateBooleanToggles(booleanBindings);

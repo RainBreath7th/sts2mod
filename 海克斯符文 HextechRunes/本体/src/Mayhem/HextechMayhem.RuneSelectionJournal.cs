@@ -2,6 +2,14 @@ namespace HextechRunes;
 
 internal sealed partial class HextechMayhemModifier
 {
+	internal int GetCharacterRuneWeight(ulong playerNetId) => _runContext.RuneSelectionJournal.GetCharacterWeight(playerNetId);
+
+	internal void CommitCharacterRuneWeight(Player player, IReadOnlyList<RelicModel> options)
+	{
+		if (options is HextechWeightedRuneOptions weighted)
+			_runContext.RuneSelectionJournal.CommitCharacterWeight(player.NetId, weighted.CharacterWeightPercent);
+	}
+
 	internal bool HasRuneSelectionJournalEntriesForAct(int actIndex)
 	{
 		return _runContext.RuneSelectionJournal.HasEntriesForAct(actIndex);
@@ -69,7 +77,7 @@ internal sealed partial class HextechMayhemModifier
 
 		ModelId? selectedId = HextechCatalog.GetConfigurablePlayerRuneIds()
 			.SingleOrDefault(id => string.Equals(id.Entry, selectedEntry, StringComparison.Ordinal));
-		if (selectedId == null)
+		if (selectedId == null || ModelDb.GetById<RelicModel>(selectedId) is IHextechGeneratedRune)
 		{
 			return false;
 		}
@@ -87,13 +95,13 @@ internal sealed partial class HextechMayhemModifier
 		int actIndex,
 		int choiceOrdinal,
 		ulong playerNetId,
-		ModelId selectedId)
+		ModelId selectedId, string selectionData = "")
 	{
 		return _runContext.RuneSelectionJournal.RecordSelected(
 			actIndex,
 			choiceOrdinal,
 			playerNetId,
-			selectedId);
+			selectedId, selectionData);
 	}
 
 	internal bool MarkRuneSelectionJournalApplied(

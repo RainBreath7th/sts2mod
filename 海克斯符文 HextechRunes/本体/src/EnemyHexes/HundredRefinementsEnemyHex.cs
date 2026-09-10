@@ -31,9 +31,9 @@ internal sealed class HundredRefinementsEnemyHex : HextechEnemyHexEffect
 	{
 		return strengthTier switch
 		{
-			<= 1 => -3,
-			2 => -5,
-			_ => -8
+			<= 1 => -2,
+			2 => -4,
+			_ => -6
 		};
 	}
 }

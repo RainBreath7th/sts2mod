@@ -24,7 +24,7 @@ public sealed class HappyAccidentRune : HextechRelicBase
 			return;
 		}
 
-		int statusCount = CountStatusCards(Owner.PlayerCombatState?.ExhaustPile.Cards ?? []);
+		int statusCount = CountStatusCards(Owner.PlayerCombatState?.AllPiles.SelectMany(static pile => pile.Cards) ?? []);
 		int orbCount = ResolveOrbCount(statusCount, DynamicVars["OrbCount"].IntValue);
 		if (orbCount <= 0)
 		{

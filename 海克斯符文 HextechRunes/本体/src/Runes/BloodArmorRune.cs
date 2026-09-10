@@ -23,8 +23,7 @@ public sealed class BloodArmorRune : HextechRelicBase
 			|| creature != Owner.Creature
 			|| delta >= 0m
 			|| Owner.Creature.IsDead
-			|| !IsIroncladPlayer(Owner)
-			|| !HextechSts2Compat.IsPartOfPlayerTurn(Owner))
+			|| !IsIroncladPlayer(Owner))
 		{
 			return Task.CompletedTask;
 		}

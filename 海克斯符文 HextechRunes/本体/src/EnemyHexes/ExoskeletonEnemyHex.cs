@@ -11,7 +11,10 @@ internal sealed class ExoskeletonEnemyHex : HextechEnemyHexEffect
 			return Task.CompletedTask;
 		}
 
-		int hardToKill = Math.Max(6, (int)Math.Floor(enemy.MaxHp * 0.10m));
+		int hardToKill = ResolveHardToKill(enemy.MaxHp, context.GetStrengthTier(Kind));
 		return PowerCmd.Apply<HardToKillPower>(enemy, hardToKill, enemy, null);
 	}
+
+	internal static int ResolveHardToKill(int maxHp, int tier)
+		=> Math.Max(6, (int)Math.Floor(maxHp * (tier <= 1 ? 0.20m : tier == 2 ? 0.15m : 0.10m)));
 }

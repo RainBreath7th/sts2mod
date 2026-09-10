@@ -155,3 +155,33 @@ public sealed class GripHex : HextechRelicBase
 {
 	public override bool IsAvailableForPlayer(Player player) => false;
 }
+
+/// <summary>升级：活雾</summary>
+public sealed class LivingFogHex : HextechRelicBase
+{
+	public override bool IsAvailableForPlayer(Player player) => false;
+}
+
+/// <summary>升级：仪式兽</summary>
+public sealed class CeremonialBeastHex : HextechRelicBase
+{
+	public override bool IsAvailableForPlayer(Player player) => false;
+}
+
+/// <summary>升级：灵魂异鱼</summary>
+public sealed class SoulFyshHex : HextechRelicBase
+{
+	public override bool IsAvailableForPlayer(Player player) => false;
+}
+
+/// <summary>升级：偷窃草蜢</summary>
+public sealed class ThievingHopperHex : HextechRelicBase
+{
+	public override bool IsAvailableForPlayer(Player player) => false;
+}
+
+/// <summary>升级：幽灵船</summary>
+public sealed class HauntedShipHex : HextechRelicBase
+{
+	public override bool IsAvailableForPlayer(Player player) => false;
+}

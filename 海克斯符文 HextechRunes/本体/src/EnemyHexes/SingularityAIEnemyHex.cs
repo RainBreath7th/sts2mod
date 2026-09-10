@@ -34,7 +34,7 @@ internal sealed class SingularityAIEnemyHex : HextechEnemyHexEffect
 			.OfType<Player>()
 			.OrderBy(static player => player.NetId))
 		{
-			int statusCount = context.TierValue(Kind, 1, 1, 2);
+			int statusCount = context.TierValue(Kind, 0, 1, 2);
 			for (int i = 0; i < statusCount; i++)
 			{
 				int statusIndex = HextechStableRandom.Index(

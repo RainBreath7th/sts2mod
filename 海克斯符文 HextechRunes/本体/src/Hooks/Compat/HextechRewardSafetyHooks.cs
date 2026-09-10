@@ -231,6 +231,11 @@ internal static class HextechRewardSafetyHooks
 		[HarmonyPriority(Priority.Low)]
 		private static bool Prefix(CardReward cardReward, ref IReadOnlyList<CardRewardAlternative> __result)
 		{
+			if (!HextechMayhemModifier.IsEnabledForRun(cardReward.Player.RunState))
+			{
+				return true;
+			}
+
 			__result = GenerateCardRewardAlternativesWithoutVanillaLimit(cardReward);
 			return false;
 		}

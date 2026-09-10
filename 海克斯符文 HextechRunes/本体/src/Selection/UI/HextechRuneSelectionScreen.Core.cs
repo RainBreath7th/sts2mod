@@ -91,7 +91,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		HextechSelectionMetadataMode metadataMode,
 		HextechGoldenRerollSession? goldenRerollSession)
 	{
-		_relics = relics.ToList();
+		_relics = HextechWeightedRuneOptions.Copy(relics);
 		_rerollFunc = rerollFunc;
 		_enemyHexRerollFunc = enemyHexOptions?.RerollFunc;
 		_enemyHexChanged = enemyHexOptions?.Changed;

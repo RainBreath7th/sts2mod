@@ -4,7 +4,7 @@ public sealed class AncientWineRune : HextechRelicBase
 {
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
-		new DynamicVar("HealPercent", 1m)
+		new DynamicVar("HealPercent", 2m)
 	];
 
 	public override Task AfterCardPlayed(PlayerChoiceContext context, CardPlay cardPlay)

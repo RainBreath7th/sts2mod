@@ -11,7 +11,11 @@ internal sealed class OmniDragonSoulEnemyHex : HextechEnemyHexEffect
 			return;
 		}
 
-		int stacks = context.TierValue(Kind, 1, 2, 3);
+		int stacks = context.TierValue(Kind, 0, 1, 2);
+		if (stacks <= 0)
+		{
+			return;
+		}
 		int roll = HextechStableRandom.Index(
 			context.RunState,
 			3,

@@ -20,7 +20,7 @@ public sealed class MikaelsBlessingCard : HextechOwnerPoolTokenCard
 	];
 
 	public MikaelsBlessingCard()
-		: base(1, CardType.Skill, CardRarity.Token, TargetType.Self, shouldShowInCardLibrary: true)
+		: base(0, CardType.Skill, CardRarity.Token, TargetType.Self, shouldShowInCardLibrary: true)
 	{
 	}
 
@@ -52,6 +52,6 @@ public sealed class MikaelsBlessingCard : HextechOwnerPoolTokenCard
 
 	protected override void OnUpgrade()
 	{
-		EnergyCost.UpgradeBy(-1);
+		DynamicVars["HealPercent"].UpgradeValueBy(5m);
 	}
 }

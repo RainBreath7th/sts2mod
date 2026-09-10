@@ -799,53 +799,12 @@ internal static partial class Program
 		Equal(2, HextechRunePoolBuilder.SelectWeightedIndex(weights, 999), "overflow clamps to last slot");
 	}
 
-	private static void RuneSelectionCandidateConstraintsReserveCharacterAndLimitUpgrades()
+	private static void RuneSelectionCandidateConstraintsMixCharactersAndLimitUpgrades()
 	{
-		RelicModel ironcladRune = new BerserkRune();
-		RelicModel ironcladUpgrade = new BloodlettingUpgradeRune();
-		RelicModel silentRune = new SnakebiteRune();
-		RelicModel genericRune = new JudicatorRune();
-		RelicModel genericUpgrade = new AutomationUpgradeRune();
-		RelicModel[] all = [ genericUpgrade, silentRune, ironcladUpgrade, genericRune, ironcladRune ];
-
-		List<RelicModel> reserved = HextechRunePoolBuilder.ConstrainCandidatesForSlot(
-			all,
-			PlayerRuneCharacterPool.Ironclad,
-			HextechRunePoolBuilder.CharacterReservedSlotIndex,
-			upgradeAlreadySelected: false);
-		SetEqual(
-			new[] { ironcladRune, ironcladUpgrade },
-			reserved,
-			"reserved slot should contain only current-character candidates while that pool is available");
-
-		List<RelicModel> reservedWithUpgradeTaken = HextechRunePoolBuilder.ConstrainCandidatesForSlot(
-			all,
-			PlayerRuneCharacterPool.Ironclad,
-			HextechRunePoolBuilder.CharacterReservedSlotIndex,
-			upgradeAlreadySelected: true);
-		SequenceEqual(
-			new[] { ironcladRune },
-			reservedWithUpgradeTaken,
-			"reserved slot should preserve the character guarantee without creating a second UpgradeRune");
-
-		List<RelicModel> genericFallback = HextechRunePoolBuilder.ConstrainCandidatesForSlot(
-			[ silentRune, genericUpgrade, genericRune ],
-			PlayerRuneCharacterPool.Ironclad,
-			HextechRunePoolBuilder.CharacterReservedSlotIndex,
-			upgradeAlreadySelected: false);
-		SetEqual(
-			new[] { genericRune, genericUpgrade },
-			genericFallback,
-			"reserved slot should use generic candidates only after the current-character pool is exhausted");
-
-		List<RelicModel> openSlotWithUpgradeTaken = HextechRunePoolBuilder.ConstrainCandidatesForSlot(
-			all,
-			PlayerRuneCharacterPool.Ironclad,
-			slotIndex: 1,
-			upgradeAlreadySelected: true);
-		Expect(
-			openSlotWithUpgradeTaken.All(static relic => !HextechRunePoolBuilder.IsUpgradeRune(relic)),
-			"open slots must not expose a second UpgradeRune");
+		RelicModel[] candidates = [new BerserkRune(), new BloodlettingUpgradeRune(), new JudicatorRune(), new AutomationUpgradeRune()];
+		SequenceEqual(candidates, HextechRunePoolBuilder.ConstrainCandidates(candidates, false), "every slot mixes generic and character candidates");
+		RelicModel[] noUpgrades = [candidates[0], candidates[2]];
+		SequenceEqual(noUpgrades, HextechRunePoolBuilder.ConstrainCandidates(candidates, true), "one upgrade per offer remains enforced");
 	}
 
 	private static void UnconfirmedRuneSelectionCancelsInsteadOfDefaultingToFirstOption()

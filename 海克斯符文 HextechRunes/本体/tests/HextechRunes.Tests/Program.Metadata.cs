@@ -511,7 +511,8 @@ internal static partial class Program
 			.ToArray();
 
 		Expect(duplicatedTypes.Length == 0, $"duplicate player rune registrations: {string.Join(", ", duplicatedTypes.Select(static type => type.Name))}");
-		SequenceEqual(
+		// AllTypes 按稀有度分组；调整稀有度不应强迫维护者重排原始注册表。
+		SetEqual(
 			metadata.Registrations.Select(static registration => registration.Type).Distinct(),
 			metadata.AllTypes,
 			"all player rune metadata types");

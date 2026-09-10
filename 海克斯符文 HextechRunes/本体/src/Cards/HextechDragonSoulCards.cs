@@ -44,7 +44,7 @@ public sealed class InfernalDragonSoulCard : DragonSoulCardBase
 
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
-		new DynamicVar("BurnPower", 6m)
+		new DynamicVar("BurnPower", 8m)
 	];
 
 	protected override IEnumerable<IHoverTip> ExtraHoverTips =>

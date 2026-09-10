@@ -15,7 +15,7 @@ internal sealed class WarmogsSpiritEnemyHex : HextechEnemyHexEffect
 
 		Player owner = card.Owner;
 		ulong playerId = owner.NetId;
-		int cardsPerPlating = context.TierValue(Kind, 10, 8, 6);
+		int cardsPerPlating = context.TierValue(Kind, 8, 6, 4);
 		int cardsDrawn = context.Tracking.PlayerCardsDrawnThisCombat.GetValueOrDefault(playerId, 0) + 1;
 		context.Tracking.PlayerCardsDrawnThisCombat[playerId] = cardsDrawn;
 		if (cardsDrawn % cardsPerPlating != 0)
@@ -60,7 +60,7 @@ internal sealed class WarmogsSpiritEnemyHex : HextechEnemyHexEffect
 		}
 
 		int pendingPlating = 0;
-		int cardsPerPlating = context.TierValue(MonsterHexKind.WarmogsSpirit, 10, 8, 6);
+		int cardsPerPlating = context.TierValue(MonsterHexKind.WarmogsSpirit, 8, 6, 4);
 		foreach (Player player in combatState.Players.OrderBy(static player => player.NetId))
 		{
 			int drawnCards = CountPlayerDrawnCardsFromHistory(player);

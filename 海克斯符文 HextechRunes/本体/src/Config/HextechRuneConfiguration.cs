@@ -7,7 +7,7 @@ internal static class HextechRuneConfiguration
 {
 	private const string ConfigFileName = "rune_config.json";
 	// v15(0.8.4):一次性强制重置——旧版本配置载入时整体丢弃回默认(含禁用池/数量/权重/重随/价格/总开关)。
-	private const int CurrentConfigVersion = 33;
+	private const int CurrentConfigVersion = 35;
 	private const int ForceResetBelowConfigVersion = 15;
 	private const int HexActCount = 3;
 	private const int MinActHexCount = 0;
@@ -232,7 +232,8 @@ internal static class HextechRuneConfiguration
 				ToForgeRarityWeights(_config.ForgeRarityWeights, DefaultForgeRarityWeights),
 				_config.RandomForgeShopPrice,
 				_config.RandomForgeDirectGrant,
-				_config.ModEnabled));
+				_config.ModEnabled,
+				_config.ChaosRuneChancePercent));
 		}
 	}
 
@@ -313,6 +314,7 @@ internal static class HextechRuneConfiguration
 			_config.RuneRarityWeights = null;
 			_config.PreventConsecutiveSilverRunes = normalized.PreventConsecutiveSilverRunes;
 			_config.GoldenRerollChancePercent = normalized.GoldenRerollChancePercent;
+			_config.ChaosRuneChancePercent = normalized.ChaosRuneChancePercent;
 			_config.FirstActRuneRarityWeights = null;
 			_config.NormalRuneRarityWeights = null;
 			_config.SecondActAfterSilverRuneRarityWeights = null;
@@ -544,6 +546,17 @@ internal static class HextechRuneConfiguration
 			config.MonsterHexRerollLimit = DefaultMonsterHexRerollLimit;
 		}
 
+		if (previousConfigVersion < 34)
+		{
+			// 默认关闭只迁移一次，后续尊重玩家手动重新启用的选择。
+			disabledIds.UnionWith(GetPlayerRuneIds([typeof(IllusoryWeaponRune)]));
+		}
+
+		if (previousConfigVersion < 35)
+		{
+			disabledIds.UnionWith(GetPlayerRuneIds([typeof(AutoPatrolRune)]));
+		}
+
 		config.ConfigVersion = CurrentConfigVersion;
 		config.DisabledPlayerRuneIds = disabledIds;
 		config.PlayerHexCountsByAct = NormalizePlayerHexCounts(config.PlayerHexCountsByAct);
@@ -557,6 +570,7 @@ internal static class HextechRuneConfiguration
 			DefaultRuneRarityWeightsByAct));
 		config.RuneRarityWeights = null;
 		config.GoldenRerollChancePercent = ClampGoldenRerollChancePercent(config.GoldenRerollChancePercent);
+		config.ChaosRuneChancePercent = Math.Clamp(config.ChaosRuneChancePercent, 0, 100);
 		config.FirstActRuneRarityWeights = null;
 		config.NormalRuneRarityWeights = null;
 		config.SecondActAfterSilverRuneRarityWeights = null;
@@ -709,7 +723,8 @@ internal static class HextechRuneConfiguration
 			NormalizeForgeRarityWeights(snapshot.ForgeRarityWeights, DefaultForgeRarityWeights),
 			ClampRandomForgeShopPrice(snapshot.RandomForgeShopPrice),
 			snapshot.RandomForgeDirectGrant,
-			snapshot.ModEnabled);
+			snapshot.ModEnabled,
+			Math.Clamp(snapshot.ChaosRuneChancePercent, 0, 100));
 	}
 
 	internal static HextechRarityWeights NormalizeRarityWeights(HextechRarityWeights weights, HextechRarityWeights fallback)
@@ -981,6 +996,8 @@ internal static class HextechRuneConfiguration
 
 		[JsonPropertyName("golden_reroll_chance_percent")]
 		public int GoldenRerollChancePercent { get; set; } = DefaultGoldenRerollChancePercent;
+
+		public int ChaosRuneChancePercent { get; set; } = 33;
 
 		[JsonPropertyName("first_act_rune_rarity_weights")]
 		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

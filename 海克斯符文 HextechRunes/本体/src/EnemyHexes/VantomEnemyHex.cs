@@ -4,7 +4,7 @@ internal sealed class VantomEnemyHex : HextechEnemyHexEffect
 {
 	internal override MonsterHexKind Kind => MonsterHexKind.Vantom;
 
-	private const decimal MaxHpPerStack = 25m;
+	internal const decimal MaxHpPerStack = 30m;
 
 	internal override Task ApplyCombatStartToEnemy(HextechEnemyHexContext context, Creature enemy, CombatRoom room)
 	{

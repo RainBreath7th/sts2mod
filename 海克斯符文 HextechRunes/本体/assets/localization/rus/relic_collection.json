@@ -148,5 +148,8 @@
   "HEXTECH_COMMUNITY_TAB_MINE": "Мои",
   "HEXTECH_COMMUNITY_HIDDEN": "(скрыто)",
   "HEXTECH_MOD_ENABLED_TOGGLE_TITLE": "Enable mod",
-  "HEXTECH_MOD_ENABLED_TOGGLE_DESCRIPTION": "When off, this mod stops affecting runs starting from your next run, matching the vanilla game (your current run is unaffected). In multiplayer this follows the host's setting."
+  "HEXTECH_MOD_ENABLED_TOGGLE_DESCRIPTION": "When off, this mod stops affecting runs starting from your next run, matching the vanilla game (your current run is unaffected). In multiplayer this follows the host's setting.",
+  "HEXTECH_CHAOS_RUNE_CHANCE_LABEL": "Tony’s Chaos Lab: Chaos Runes",
+  "HEXTECH_CHAOS_RUNE_CHANCE_DESCRIPTION": "Each candidate independently has this chance to become a chaos rune. 0% disables conversion; 100% converts all candidates. Rerolls roll again; acquired recipes stay fixed. Applies to new runs and uses the host’s setting in multiplayer.",
+  "HEXTECH_CHAOS_RUNE_CHANCE_VALUE_LABEL": "Conversion chance"
 }

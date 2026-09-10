@@ -148,5 +148,8 @@
   "HEXTECH_COMMUNITY_ERR_BANNED": "Esta conta está proibida de enviar.",
   "HEXTECH_COMMUNITY_SUMMARY": "Hexes próprios {0}/{1}\nHexes inimigos {2}/{3}\nQtd. própria {4}   inimiga {5}",
   "HEXTECH_COMMUNITY_TAB_MINE": "Meus",
-  "HEXTECH_COMMUNITY_HIDDEN": "(oculto)"
+  "HEXTECH_COMMUNITY_HIDDEN": "(oculto)",
+  "HEXTECH_CHAOS_RUNE_CHANCE_LABEL": "Tony’s Chaos Lab: Chaos Runes",
+  "HEXTECH_CHAOS_RUNE_CHANCE_DESCRIPTION": "Each candidate independently has this chance to become a chaos rune. 0% disables conversion; 100% converts all candidates. Rerolls roll again; acquired recipes stay fixed. Applies to new runs and uses the host’s setting in multiplayer.",
+  "HEXTECH_CHAOS_RUNE_CHANCE_VALUE_LABEL": "Conversion chance"
 }

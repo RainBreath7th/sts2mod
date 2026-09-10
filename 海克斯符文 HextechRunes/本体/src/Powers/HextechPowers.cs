@@ -199,6 +199,7 @@ public sealed class HextechPlayerSlowPower : HextechPowerBase
 public sealed class HextechTemporarySlowPower : HextechPowerBase, ITemporaryPower
 {
 	private bool _shouldIgnoreNextInstance;
+	private bool _isExpiringPreviousRound;
 	private int _appliedRound = -1;
 
 	public override PowerType Type => PowerType.None;
@@ -236,12 +237,29 @@ public sealed class HextechTemporarySlowPower : HextechPowerBase, ITemporaryPowe
 
 	public override async Task AfterPowerAmountChanged(PlayerChoiceContext choiceContext, PowerModel power, decimal amount, Creature? applier, CardModel? cardSource)
 	{
-		if (power != this || amount == Amount)
+		if (power != this || _isExpiringPreviousRound || amount == Amount)
 		{
 			return;
 		}
 
-		RememberAppliedRound(Owner);
+		// 新回合的回调可能先于本 Power 的清理回调叠层。只保留这次新增量，
+		// 不能刷新旧层的期限。先修正隐藏计数，避免正负抵消到零时原版移除整个实例。
+		int expiredAmount = RecordStackedAmount(Owner.CombatState?.RoundNumber ?? _appliedRound, (int)amount, Amount);
+		if (expiredAmount != 0)
+		{
+			_isExpiringPreviousRound = true;
+			try
+			{
+				await MegaCrit.Sts2.Core.Commands.PowerCmd.ModifyAmount(choiceContext, this, -expiredAmount, Owner, null, silent: true);
+			}
+			finally
+			{
+				_isExpiringPreviousRound = false;
+			}
+
+			await PowerCmd.Apply<HextechPlayerSlowPower>(Owner, -expiredAmount, Owner, null, silent: true);
+		}
+
 		if (_shouldIgnoreNextInstance)
 		{
 			_shouldIgnoreNextInstance = false;
@@ -251,26 +269,33 @@ public sealed class HextechTemporarySlowPower : HextechPowerBase, ITemporaryPowe
 		await PowerCmd.Apply<HextechPlayerSlowPower>(Owner, amount, applier, cardSource, silent: true);
 	}
 
-	public override async Task AfterSideTurnStart(CombatSide side, HextechCombatState combatState)
+	public override async Task BeforeSideTurnStart(PlayerChoiceContext choiceContext, CombatSide side, HextechCombatState combatState)
 	{
 		if (!ShouldExpireAtSide(side, combatState.RoundNumber, _appliedRound))
 		{
 			return;
 		}
 
+		int expiredAmount = Amount;
+		Creature owner = Owner;
 		await PowerCmd.Remove(this);
-		await PowerCmd.Apply<HextechPlayerSlowPower>(Owner, -Amount, Owner, null, silent: true);
+		await PowerCmd.Apply<HextechPlayerSlowPower>(owner, -expiredAmount, owner, null, silent: true);
 	}
 
 	/// <summary>
-	/// 临时缓慢在玩家回合开始时到期,但施加于同一回合(RoundNumber 在切到玩家侧时先递增,回合开始的各个
-	/// hook 看到的是同一个回合号)的不算:冰霜幽灵符文在玩家回合开始给怪物挂缓慢,本 Power 的
-	/// AfterSideTurnStart 在同一回合开始序列里紧跟着跑,以前会把刚挂上的缓慢当场清掉,只闪一下
-	/// (玩家反馈)。腐蚀/敌方海克斯这类在回合中途施加的,下一回合开始照常清除,行为不变。
+	/// 玩家回合开始前清理旧层，早于水银沙漏和冰霜幽灵的 AfterPlayerTurnStart。
+	/// 同回合施加的层数保留，额外回合不推进 RoundNumber 时也不重复清理。
 	/// </summary>
 	internal static bool ShouldExpireAtSide(CombatSide side, int roundNumber, int appliedRound)
 	{
 		return side == CombatSide.Player && roundNumber != appliedRound;
+	}
+
+	internal int RecordStackedAmount(int roundNumber, int addedAmount, int totalAmount)
+	{
+		int expiredAmount = roundNumber != _appliedRound ? totalAmount - addedAmount : 0;
+		_appliedRound = roundNumber;
+		return expiredAmount;
 	}
 
 	private void RememberAppliedRound(Creature? owner)

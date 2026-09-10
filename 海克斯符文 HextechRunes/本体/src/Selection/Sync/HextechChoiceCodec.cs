@@ -263,6 +263,7 @@ internal static class HextechChoiceCodec
 		// 模组总开关:作为尾部可选 int 追加,避免改 snapshot 版本号/定长计数。
 		// 旧 payload 无此尾巴时解码端回退到 fallback(默认开启)。
 		payload.Add(snapshot.ModEnabled ? 1 : 0);
+		payload.Add(snapshot.ChaosRuneChancePercent);
 	}
 
 	private static bool TryDecodeRunConfigurationSnapshot(
@@ -404,7 +405,8 @@ internal static class HextechChoiceCodec
 			forgeWeights,
 			forgePrice,
 			randomForgeDirectGrant,
-			modEnabled));
+			modEnabled,
+			payload.Count > forgeListNextCursor + 1 ? payload[forgeListNextCursor + 1] : 33));
 		return true;
 	}
 
@@ -448,6 +450,8 @@ internal static class HextechChoiceCodec
 		List<int> payload = [ Magic, ChoiceKindRuneSelection, actIndex, choiceOrdinal, selectedIndex, rerollHistory.Count ];
 		payload.AddRange(rerollHistory);
 		HextechStableModelIdListCodec.Append(payload, finalOptions.Select(static relic => relic.CanonicalInstance?.Id ?? relic.Id));
+		HextechRuneWeightCodec.Append(payload, finalOptions);
+		HextechGeneratedRuneDataCodec.Append(payload, finalOptions);
 
 		return PlayerChoiceResult.FromIndexes(payload);
 	}
@@ -511,7 +515,9 @@ internal static class HextechChoiceCodec
 
 		if (payload[cursor] == HextechStableModelIdListCodec.Version)
 		{
-			return HextechStableModelIdListCodec.TryDecode(payload, cursor, out finalOptionIds, out _);
+			return HextechStableModelIdListCodec.TryDecode(payload, cursor, out finalOptionIds, out int nextCursor)
+				&& HextechRuneWeightCodec.TryRead(payload, ref nextCursor, out _)
+				&& HextechGeneratedRuneDataCodec.TryDecode(payload, nextCursor, finalOptionIds.Count, out _);
 		}
 
 		int optionCount = payload[cursor];

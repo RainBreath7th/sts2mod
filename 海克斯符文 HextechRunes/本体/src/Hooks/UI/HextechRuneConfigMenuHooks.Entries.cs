@@ -19,6 +19,7 @@ internal static partial class HextechRuneConfigMenuHooks
 		foreach (Type runeType in HextechCatalog.GetAllConfigurableRuneTypes())
 		{
 			RelicModel relic = ModelDb.GetById<RelicModel>(ModelDb.GetId(runeType));
+			if (relic is IHextechGeneratedRune) continue;
 			ModelId id = relic.CanonicalInstance?.Id ?? relic.Id;
 			HextechRarityTier rarity = GetRuneRarity(runeType);
 			string rarityKey = rarity.ToString().ToUpperInvariant();

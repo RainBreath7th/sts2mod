@@ -26,11 +26,13 @@ internal sealed partial class HextechMayhemModifier
 	internal bool RandomForgeDirectGrant => GetEffectiveRunConfigurationSnapshot().RandomForgeDirectGrant;
 
 	// 模组总开关:本局逐 act 的「有效配置值」(联机里来自房主的同步快照)。
-	internal bool ModEnabled => GetEffectiveRunConfigurationSnapshot().ModEnabled;
+	internal bool ModEnabled => _runContext.RunConfigurationSnapshot?.ModEnabled
+		?? GetEffectiveRunConfigurationSnapshot().ModEnabled;
 
 	// 本局是否激活模组玩法。开局(act1)首次进 HandleActSelection 时冻结一次,
-	// 之后不随 act 推进或局内改配置而变,保证「按下一局开始时应用」「无半残态」。未冻结时默认开启。
-	internal bool IsModActiveForRun => _runContext.ModActiveForRun ?? true;
+	// 之后不随 act 推进或局内改配置而变。冻结前使用本局配置快照，避免单机禁用局
+	// 在首次选择前仍消耗随机数；客户端最终必须在 act-roll 同步后按房主快照冻结。
+	internal bool IsModActiveForRun => _runContext.ModActiveForRun ?? ModEnabled;
 
 	// 在 act1 的 act-roll 之后调用:首次把有效(房主)值冻结进 run context。返回 true = 本局禁用模组。
 	internal bool FreezeModActiveForRunAndCheckDisabled()
@@ -128,7 +130,8 @@ internal sealed partial class HextechMayhemModifier
 		HextechForgeRarityWeights ForgeRarityWeights,
 		int RandomForgeShopPrice,
 		bool RandomForgeDirectGrant,
-		bool ModEnabled)
+		bool ModEnabled,
+		int ChaosRuneChancePercent)
 	{
 		public RunConfigurationSnapshotJson(HextechRunConfigurationSnapshot snapshot)
 			: this(
@@ -145,7 +148,8 @@ internal sealed partial class HextechMayhemModifier
 				snapshot.ForgeRarityWeights,
 				snapshot.RandomForgeShopPrice,
 				snapshot.RandomForgeDirectGrant,
-				snapshot.ModEnabled)
+				snapshot.ModEnabled,
+				snapshot.ChaosRuneChancePercent)
 		{
 		}
 

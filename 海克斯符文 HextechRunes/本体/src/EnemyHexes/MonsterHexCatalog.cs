@@ -72,6 +72,8 @@ internal static class MonsterHexCatalog
 			[MonsterHexKind.TheLost] = [typeof(StrengthPower)],
 			[MonsterHexKind.TheForgotten] = [typeof(DexterityPower)],
 			[MonsterHexKind.Byrdonis] = [typeof(TerritorialPower)],
+			[MonsterHexKind.CeremonialBeast] = [typeof(StrengthPower)],
+			[MonsterHexKind.ThievingHopper] = [typeof(SwipePower)],
 		};
 
 	private static readonly Lazy<IReadOnlyDictionary<MonsterHexKind, HextechRarityTier>> RarityByMonsterHex = new(BuildRarityByMonsterHex);
@@ -193,6 +195,11 @@ internal static class MonsterHexCatalog
 		{
 			tips.Add(HoverTipFactory.FromPower<HextechBurnPower>());
 		}
+
+		if (hex == MonsterHexKind.SoulFysh)
+			tips.Add(HoverTipFactory.FromCard<Beckon>());
+		if (hex == MonsterHexKind.HauntedShip)
+			tips.Add(HoverTipFactory.FromCard<Dazed>());
 
 		if (hex == MonsterHexKind.Compensation)
 		{

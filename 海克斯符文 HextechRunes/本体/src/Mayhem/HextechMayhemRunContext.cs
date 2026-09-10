@@ -18,7 +18,7 @@ internal sealed class HextechMayhemRunContext
 	public int EnemyTezcatarasMercyCombatCounter { get; set; }
 	public bool HostUsesBetterMultiplayerScaling { get; set; }
 
-	// 模组总开关的「本局冻结值」:null=未冻结(默认视为开启)。开局 act1 首次 act-roll 后冻结一次,
+	// 模组总开关的「本局冻结值」:null=未冻结(使用本局配置快照)。开局 act1 首次 act-roll 后冻结一次,
 	// 之后不变;载入存档时由 SavedProperty 恢复,联机里客户端从房主同步的快照值冻结。
 	public bool? ModActiveForRun { get; set; }
 
@@ -45,7 +45,7 @@ internal sealed class HextechMayhemRunContext
 		ResetProgressState(hexCountRecoveryBaseline, monsterHexStrengthTierFloor: 3);
 		ActState.ResetForEndlessLoop();
 		ChoiceHistory.Reset();
-		RuneSelectionJournal.Reset();
+		RuneSelectionJournal.Reset(preserveCharacterWeights: true);
 		ResetCombatTracking();
 	}
 

@@ -2,13 +2,12 @@ namespace HextechRunes;
 
 public sealed class BloodPactRune : HextechRelicBase
 {
-	private int _pendingTemporaryStrength;
-
+	// 保留旧版字段身份；歃血已改为即时力量，不再恢复待结算的临时力量。
 	[SavedProperty(SerializationCondition.SaveIfNotTypeDefault)]
 	private int SavedPendingTemporaryStrength
 	{
-		get => _pendingTemporaryStrength;
-		set => _pendingTemporaryStrength = Math.Max(0, value);
+		get => 0;
+		set { }
 	}
 
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
@@ -26,43 +25,20 @@ public sealed class BloodPactRune : HextechRelicBase
 		return IsIroncladPlayer(player);
 	}
 
-	public override Task BeforeCombatStart()
-	{
-		_pendingTemporaryStrength = 0;
-		return Task.CompletedTask;
-	}
-
-	public override Task AfterCombatEnd(CombatRoom room)
-	{
-		_pendingTemporaryStrength = 0;
-		return Task.CompletedTask;
-	}
-
-	public override async Task BeforeSideTurnStart(PlayerChoiceContext choiceContext, CombatSide side, HextechCombatState combatState)
-	{
-		if (Owner == null || side != Owner.Creature.Side || Owner.Creature.IsDead || _pendingTemporaryStrength <= 0)
-		{
-			return;
-		}
-
-		decimal strength = _pendingTemporaryStrength * DynamicVars.Strength.BaseValue;
-		_pendingTemporaryStrength = 0;
-		Flash();
-		await PowerCmd.Apply<HextechBloodPactTemporaryStrengthPower>(Owner.Creature, strength, Owner.Creature, null);
-	}
-
-	public override Task AfterCurrentHpChanged(Creature creature, decimal delta)
+	public override Task AfterDamageReceived(PlayerChoiceContext choiceContext, Creature target, DamageResult result, ValueProp props, Creature? dealer, CardModel? cardSource)
 	{
 		if (Owner == null
-			|| creature != Owner.Creature
-			|| delta >= 0m
-			|| Owner.Creature.IsDead)
+			|| target != Owner.Creature
+			|| Owner.Creature.IsDead
+			|| !ShouldGainStrength(dealer?.Side, result.UnblockedDamage, props))
 		{
 			return Task.CompletedTask;
 		}
 
 		Flash();
-		_pendingTemporaryStrength++;
-		return Task.CompletedTask;
+		return PowerCmd.Apply<StrengthPower>(Owner.Creature, DynamicVars.Strength.BaseValue, Owner.Creature, null);
 	}
+
+	internal static bool ShouldGainStrength(CombatSide? dealerSide, decimal hpLost, ValueProp props)
+		=> dealerSide == CombatSide.Enemy && hpLost > 0m && HextechSts2Compat.IsPoweredAttack(props);
 }

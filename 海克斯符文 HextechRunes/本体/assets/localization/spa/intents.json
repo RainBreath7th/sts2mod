@@ -1,0 +1,4 @@
+{
+  "HEXTECH_STRENGTH.label": "+{Amount}",
+  "HEXTECH_STRENGTH.description": "Este enemigo obtendrá [blue]{Amount}[/blue] de [gold]Fuerza[/gold] tras actuar."
+}

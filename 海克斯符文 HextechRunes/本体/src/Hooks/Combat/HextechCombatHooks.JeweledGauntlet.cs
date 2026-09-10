@@ -226,7 +226,9 @@ internal static partial class HextechCombatHooks
 
 	internal static bool AreJeweledGauntletIntentsRepeatable(IReadOnlyList<AbstractIntent> intents)
 	{
-		return intents.Count > 0 && intents.All(static intent => IsJeweledGauntletIntentTypeRepeatable(intent.IntentType));
+		// 偷牌成功会立刻安排逃跑，改变行动对象；预览也必须排除这类不会实际重复的行动。
+		return intents.Count > 0 && !intents.Any(static intent => intent is ThievingHopperTheftIntent)
+			&& intents.All(static intent => IsJeweledGauntletIntentTypeRepeatable(intent.IntentType));
 	}
 
 	internal static bool IsJeweledGauntletIntentTypeRepeatable(IntentType intentType)

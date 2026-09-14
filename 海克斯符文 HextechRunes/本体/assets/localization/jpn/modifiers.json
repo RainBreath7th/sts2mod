@@ -14,7 +14,7 @@
   "HEXTECH_BRUTE_FORCE_CHALLENGE.title": "力こそ正義",
   "HEXTECH_BRUTE_FORCE_CHALLENGE.description": "プレイヤーはデフォルトのヘクステック設定を使用します。敵は[red]能力値[/red]に関連する固定ヘクステックルーンを獲得します。",
   "HEXTECH_EIGHT_PENNY_GATE_CHALLENGE.title": "八銭の扉",
-  "HEXTECH_EIGHT_PENNY_GATE_CHALLENGE.description": "プレイヤーはデフォルトのヘクステック設定を使用します。敵は[red]扉の創造者[/red]に関連する固定ヘクステックルーンを獲得します。",
+  "HEXTECH_EIGHT_PENNY_GATE_CHALLENGE.description": "プレイヤーはデフォルトのヘクステック設定を使用します。敵は[red]ドアキーパー[/red]に関連する固定ヘクステックルーンを獲得します。",
   "HEXTECH_LISTLESS_CHALLENGE.title": "気力なし",
   "HEXTECH_LISTLESS_CHALLENGE.description": "プレイヤーはデフォルトのヘクステック設定を使用します。敵は[red]能力値低下[/red]に関連する固定ヘクステックルーンを獲得します。"
 }

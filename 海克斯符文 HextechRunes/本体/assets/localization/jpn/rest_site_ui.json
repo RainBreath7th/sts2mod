@@ -1,5 +1,5 @@
 {
   "OPTION_STOKE.name": "焚きつけ",
-  "OPTION_STOKE.description": "[blue]1[/blue] カードをデッキから削除します。",
+  "OPTION_STOKE.description": "カード[blue]1[/blue]枚をデッキから削除します。",
   "OPTION_STOKE.descriptionDisabled": "削除可能なカードがありません。"
 }

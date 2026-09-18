@@ -5,6 +5,8 @@ namespace HextechRunes;
 
 internal sealed partial class HextechRuneSelectionScreen
 {
+	private readonly List<PanelContainer> _pendingSelectionOutlines = new();
+
 	private Control CreateCardSlot(RelicModel relic, int slotIndex)
 	{
 		Control slot = new()
@@ -15,7 +17,7 @@ internal sealed partial class HextechRuneSelectionScreen
 			SizeFlagsVertical = SizeFlags.ShrinkCenter
 		};
 
-		Button button = CreateCardButton(relic);
+		Button button = CreateCardButton(relic, slotIndex);
 		button.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
 		slot.AddChild(button);
 		_holders.Add(button);
@@ -38,8 +40,9 @@ internal sealed partial class HextechRuneSelectionScreen
 		return slot;
 	}
 
-	private Button CreateCardButton(RelicModel relic)
+	private Button CreateCardButton(RelicModel relic, int slotIndex)
 	{
+		bool usePendingSelection = ShouldUsePlayerRuneConfirmation(_metadataMode, _enemyOnly);
 		string rarityKey = DetermineCardRarityKey(relic, _metadataMode);
 		Color accent = GetAccentColor(rarityKey);
 		Texture2D? cardFrameTexture = GetCardFrameTexture(rarityKey);
@@ -131,8 +134,16 @@ internal sealed partial class HextechRuneSelectionScreen
 		content.AddChild(body);
 
 		SetMouseFilterIgnoreRecursive(margin);
+
+		if (usePendingSelection)
+		{
+			PanelContainer pendingOutline = CreatePendingSelectionOutline();
+			button.AddChild(pendingOutline);
+			_pendingSelectionOutlines.Add(pendingOutline);
+		}
+
 		AttachRelicHoverTips(button, relic);
-		button.Pressed += () => OnHolderSelected(relic);
+		button.Pressed += () => OnHolderSelected(relic, slotIndex);
 		return button;
 	}
 

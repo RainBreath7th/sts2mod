@@ -127,6 +127,8 @@ internal static partial class Program
 			new(nameof(RuneSelectionCandidateConstraintsMixCharactersAndLimitUpgrades), RuneSelectionCandidateConstraintsMixCharactersAndLimitUpgrades),
 			new(nameof(UnconfirmedRuneSelectionCancelsInsteadOfDefaultingToFirstOption), UnconfirmedRuneSelectionCancelsInsteadOfDefaultingToFirstOption),
 			new(nameof(SelectionUiWaitsForControllerInputBeforeFocusing), SelectionUiWaitsForControllerInputBeforeFocusing),
+			new(nameof(PlayerRuneSelectionUsesPendingSlotUntilConfirmation), PlayerRuneSelectionUsesPendingSlotUntilConfirmation),
+			new(nameof(PlayerRuneRerollClearsOnlyCurrentPendingSlot), PlayerRuneRerollClearsOnlyCurrentPendingSlot),
 			new(nameof(EnemyHexRerollPlaysRerollSound), EnemyHexRerollPlaysRerollSound),
 			new(nameof(EnemyHexRemovalCanBeUndoneWithoutConsumingTheSlot), EnemyHexRemovalCanBeUndoneWithoutConsumingTheSlot),
 			new(nameof(EnemyHexActionButtonsUseTexturesWithoutTooltipText), EnemyHexActionButtonsUseTexturesWithoutTooltipText),

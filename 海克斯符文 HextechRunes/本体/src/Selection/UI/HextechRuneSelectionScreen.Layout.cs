@@ -116,6 +116,46 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 			};
 			root.AddChild(_enemyOnlyConfirm);
 		}
+		else if (ShouldUsePlayerRuneConfirmation(_metadataMode, _enemyOnly))
+		{
+			HBoxContainer selectionActions = new()
+			{
+				Name = "PlayerRuneSelectionActions",
+				Alignment = BoxContainer.AlignmentMode.Center,
+				SizeFlagsHorizontal = SizeFlags.ShrinkCenter,
+				MouseFilter = MouseFilterEnum.Ignore
+			};
+			selectionActions.AddThemeConstantOverride("separation", 16);
+
+			_playerRuneConfirm = new Button
+			{
+				Name = "PlayerRuneConfirm",
+				Text = new LocString(LocTable, "HEXTECH_ENEMY_CONFIRM").GetRawText(),
+				CustomMinimumSize = new Vector2(220f, 58f),
+				FocusMode = FocusModeEnum.All,
+				Disabled = true,
+				MouseDefaultCursorShape = CursorShape.PointingHand
+			};
+			ApplySelectionActionButtonStyle(_playerRuneConfirm, confirm: true);
+			_playerRuneConfirm.AddThemeFontSizeOverride("font_size", 26);
+			_playerRuneConfirm.Pressed += OnPlayerRuneConfirmPressed;
+			selectionActions.AddChild(_playerRuneConfirm);
+
+			_playerRuneCancel = new Button
+			{
+				Name = "PlayerRuneCancel",
+				Text = new LocString(LocTable, "HEXTECH_CONFIG_CANCEL").GetRawText(),
+				CustomMinimumSize = new Vector2(220f, 58f),
+				FocusMode = FocusModeEnum.All,
+				Disabled = true,
+				MouseDefaultCursorShape = CursorShape.PointingHand
+			};
+			ApplySelectionActionButtonStyle(_playerRuneCancel, confirm: false);
+			_playerRuneCancel.AddThemeFontSizeOverride("font_size", 26);
+			_playerRuneCancel.Pressed += OnPlayerRuneCancelPressed;
+			selectionActions.AddChild(_playerRuneCancel);
+			root.AddChild(selectionActions);
+		}
 
 		_statusLabel = new MegaLabel()
 		{
@@ -164,11 +204,17 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		}
 
 		_holders.Clear();
+		_pendingSelectionOutlines.Clear();
 		_rerollButtons.Clear();
 		_goldenRerollVisuals.Clear();
 		while (_playerRuneRerollCounts.Count < _relics.Count)
 		{
 			_playerRuneRerollCounts.Add(0);
+		}
+		if (_pendingPlayerRuneSlot is int pendingSlot
+			&& (pendingSlot < 0 || pendingSlot >= _relics.Count))
+		{
+			_pendingPlayerRuneSlot = null;
 		}
 
 		for (int i = 0; i < _relics.Count; i++)
@@ -178,6 +224,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		}
 
 		ConfigureControllerNavigation();
+		UpdatePlayerRuneActionButtons();
 	}
 
 }

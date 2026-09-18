@@ -191,6 +191,93 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		return style;
 	}
 
+	private static PanelContainer CreatePendingSelectionOutline()
+	{
+		PanelContainer outline = new()
+		{
+			Name = "PendingSelectionOutline",
+			MouseFilter = MouseFilterEnum.Ignore,
+			ZIndex = 10,
+			Visible = false
+		};
+		outline.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+		outline.AddThemeStyleboxOverride("panel", CreatePendingSelectionOutlineStyle());
+		return outline;
+	}
+
+	private static StyleBoxFlat CreatePendingSelectionOutlineStyle()
+	{
+		StyleBoxFlat style = new()
+		{
+			BgColor = new Color(0.3f, 0.22f, 0.08f, 0.12f),
+			BorderColor = new Color(1f, 0.78f, 0.28f, 0.92f),
+			ShadowColor = new Color(0.95f, 0.65f, 0.18f, 0.3f),
+			ShadowSize = 12,
+			ShadowOffset = new Vector2(0f, 2f)
+		};
+		style.SetBorderWidthAll(8);
+		style.SetCornerRadiusAll(26);
+		return style;
+	}
+
+	private static void ApplySelectionActionButtonStyle(Button button, bool confirm)
+	{
+		if (confirm)
+		{
+			button.AddThemeStyleboxOverride("normal", CreateSelectionActionButtonStyle(
+				new Color(0.25f, 0.38f, 0.35f, 0.94f),
+				new Color(0.48f, 0.66f, 0.6f, 0.78f),
+				new Color(0.12f, 0.22f, 0.19f, 0.3f)));
+			button.AddThemeStyleboxOverride("hover", CreateSelectionActionButtonStyle(
+				new Color(0.31f, 0.46f, 0.42f, 0.98f),
+				new Color(0.62f, 0.78f, 0.7f, 0.9f),
+				new Color(0.12f, 0.24f, 0.2f, 0.36f)));
+			button.AddThemeStyleboxOverride("pressed", CreateSelectionActionButtonStyle(
+				new Color(0.19f, 0.3f, 0.28f, 0.98f),
+				new Color(0.42f, 0.61f, 0.55f, 0.9f),
+				new Color(0.08f, 0.16f, 0.14f, 0.42f)));
+		}
+		else
+		{
+			button.AddThemeStyleboxOverride("normal", CreateSelectionActionButtonStyle(
+				new Color(0.38f, 0.3f, 0.29f, 0.94f),
+				new Color(0.68f, 0.54f, 0.5f, 0.72f),
+				new Color(0.22f, 0.14f, 0.13f, 0.28f)));
+			button.AddThemeStyleboxOverride("hover", CreateSelectionActionButtonStyle(
+				new Color(0.48f, 0.37f, 0.35f, 0.98f),
+				new Color(0.78f, 0.64f, 0.58f, 0.86f),
+				new Color(0.24f, 0.16f, 0.15f, 0.34f)));
+			button.AddThemeStyleboxOverride("pressed", CreateSelectionActionButtonStyle(
+				new Color(0.3f, 0.23f, 0.23f, 0.98f),
+				new Color(0.6f, 0.48f, 0.44f, 0.84f),
+				new Color(0.16f, 0.1f, 0.1f, 0.4f)));
+		}
+
+		button.AddThemeStyleboxOverride("disabled", CreateSelectionActionButtonStyle(
+			new Color(0.18f, 0.2f, 0.2f, 0.56f),
+			new Color(0.36f, 0.39f, 0.38f, 0.48f),
+			new Color(0f, 0f, 0f, 0.1f)));
+	}
+
+	private static StyleBoxFlat CreateSelectionActionButtonStyle(Color background, Color border, Color shadow)
+	{
+		StyleBoxFlat style = new()
+		{
+			BgColor = background,
+			BorderColor = border,
+			ShadowColor = shadow,
+			ShadowSize = 8,
+			ShadowOffset = new Vector2(0f, 3f),
+			ContentMarginLeft = 18,
+			ContentMarginRight = 18,
+			ContentMarginTop = 8,
+			ContentMarginBottom = 8
+		};
+		style.SetBorderWidthAll(2);
+		style.SetCornerRadiusAll(16);
+		return style;
+	}
+
 	private static TextureRect CreateCardFrameOverlay(Texture2D texture)
 	{
 		float frameSide = PlayerRuneCardSize.Y;

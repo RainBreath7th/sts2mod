@@ -865,6 +865,43 @@ internal static partial class Program
 			"opening config with mouse should not explicitly focus an option");
 	}
 
+	private static void PlayerRuneSelectionUsesPendingSlotUntilConfirmation()
+	{
+		Expect(
+			HextechRuneSelectionScreen.ShouldUsePlayerRuneConfirmation(HextechSelectionMetadataMode.PlayerRune, enemyOnly: false),
+			"normal player rune selection should expose confirmation");
+		Expect(
+			!HextechRuneSelectionScreen.ShouldUsePlayerRuneConfirmation(HextechSelectionMetadataMode.Forge, enemyOnly: false),
+			"forge selection should remain immediate");
+		Expect(
+			!HextechRuneSelectionScreen.ShouldUsePlayerRuneConfirmation(HextechSelectionMetadataMode.PlayerRune, enemyOnly: true),
+			"enemy-only selection should keep its existing confirmation");
+		Equal(
+			1,
+			HextechRuneSelectionScreen.ResolvePendingPlayerRuneSlot(HextechSelectionMetadataMode.PlayerRune, enemyOnly: false, slotIndex: 1, slotCount: 3),
+			"card click should record its slot without completing the selection");
+		Equal(
+			0,
+			HextechRuneSelectionScreen.ResolvePendingPlayerRuneSlot(HextechSelectionMetadataMode.PlayerRune, enemyOnly: false, slotIndex: 0, slotCount: 3),
+			"a second card click should replace the pending slot");
+		Equal<int?>(null, HextechRuneSelectionScreen.ResolvePendingPlayerRuneSlot(HextechSelectionMetadataMode.Forge, enemyOnly: false, slotIndex: 0, slotCount: 3), "forge has no pending slot");
+
+		MethodInfo buildUi = typeof(HextechRuneSelectionScreen).GetMethod("BuildUi", BindingFlags.Instance | BindingFlags.NonPublic)!;
+		string[] localizedKeys = PatchProcessor.GetOriginalInstructions(buildUi)
+			.Select(static instruction => instruction.operand)
+			.OfType<string>()
+			.ToArray();
+		Expect(localizedKeys.Contains("HEXTECH_ENEMY_CONFIRM"), "player confirm should reuse the existing confirm key");
+		Expect(localizedKeys.Contains("HEXTECH_CONFIG_CANCEL"), "player cancel should reuse the existing cancel key");
+	}
+
+	private static void PlayerRuneRerollClearsOnlyCurrentPendingSlot()
+	{
+		Equal<int?>(null, HextechRuneSelectionScreen.ResolvePendingSlotAfterReroll(1, 1), "rerolling the pending slot should clear it");
+		Equal<int?>(1, HextechRuneSelectionScreen.ResolvePendingSlotAfterReroll(1, 0), "rerolling another slot should preserve the pending slot");
+		Equal<int?>(null, HextechRuneSelectionScreen.ResolvePendingSlotAfterReroll(null, 0), "rerolling without a pending slot should stay empty");
+	}
+
 	private static void EnemyHexRerollPlaysRerollSound()
 	{
 		MethodInfo reroll = typeof(HextechRuneSelectionScreen).GetMethod(

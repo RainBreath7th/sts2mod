@@ -93,7 +93,7 @@ internal static class HextechMonsterHexRegistry
 		Monster<PandorasBoxRune>(MonsterHexKind.PandorasBox, HextechRarityTier.Prismatic),
 		Monster<ForbiddenGrimoireRune>(MonsterHexKind.ForbiddenGrimoire, HextechRarityTier.Prismatic),
 		Monster<TezcatarasMercyRune>(MonsterHexKind.TezcatarasMercy, HextechRarityTier.Prismatic),
-		Monster<ArcanePunchRune>(MonsterHexKind.ArcanePunch, HextechRarityTier.Prismatic),
+		Monster<InfestedPrismHex>(MonsterHexKind.ArcanePunch, HextechRarityTier.Prismatic),
 		Monster<TestSubjectHex>(MonsterHexKind.TestSubject, HextechRarityTier.Prismatic),
 		Monster<MysteryRune>(MonsterHexKind.Mystery, HextechRarityTier.Prismatic),
 		Monster<MindOverMatterRune>(MonsterHexKind.MindOverMatter, HextechRarityTier.Prismatic),
@@ -141,7 +141,13 @@ internal static class HextechMonsterHexRegistry
 		Monster<CeremonialBeastHex>(MonsterHexKind.CeremonialBeast, HextechRarityTier.Prismatic),
 		Monster<SoulFyshHex>(MonsterHexKind.SoulFysh, HextechRarityTier.Gold),
 		Monster<ThievingHopperHex>(MonsterHexKind.ThievingHopper, HextechRarityTier.Gold),
-		Monster<HauntedShipHex>(MonsterHexKind.HauntedShip, HextechRarityTier.Silver)
+		Monster<HauntedShipHex>(MonsterHexKind.HauntedShip, HextechRarityTier.Silver),
+		Monster<ReforgedHelmetRune>(MonsterHexKind.ReforgedHelmet, HextechRarityTier.Prismatic),
+		Monster<EndlessRotationRune>(MonsterHexKind.EndlessRotation, HextechRarityTier.Prismatic),
+		Monster<SomethingForNothingRune>(MonsterHexKind.SomethingForNothing, HextechRarityTier.Prismatic),
+		Monster<CorruptedBranchRune>(MonsterHexKind.CorruptedBranch, HextechRarityTier.Prismatic),
+		Monster<MoreTheMerrierRune>(MonsterHexKind.MoreTheMerrier, HextechRarityTier.Gold),
+		Monster<EnlightenmentRune>(MonsterHexKind.Enlightenment, HextechRarityTier.Gold)
 	];
 
 	private static MonsterHexRegistration Monster<TRelic>(

@@ -37,6 +37,9 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 	private readonly List<int> _playerRuneRerollCounts = new();
 	private readonly List<int> _rerollHistory = new();
 	private readonly bool _enemyHexControlsEnabled;
+	private readonly bool _enemyOnly;
+	private Button? _enemyOnlyConfirm;
+	public bool EnemyOnlySelectionConfirmed => _enemyOnly && _choiceLocked;
 	private HBoxContainer? _cardsRow;
 	private VBoxContainer? _enemyPreviewHost;
 	private MegaLabel? _statusLabel;
@@ -51,7 +54,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 
 	public bool UseSharedBackstop => true;
 
-	public Control? DefaultFocusedControl => _controllerNavigationActivated ? _holders.FirstOrDefault() : null;
+	public Control? DefaultFocusedControl => _controllerNavigationActivated ? _holders.FirstOrDefault() ?? _enemyOnlyConfirm : null;
 
 	public bool RequestedReroll => false;
 
@@ -101,6 +104,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		_metadataMode = metadataMode;
 		_goldenRerollSession = goldenRerollSession;
 		_enemyHexControlsEnabled = enemyHexOptions?.ControlsEnabled == true || enemyHexOptions?.RerollFunc != null;
+		_enemyOnly = relics.Count == 0 && enemyHexOptions != null;
 		List<MonsterHexKind> initialMonsterHexes = enemyHexOptions?.InitialHexes?.ToList() ?? [];
 		if (initialMonsterHexes.Count == 0 && enemyHexOptions?.InitialHex is { } initialHex)
 		{

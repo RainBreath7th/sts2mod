@@ -1,4 +1,7 @@
 {
+  "HEXTECH_VITAL_SPARK_POWER.title": "Искра жизни",
+  "HEXTECH_VITAL_SPARK_POWER.description": "Ваши навыки получают [gold]Загрязнение[/gold] в количестве, равном числу зарядов этого эффекта.",
+  "HEXTECH_VITAL_SPARK_POWER.smartDescription": "Ваши навыки получают [blue]{Amount}[/blue] [gold]Загрязнения[/gold].",
   "HEXTECH_BURN_POWER.title": "Ожог",
   "HEXTECH_BURN_POWER.description": "Наносит урон, равный этому количеству процентов от текущих ОЗ, но не менее этого количества. Затем количество Ожога уменьшается на [blue]10%[/blue].",
   "HEXTECH_BURN_POWER.smartDescription": "Наносит урон, равный [blue]{Amount}%[/blue] от текущего ОЗ, но не менее [blue]{Amount}[/blue]. Затем количество Ожог уменьшается на [blue]10%[/blue].",

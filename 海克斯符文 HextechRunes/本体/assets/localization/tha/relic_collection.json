@@ -81,6 +81,7 @@
   "HEXTECH_REROLL": "สุ่มใหม่",
   "HEXTECH_CURRENT_TIER_LABEL": "ระดับปัจจุบัน: {0}",
   "HEXTECH_ENEMY_PREVIEW_LABEL": "เฮกซ์ศัตรูองก์นี้",
+  "HEXTECH_ENEMY_CONFIRM": "ยืนยัน",
   "HEXTECH_ENEMY_REMOVE": "นำออก",
   "HEXTECH_ENEMY_UNDO_REMOVE": "เลิกทำ",
   "HEXTECH_ENEMY_REMOVED_TITLE": "ไม่มีเฮกซ์ศัตรู",

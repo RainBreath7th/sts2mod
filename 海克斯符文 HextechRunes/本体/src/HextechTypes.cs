@@ -85,7 +85,7 @@ internal enum MonsterHexKind
 	MonarchsGaze = 78,
 	SwiftAndSafe = 79,
 	TezcatarasMercy = 80,
-	ArcanePunch = 81,
+	ArcanePunch = 81, // 升级：感染棱柱；保留原敌方秘术冲拳的存档/配置身份。
 	Mystery = 83,
 	MindOverMatter = 84,
 	Omega = 85,
@@ -148,5 +148,11 @@ internal enum MonsterHexKind
 	CeremonialBeast = 136,    // 升级：仪式兽（棱彩）
 	SoulFysh = 137,           // 升级：灵魂异鱼（黄金）
 	ThievingHopper = 138,     // 升级：偷窃草蜢（黄金）
-	HauntedShip = 139         // 升级：幽灵船（白银）
+	HauntedShip = 139,        // 升级：幽灵船（白银）
+	ReforgedHelmet = 140,     // 重铸战盔（棱彩）
+	EndlessRotation = 141,    // 轮转不息（棱彩）
+	SomethingForNothing = 142, // 无本万利（棱彩）
+	CorruptedBranch = 143,    // 腐化树枝（棱彩）
+	MoreTheMerrier = 144,     // 多多益善（黄金）
+	Enlightenment = 145       // 开悟（黄金）
 }

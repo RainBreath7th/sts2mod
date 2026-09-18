@@ -3,6 +3,8 @@ using HextechRunes;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
+using MegaCrit.Sts2.Core.Models.Powers;
+using MegaCrit.Sts2.Core.Models.Monsters;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.MonsterMoves.MonsterMoveStateMachine;
 using MegaCrit.Sts2.Core.Rooms;
@@ -71,12 +73,57 @@ internal static partial class Program
 		MoveState escape = ThievingHopperEnemyHex.CreateEscapeMove(() => { escaped++; return Task.CompletedTask; });
 		machine.States[escape.Id] = escape;
 		machine.ForceCurrentState(escape);
-		Expect(!escape.CanTransitionAway, "escape cannot be skipped before it performs");
+		Expect(escape.CanTransitionAway, "native death, revival and stun moves must be allowed to interrupt escape");
 		Expect(ReferenceEquals(escape, machine.RollMove(Array.Empty<Creature>(), null!, null!)), "native roll retains escape instead of advancing or throwing for unregistered state");
 		Equal(0, escaped, "intent preparation cannot perform the escape early");
 		escape.PerformMove(Array.Empty<Creature>()).GetAwaiter().GetResult();
 		Equal(1, escaped, "escape executes once when its turn arrives");
 		Expect(escape.Intents.Single() is EscapeIntent, "escape replaces the attack and theft intents");
+
+		var segment = CreateMutableTestModel<DecimillipedeSegmentFront>();
+		segment.Creature = (Creature)RuntimeHelpers.GetUninitializedObject(typeof(Creature));
+		typeof(MonsterModel).GetField("_moveStateMachine", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+			.SetValue(segment, machine);
+		MoveState pendingEscape = ThievingHopperEnemyHex.CreateEscapeMove(() => Task.CompletedTask);
+		MoveState dead = new("DEAD", _ => Task.CompletedTask, new StunIntent());
+		var testMode = typeof(MegaCrit.Sts2.Core.TestSupport.TestMode).GetProperty("IsOn")!;
+		bool wasTestMode = (bool)testMode.GetValue(null)!;
+		try
+		{
+			// 原版测试模式跳过 GetCreatureNode，CLI 只验证状态切换，不访问 Godot 原生节点。
+			testMode.SetValue(null, true);
+			segment.SetMoveImmediate(pendingEscape, forceTransition: true);
+			segment.SetMoveImmediate(dead);
+			Expect(ReferenceEquals(dead, segment.NextMove), "Reattach's ordinary SetMoveImmediate can replace an unperformed escape");
+		}
+		finally
+		{
+			testMode.SetValue(null, wasTestMode);
+		}
+	}
+
+	private static void HopperSkipsSleepingEnemiesAndMinions()
+	{
+		Expect(ThievingHopperEnemyHex.HasTheftBlockingPower([new AsleepPower()]), "sleeping matriarch cannot steal");
+		Expect(ThievingHopperEnemyHex.HasTheftBlockingPower([new SlumberPower()]), "slumbering enemies cannot steal");
+		Expect(ThievingHopperEnemyHex.HasTheftBlockingPower([new MinionPower()]), "queen's minion cannot escape its encounter script");
+		Expect(!ThievingHopperEnemyHex.HasTheftBlockingPower([]), "awake independent enemies can steal");
+		Expect(!ThievingHopperEnemyHex.HasTheftBlockingPower([new ReattachPower()]), "reviving segments remain eligible without locking their state machine");
+	}
+
+	private static void BloodIdolNonCombatLossLeavesOneHp()
+	{
+		Equal(1, BloodIdolEnemyHex.NonCombatHpAfterGold(1), "collecting gold at one HP cannot kill a player outside combat");
+		Equal(1, BloodIdolEnemyHex.NonCombatHpAfterGold(2), "two HP still pays one HP");
+		Equal(39, BloodIdolEnemyHex.NonCombatHpAfterGold(40), "ordinary gold collections still cost one HP");
+	}
+
+	private static void EnemyOnlyRunsStillRequireEnemyConfirmation()
+	{
+		Expect(HextechRuneSelectionCoordinator.NeedsEnemyOnlySelection(0, 2, false), "enemy-only mode must not bypass the reroll screen");
+		Expect(!HextechRuneSelectionCoordinator.NeedsEnemyOnlySelection(1, 2, false), "normal rune selection already includes enemy controls");
+		Expect(!HextechRuneSelectionCoordinator.NeedsEnemyOnlySelection(0, 0, false), "no additions require no empty confirmation screen");
+		Expect(!HextechRuneSelectionCoordinator.NeedsEnemyOnlySelection(0, 2, true), "preset challenges keep their fixed enemies");
 	}
 
 	private static void EnemyUpgradeCountersRoundTripAndStayIndependent()

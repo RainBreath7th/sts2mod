@@ -216,6 +216,11 @@ internal static partial class HextechRuneSelectionCoordinator
 
 			if (playerHexCount <= 0)
 			{
+				if (NeedsEnemyOnlySelection(playerHexCount, newMonsterHexes.Count, HextechPresetChallengeRegistry.IsActive(runState)))
+				{
+					newMonsterHexes = await SelectEnemyHexesOnly(runState, modifier, actIndex, rarity, previousMonsterHexes, newMonsterHexes);
+					finalMonsterHexes = CombineMonsterHexes(previousMonsterHexes, newMonsterHexes);
+				}
 				HextechLog.Info($"[{ModInfo.Id}][Mayhem] HandleHextechActSelection skipped player choices: act={actIndex} configuredPlayerHexCount={playerHexCount}");
 			}
 			if (!IsCurrentRun(runState))

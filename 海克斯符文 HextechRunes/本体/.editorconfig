@@ -1,0 +1,21 @@
+# 仅约束本模组新编辑内容；不对历史文件执行批量格式化。
+[*.cs]
+charset = utf-8
+indent_style = tab
+indent_size = 4
+end_of_line = lf
+insert_final_newline = true
+
+[*.py]
+charset = utf-8
+indent_style = space
+indent_size = 4
+end_of_line = lf
+insert_final_newline = true
+
+[*.json]
+charset = utf-8
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true

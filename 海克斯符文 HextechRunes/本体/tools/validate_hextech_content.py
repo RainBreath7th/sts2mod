@@ -379,12 +379,18 @@ def validate_icon_assets(errors: list[str], warnings: list[str]) -> None:
     }
 
     expected_stems: set[str] = set()
+    # 这些事件遗物通过原版 IconBaseName 复用 atlas/大图，不应要求模组再复制 PNG。
+    vanilla_icon_types = {
+        match for path in (SRC / "Relics" / "Orobas").glob("*.cs")
+        for match in re.findall(r"class\s+(\w+)\s*:\s*OrobasPlusRelicBase", read(path))
+    }
     rune_regs = extract_rune_registrations(registry_text)
     for reg in rune_regs:
         expected_stems.add(model_loc_stem(str(reg["type"])))
     for values_list in ("EnemyHexIconRelicTypes", "EventRelicTypes"):
         for type_name in extract_type_list(registry_text, values_list):
-            expected_stems.add(model_loc_stem(type_name))
+            if type_name not in vanilla_icon_types:
+                expected_stems.add(model_loc_stem(type_name))
 
     expected_stems.update(shared_icon_stems.values())
 

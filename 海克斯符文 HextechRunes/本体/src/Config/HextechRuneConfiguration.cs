@@ -7,7 +7,7 @@ internal static class HextechRuneConfiguration
 {
 	private const string ConfigFileName = "rune_config.json";
 	// v15(0.8.4):一次性强制重置——旧版本配置载入时整体丢弃回默认(含禁用池/数量/权重/重随/价格/总开关)。
-	private const int CurrentConfigVersion = 35;
+	private const int CurrentConfigVersion = 36;
 	private const int ForceResetBelowConfigVersion = 15;
 	private const int HexActCount = 3;
 	private const int MinActHexCount = 0;
@@ -266,7 +266,7 @@ internal static class HextechRuneConfiguration
 
 	public static IReadOnlySet<string> GetDefaultDisabledMonsterHexIds()
 	{
-		return new HashSet<string>(StringComparer.Ordinal);
+		return new HashSet<string>(StringComparer.Ordinal) { MonsterHexKind.GetExcited.ToString() };
 	}
 
 	public static IReadOnlySet<string> GetDefaultDisabledForgeIds()
@@ -555,6 +555,12 @@ internal static class HextechRuneConfiguration
 		if (previousConfigVersion < 35)
 		{
 			disabledIds.UnionWith(GetPlayerRuneIds([typeof(AutoPatrolRune)]));
+		}
+
+		if (previousConfigVersion < 36)
+		{
+			// 我方已在 v22 默认禁用；敌方只迁移一次，之后尊重手动开启。
+			disabledMonsterHexIds.Add(MonsterHexKind.GetExcited.ToString());
 		}
 
 		config.ConfigVersion = CurrentConfigVersion;

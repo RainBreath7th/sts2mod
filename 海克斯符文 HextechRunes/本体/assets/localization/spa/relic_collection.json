@@ -81,6 +81,7 @@
   "HEXTECH_REROLL": "Volver a lanzar",
   "HEXTECH_CURRENT_TIER_LABEL": "Nivel actual: {0}",
   "HEXTECH_ENEMY_PREVIEW_LABEL": "Hex enemigo de este acto",
+  "HEXTECH_ENEMY_CONFIRM": "Confirmar",
   "HEXTECH_ENEMY_REMOVE": "Quitar",
   "HEXTECH_ENEMY_UNDO_REMOVE": "Deshacer",
   "HEXTECH_ENEMY_REMOVED_TITLE": "Sin hex enemigo",

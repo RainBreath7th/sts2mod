@@ -1,4 +1,7 @@
 {
+  "HEXTECH_VITAL_SPARK_POWER.title": "活力火花",
+  "HEXTECH_VITAL_SPARK_POWER.description": "你的技能牌获得等同于层数的[gold]污染[/gold]。",
+  "HEXTECH_VITAL_SPARK_POWER.smartDescription": "你的技能牌获得[blue]{Amount}[/blue]层[gold]污染[/gold]。",
   "HEXTECH_BURN_POWER.title": "灼烧",
   "HEXTECH_BURN_POWER.description": "结算时受到等同于层数百分比的当前生命伤害，最低等同于层数。随后灼烧层数减少[blue]10%[/blue]。",
   "HEXTECH_BURN_POWER.smartDescription": "结算时受到当前生命值的[blue]{Amount}%[/blue]伤害，最低[blue]{Amount}[/blue]点。随后灼烧层数减少[blue]10%[/blue]。",

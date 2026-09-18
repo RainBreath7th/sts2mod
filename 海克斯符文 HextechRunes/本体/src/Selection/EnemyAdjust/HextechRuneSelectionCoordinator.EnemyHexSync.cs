@@ -228,6 +228,7 @@ internal static partial class HextechRuneSelectionCoordinator
 			HextechLog.Info($"[{ModInfo.Id}][Mayhem] EnemyHexAdjustmentSync receive: act={syncContext.ActIndex} choiceId={receivedChoiceId} seq={payload.Sequence} hexes={string.Join(",", payload.MonsterHexes.Select(static hex => hex?.ToString() ?? "None"))} rerolls={string.Join(",", payload.RerollCounts)} final={payload.IsFinal}");
 			if (payload.IsFinal)
 			{
+				screen.CompleteEnemyOnlySelection();
 				return;
 			}
 

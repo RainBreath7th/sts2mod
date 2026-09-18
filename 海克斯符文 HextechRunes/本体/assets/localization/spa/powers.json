@@ -1,4 +1,7 @@
 {
+  "HEXTECH_VITAL_SPARK_POWER.title": "Chispa vital",
+  "HEXTECH_VITAL_SPARK_POWER.description": "Tus Habilidades obtienen [gold]Contaminación[/gold] igual a las acumulaciones de este efecto.",
+  "HEXTECH_VITAL_SPARK_POWER.smartDescription": "Tus Habilidades obtienen [blue]{Amount}[/blue] de [gold]Contaminación[/gold].",
   "HEXTECH_BURN_POWER.title": "Quemadura",
   "HEXTECH_BURN_POWER.description": "Inflige daño equivalente a esta cantidad por ciento de PV actual, con un mínimo igual a esta cantidad. Luego la quemadura se reduce en [blue]10%[/blue].",
   "HEXTECH_BURN_POWER.smartDescription": "Inflige daño equivalente a [blue]{Amount}%[/blue] de PV actual, con un mínimo de [blue]{Amount}[/blue]. Luego la quemadura se reduce en [blue]10%[/blue].",

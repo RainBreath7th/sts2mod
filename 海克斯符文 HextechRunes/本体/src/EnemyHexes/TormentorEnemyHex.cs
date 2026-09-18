@@ -4,10 +4,10 @@ internal sealed class TormentorEnemyHex : HextechEnemyHexEffect
 {
 	internal override MonsterHexKind Kind => MonsterHexKind.Tormentor;
 
-	internal override async Task AfterMonsterDebuffApplied(HextechEnemyHexContext context, PowerModel power, decimal amount, Creature target, Creature source, CardModel? cardSource)
+	internal override async Task AfterEnemyDebuffReceived(HextechEnemyHexContext context, Creature target)
 	{
 		if (context.Tracking.HandlingMonsterTormentorBurn
-			|| !HextechCombatProcTracker.TryConsumeLimitedProc(context.Tracking.TormentorProcsThisTurn, source, 5))
+			|| !HextechCombatProcTracker.TryConsumeLimitedProc(context.Tracking.TormentorProcsThisTurn, target, 3))
 		{
 			return;
 		}
@@ -15,7 +15,13 @@ internal sealed class TormentorEnemyHex : HextechEnemyHexEffect
 		try
 		{
 			context.Tracking.HandlingMonsterTormentorBurn = true;
-			await PowerCmd.Apply<HextechBurnPower>(target, 2m, source, null);
+			foreach (Player player in target.CombatState!.Players)
+			{
+				if (player.Creature.IsAlive)
+				{
+					await PowerCmd.Apply<HextechBurnPower>(player.Creature, 1m, target, null);
+				}
+			}
 		}
 		finally
 		{

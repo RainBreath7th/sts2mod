@@ -71,6 +71,11 @@ internal abstract class HextechEnemyHexEffect
 		return 1m;
 	}
 
+	internal virtual decimal ModifyEnergyCostInCombatLate(HextechEnemyHexContext context, CardModel card, decimal cost)
+	{
+		return cost;
+	}
+
 	internal virtual (PileType, CardPilePosition)? ModifyCardPlayResultPileTypeAndPosition(
 		HextechEnemyHexContext context,
 		CardModel card,
@@ -142,6 +147,16 @@ internal abstract class HextechEnemyHexEffect
 		return Task.CompletedTask;
 	}
 
+	internal virtual Task AfterCardExhausted(HextechEnemyHexContext context, PlayerChoiceContext choiceContext, CardModel card, bool causedByEthereal)
+	{
+		return Task.CompletedTask;
+	}
+
+	internal virtual decimal ModifyPowerAmountReceived(HextechEnemyHexContext context, PowerModel canonicalPower, Creature target, decimal amount, Creature? applier)
+	{
+		return amount;
+	}
+
 	internal virtual Task AfterCardDrawn(HextechEnemyHexContext context, PlayerChoiceContext choiceContext, CardModel card, bool fromHandDraw)
 	{
 		return Task.CompletedTask;
@@ -207,12 +222,7 @@ internal abstract class HextechEnemyHexEffect
 		return Task.CompletedTask;
 	}
 
-	internal virtual Task AfterMonsterDebuffApplied(HextechEnemyHexContext context, PowerModel power, decimal amount, Creature target, Creature source, CardModel? cardSource)
-	{
-		return Task.CompletedTask;
-	}
-
-	internal virtual Task AfterCourageTrigger(HextechEnemyHexContext context, Creature source)
+	internal virtual Task AfterEnemyDebuffReceived(HextechEnemyHexContext context, Creature target)
 	{
 		return Task.CompletedTask;
 	}

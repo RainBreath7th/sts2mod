@@ -17,6 +17,7 @@ internal sealed class ThievingHopperEnemyHex : HextechEnemyHexEffect
 	internal static bool CanPlanTheft(Creature enemy, HextechEnemyHexContext context)
 	{
 		return enemy.Side == CombatSide.Enemy && !enemy.IsDead && !enemy.IsStunned
+			&& !HasTheftBlockingPower(enemy.Powers)
 			&& enemy.CombatId is uint id && enemy.CombatState is { } combat && combat.RunState == context.RunState
 			&& !IsProtectedBoss(combat.Encounter?.RoomType, enemy.IsPrimaryEnemy)
 			&& context.Tracking.GlobalProcsThisCombat.GetValueOrDefault(TheftKey(id)) == 0
@@ -26,6 +27,10 @@ internal sealed class ThievingHopperEnemyHex : HextechEnemyHexEffect
 
 	internal static bool IsProtectedBoss(RoomType? roomType, bool isPrimaryEnemy)
 		=> roomType == RoomType.Boss && isPrimaryEnemy;
+
+	internal static bool HasTheftBlockingPower(IEnumerable<PowerModel> powers)
+		// 睡眠不属于 Stun；Minion 的离场常由首领的死亡回调驱动，不能让逃跑绕过该关系。
+		=> powers.Any(power => power is AsleepPower or SlumberPower or MinionPower);
 
 	internal static bool RollTheft(HextechEnemyHexContext context, Creature enemy)
 	{
@@ -78,11 +83,9 @@ internal sealed class ThievingHopperEnemyHex : HextechEnemyHexEffect
 
 	internal static MoveState CreateEscapeMove(Func<Task> escapeAction)
 	{
-		MoveState escape = new(EscapeMoveId, _ => escapeAction(), new EscapeIntent())
-		{
-			// 偷牌动作结束后原版还会 RollMove；必须保留逃跑动作直到它真正执行。
-			MustPerformOnceBeforeTransitioning = true
-		};
+		MoveState escape = new(EscapeMoveId, _ => escapeAction(), new EscapeIntent());
+		// 自循环已经能保留下一次 RollMove 的逃跑意图。不能锁住 CanTransitionAway，
+		// 否则 ReattachPower 的 SetMoveImmediate(DeadState) 会被拒绝，死亡节段无法复活。
 		escape.FollowUpState = escape;
 		return escape;
 	}

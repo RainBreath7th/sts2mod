@@ -9,7 +9,7 @@ internal sealed class HandOfBaronEnemyHex : HextechEnemyHexEffect
 		return 1m + context.TierValue(Kind, 0.05m, 0.10m, 0.15m);
 	}
 
-	internal override async Task BeforeEnemySideTurnStart(HextechEnemyHexContext context, HextechCombatState combatState, IReadOnlyList<Creature> players, IReadOnlyList<Creature> enemies)
+	internal override async Task BeforePlayerSideTurnStart(HextechEnemyHexContext context, HextechCombatState combatState, IReadOnlyList<Creature> players)
 	{
 		if (players.Count == 0)
 		{

@@ -135,7 +135,13 @@ internal static class HextechEnemyHexEffects
 		new CeremonialBeastEnemyHex(),
 		new SoulFyshEnemyHex(),
 		new ThievingHopperEnemyHex(),
-		new HauntedShipEnemyHex()
+		new HauntedShipEnemyHex(),
+		new ReforgedHelmetEnemyHex(),
+		new EndlessRotationEnemyHex(),
+		new SomethingForNothingEnemyHex(),
+		new CorruptedBranchEnemyHex(),
+		new MoreTheMerrierEnemyHex(),
+		new EnlightenmentEnemyHex()
 	]);
 
 	internal static IEnumerable<HextechEnemyHexEffect> GetActive(HextechMayhemModifier modifier)

@@ -2,24 +2,6 @@ namespace HextechRunes;
 
 internal sealed class SingularityAIEnemyHex : HextechEnemyHexEffect
 {
-	private enum StatusKind
-	{
-		Burn,
-		Dazed,
-		Slimed,
-		Wound,
-		Void
-	}
-
-	private static readonly IReadOnlyList<StatusKind> StatusPool =
-	[
-		StatusKind.Burn,
-		StatusKind.Dazed,
-		StatusKind.Slimed,
-		StatusKind.Wound,
-		StatusKind.Void
-	];
-
 	internal override MonsterHexKind Kind => MonsterHexKind.SingularityAI;
 
 	internal override async Task BeforePlayerSideTurnStart(HextechEnemyHexContext context, HextechCombatState combatState, IReadOnlyList<Creature> players)
@@ -39,12 +21,12 @@ internal sealed class SingularityAIEnemyHex : HextechEnemyHexEffect
 			{
 				int statusIndex = HextechStableRandom.Index(
 					context.RunState,
-					StatusPool.Count,
+					HextechEnemyStatusCards.Count,
 					"singularity-ai-status",
 					HextechStableRandom.PlayerKey(player),
 					combatState.RoundNumber.ToString(),
 					i.ToString());
-				CardModel card = CreateStatusCard(combatState, player, StatusPool[statusIndex]);
+				CardModel card = HextechEnemyStatusCards.Create(combatState, player, statusIndex);
 
 				await HextechCardGeneration.AddGeneratedCardToCombat(
 					card,
@@ -55,15 +37,4 @@ internal sealed class SingularityAIEnemyHex : HextechEnemyHexEffect
 		}
 	}
 
-	private static CardModel CreateStatusCard(HextechCombatState combatState, Player player, StatusKind kind)
-	{
-		return kind switch
-		{
-			StatusKind.Burn => combatState.CreateCard<Burn>(player),
-			StatusKind.Dazed => combatState.CreateCard<Dazed>(player),
-			StatusKind.Slimed => combatState.CreateCard<Slimed>(player),
-			StatusKind.Wound => combatState.CreateCard<Wound>(player),
-			_ => combatState.CreateCard<MegaCrit.Sts2.Core.Models.Cards.Void>(player)
-		};
-	}
 }

@@ -1,4 +1,7 @@
 {
+  "HEXTECH_VITAL_SPARK_POWER.title": "생명의 불꽃",
+  "HEXTECH_VITAL_SPARK_POWER.description": "내 스킬 카드가 이 효과의 중첩 수만큼 [gold]오염[/gold]을 얻습니다.",
+  "HEXTECH_VITAL_SPARK_POWER.smartDescription": "내 스킬 카드가 [gold]오염[/gold]을 [blue]{Amount}[/blue] 얻습니다.",
   "HEXTECH_BURN_POWER.title": "점화",
   "HEXTECH_BURN_POWER.description": "현재 체력의 이 수치 퍼센트만큼 피해를 줍니다(최소 이 수치). 그 후 점화 수치가 [blue]10%[/blue] 감소합니다.",
   "HEXTECH_BURN_POWER.smartDescription": "현재 체력의 [blue]{Amount}%[/blue]만큼 피해를 줍니다(최소 [blue]{Amount}[/blue]). 그 후 점화 수치가 [blue]10%[/blue] 감소합니다.",

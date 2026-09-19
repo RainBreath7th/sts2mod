@@ -4,15 +4,15 @@ internal sealed class CourageOfColossusEnemyHex : HextechEnemyHexEffect
 {
 	internal override MonsterHexKind Kind => MonsterHexKind.CourageOfColossus;
 
-	internal override async Task AfterCourageTrigger(HextechEnemyHexContext context, Creature source)
+	internal override async Task AfterEnemyDebuffReceived(HextechEnemyHexContext context, Creature target)
 	{
-		if (HextechCombatProcTracker.TryConsumeLimitedProc(context.Tracking.CourageProcsThisTurn, source, 1))
+		if (HextechCombatProcTracker.TryConsumeLimitedProc(context.Tracking.CourageProcsThisTurn, target, 2))
 		{
-			int plating = ResolvePlating(source.MaxHp, context.GetStrengthTier(Kind));
-			await HextechEnemyPowerScalingHooks.Apply<PlatingPower>(source, plating, source, null);
+			int plating = ResolvePlating(target.MaxHp, context.GetStrengthTier(Kind));
+			await HextechEnemyPowerScalingHooks.Apply<PlatingPower>(target, plating, target, null);
 		}
 	}
 
 	internal static int ResolvePlating(int maxHp, int tier)
-		=> Math.Max(1, (int)Math.Floor(maxHp * (tier <= 1 ? 0.03m : tier == 2 ? 0.04m : 0.05m)));
+		=> Math.Max(1, (int)Math.Floor(maxHp * (tier <= 1 ? 0.01m : tier == 2 ? 0.02m : 0.03m)));
 }

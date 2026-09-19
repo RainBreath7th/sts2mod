@@ -14,11 +14,8 @@ internal sealed class WarmogsSpiritEnemyHex : HextechEnemyHexEffect
 		}
 
 		Player owner = card.Owner;
-		ulong playerId = owner.NetId;
 		int cardsPerPlating = context.TierValue(Kind, 8, 6, 4);
-		int cardsDrawn = context.Tracking.PlayerCardsDrawnThisCombat.GetValueOrDefault(playerId, 0) + 1;
-		context.Tracking.PlayerCardsDrawnThisCombat[playerId] = cardsDrawn;
-		if (cardsDrawn % cardsPerPlating != 0)
+		if (HextechEnemyDrawProgress.RecordDraw(context.Tracking.PlayerCardsDrawnThisCombat, owner, cardsPerPlating) == 0)
 		{
 			return;
 		}
@@ -59,20 +56,8 @@ internal sealed class WarmogsSpiritEnemyHex : HextechEnemyHexEffect
 			return;
 		}
 
-		int pendingPlating = 0;
 		int cardsPerPlating = context.TierValue(MonsterHexKind.WarmogsSpirit, 8, 6, 4);
-		foreach (Player player in combatState.Players.OrderBy(static player => player.NetId))
-		{
-			int drawnCards = CountPlayerDrawnCardsFromHistory(player);
-			int previousDrawnCards = context.Tracking.PlayerCardsDrawnThisCombat.GetValueOrDefault(player.NetId, 0);
-			if (drawnCards <= previousDrawnCards)
-			{
-				continue;
-			}
-
-			pendingPlating += drawnCards / cardsPerPlating - previousDrawnCards / cardsPerPlating;
-			context.Tracking.PlayerCardsDrawnThisCombat[player.NetId] = drawnCards;
-		}
+		int pendingPlating = HextechEnemyDrawProgress.ResolveFromHistory(context.Tracking.PlayerCardsDrawnThisCombat, combatState, cardsPerPlating);
 
 		if (pendingPlating <= 0)
 		{
@@ -83,13 +68,6 @@ internal sealed class WarmogsSpiritEnemyHex : HextechEnemyHexEffect
 		{
 			await HextechEnemyPowerScalingHooks.Apply<PlatingPower>(enemy, pendingPlating, enemy, null);
 		}
-	}
-
-	private static int CountPlayerDrawnCardsFromHistory(Player player)
-	{
-		return CombatManager.Instance.History.Entries
-			.OfType<CardDrawnEntry>()
-			.Count(entry => entry.Card.Owner?.NetId == player.NetId);
 	}
 
 }

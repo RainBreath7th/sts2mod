@@ -79,6 +79,7 @@
   "HEXTECH_REROLL": "Перебросить",
   "HEXTECH_CURRENT_TIER_LABEL": "Текущий уровень: {0}",
   "HEXTECH_ENEMY_PREVIEW_LABEL": "Вражеская руна в этом акте",
+  "HEXTECH_ENEMY_CONFIRM": "Подтвердить",
   "HEXTECH_ENEMY_REMOVE": "Убрать",
   "HEXTECH_ENEMY_UNDO_REMOVE": "Отменить",
   "HEXTECH_ENEMY_REMOVED_TITLE": "Без вражеских рун",

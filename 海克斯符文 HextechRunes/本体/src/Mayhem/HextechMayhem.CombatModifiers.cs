@@ -108,6 +108,15 @@ internal sealed partial class HextechMayhemModifier
 		return true;
 	}
 
+	public override bool TryModifyEnergyCostInCombatLate(CardModel card, decimal originalCost, out decimal modifiedCost)
+	{
+		modifiedCost = HextechEnemyHexDispatcher.Transform(
+			this,
+			originalCost,
+			(effect, context, current) => effect.ModifyEnergyCostInCombatLate(context, card, current));
+		return modifiedCost != originalCost;
+	}
+
 	public override (PileType, CardPilePosition) ModifyCardPlayResultPileTypeAndPositionCompat(CardModel card, bool isAutoPlay, ResourceInfo resources, PileType pileType, CardPilePosition position)
 	{
 		(pileType, position) = HextechEnemyHexDispatcher.Transform(

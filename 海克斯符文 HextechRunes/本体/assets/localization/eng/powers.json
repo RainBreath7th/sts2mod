@@ -1,4 +1,7 @@
 {
+  "HEXTECH_VITAL_SPARK_POWER.title": "Vital Spark",
+  "HEXTECH_VITAL_SPARK_POWER.description": "Your Skills gain [gold]Tainted[/gold] equal to this effect's stacks.",
+  "HEXTECH_VITAL_SPARK_POWER.smartDescription": "Your Skills gain [blue]{Amount}[/blue] [gold]Tainted[/gold].",
   "HEXTECH_BURN_POWER.title": "Burn",
   "HEXTECH_BURN_POWER.description": "Deal damage equal to this amount percent of current HP, with a minimum equal to this amount. Then Burn is reduced by [blue]10%[/blue].",
   "HEXTECH_BURN_POWER.smartDescription": "Deal damage equal to [blue]{Amount}%[/blue] of current HP, with a minimum of [blue]{Amount}[/blue]. Then Burn is reduced by [blue]10%[/blue].",

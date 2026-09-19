@@ -33,23 +33,38 @@ internal static partial class Program
 
 	private static void ScapegoatIncludesNegativeAttributesButLeavesBuffs()
 	{
-		T Power<T>(int amount) where T : PowerModel
+		T Power<T>(int amount) where T : PowerModel, new()
 		{
-			var power = (T)RuntimeHelpers.GetUninitializedObject(typeof(T));
-			typeof(AbstractModel).GetField("<IsMutable>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(power, true);
+			var power = CreateMutableTestModel<T>();
 			typeof(PowerModel).GetField("_amount", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(power, amount);
 			return power;
 		}
 		var strength = Power<StrengthPower>(-5);
 		var dexterity = Power<DexterityPower>(-3);
 		var weak = Power<WeakPower>(2);
+		weak.SkipNextDurationTick = true;
 		var buff = Power<StrengthPower>(4);
-		List<PowerModel> powers = [strength, buff, weak, dexterity];
+		var hex = Power<HexPower>(1);
+		var ringing = Power<RingingPower>(1);
+		var confused = Power<ConfusedPower>(1);
+		var galvanic = Power<HextechGalvanicPower>(2);
+		List<PowerModel> powers = [strength, hex, buff, weak, ringing, dexterity, confused, galvanic];
 		var snapshot = ScapegoatRune.SnapshotDebuffs(powers);
-		Equal(3, snapshot.Length, "negative attributes and ordinary debuffs all transfer");
-		Expect(snapshot.SequenceEqual(new PowerModel[] { strength, weak, dexterity }), "preserve stable native power order and exclude buffs");
+		Expect(snapshot.SequenceEqual(new PowerModel[] { strength, hex, weak, ringing, dexterity, confused, galvanic }),
+			"cleanse includes player-only debuffs in native order, but leaves buffs");
+		foreach (var playerOnly in new PowerModel[] { hex, ringing, confused, galvanic, buff })
+		{
+			Expect(ScapegoatRune.CreateEnemyTransfer(playerOnly) == null,
+				playerOnly.GetType().Name + " must never reach enemy application");
+		}
+		var transfers = snapshot.Select(ScapegoatRune.CreateEnemyTransfer).OfType<PowerModel>().ToArray();
+		Expect(transfers.Select(p => p.GetType()).SequenceEqual(new[] { typeof(StrengthPower), typeof(WeakPower), typeof(DexterityPower) }),
+			"unsafe effects cannot interrupt transfer of the remaining ordinary debuffs");
+		Expect(transfers.Select(p => p.Amount).SequenceEqual(new[] { -5, 2, -3 }), "preserve negative attributes and stacks");
+		Expect(!ReferenceEquals(weak, transfers[1]) && !transfers[1].SkipNextDurationTick && weak.SkipNextDurationTick,
+			"enemy receives an independent copy without the player's duration exemption");
 		powers.Clear();
-		Equal(3, snapshot.Length, "removal cannot mutate the transfer snapshot");
+		Equal(7, snapshot.Length, "removal cannot mutate the cleanse snapshot");
 	}
 
 	private static void BloodDebtAccumulatesPerCardAndExpiresAfterCombat()
@@ -111,7 +126,6 @@ internal static partial class Program
 		var transfer = Calls(typeof(ScapegoatRune), nameof(ScapegoatRune.AfterPlayerTurnStart));
 		Expect(transfer.Any(m => m.Name == "ConsumeCombatProcOrdinal"), "transfer uses synchronized proc ordinal");
 		Expect(transfer.Any(m => m.DeclaringType == typeof(HextechRuneTargeting)), "transfer chooses one stable random enemy");
-		Expect(transfer.Any(m => m.Name == "ClonePreservingMutability"), "transfer does not reuse the player's power instance");
 		Expect(transfer.Any(m => m.DeclaringType == typeof(MegaCrit.Sts2.Core.Commands.PowerCmd) && m.Name == "Apply"), "transfer keeps native application and artifact handling");
 		var replay = Calls(typeof(NetherSoulRune), nameof(NetherSoulRune.AfterSideTurnEndLate));
 		Expect(replay.Any(m => m.DeclaringType == typeof(HextechAutoPlayHelper)), "exhausted cards use native autoplay");

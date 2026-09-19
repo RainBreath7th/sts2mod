@@ -63,6 +63,8 @@ internal static class HextechAssets
 
 	public const string MikaelsBlessingAoeRunePath = "res://HextechRunes/images/effects/milio_base_r_aoe_rune.png";
 
+	public const string NearDeathFeastGlowPath = "res://HextechRunes/images/effects/near_death_feast/soul_nexus_glow.png";
+
 	public const string SlowCookHeatGlowPath = "res://HextechRunes/images/effects/slow_cook/heat_glow.png";
 
 	public const string SlowCookAoeGradientPath = "res://HextechRunes/images/effects/slow_cook/aoe_gradient.png";

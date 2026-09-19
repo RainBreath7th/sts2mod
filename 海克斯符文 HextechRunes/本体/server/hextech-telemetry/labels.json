@@ -1,5 +1,5 @@
 {
-  "generatedFrom": "HextechRunes + HextechRunesSponsorPack zhs relics.json (0.9.0 补全，含退役海克斯历史标签)",
+  "generatedFrom": "HextechRunes 0.9.4 + HextechRunesSponsorPack zhs relics.json（保留退役内容历史标签）",
   "runes": {
     "RALLYING_CALL_RUNE": "一呼百应",
     "ENDLESS_ROTATION_RUNE": "轮转不息",
@@ -467,7 +467,25 @@
     "CRACK_THE_EGG_RUNE": "砸开那颗蛋",
     "SCAPEGOAT_RUNE": "祸水东引",
     "BLOOD_DEBT_RUNE": "血债血偿",
-    "NETHER_SOUL_RUNE": "冥土追魂"
+    "NETHER_SOUL_RUNE": "冥土追魂",
+    "INFESTED_PRISM_HEX": "升级：感染棱柱",
+    "HUNGRY_HEX": "我饥饿",
+    "INSPECT_HEX": "我细看",
+    "GRIP_HEX": "我紧握",
+    "FOSSIL_STALKER_HEX": "升级：化石追踪者",
+    "TUNGSTEN_ROD_HEX": "升级：钨合金棍",
+    "ANCIENT_STATUE_HEX": "升级：旧日雕像",
+    "HUNDRED_REFINEMENTS_HEX": "百炼成钢",
+    "LIVING_FOG_HEX": "升级：活雾",
+    "CEREMONIAL_BEAST_HEX": "升级：仪式兽",
+    "SOUL_FYSH_HEX": "升级：灵魂异鱼",
+    "THIEVING_HOPPER_HEX": "升级：偷窃草蜢",
+    "HAUNTED_SHIP_HEX": "升级：幽灵船",
+    "HEXTECH_BLACK_BLOOD_PLUS": "黑暗之血+",
+    "HEXTECH_RING_OF_THE_DRAKE_PLUS": "长蛇戒指+",
+    "HEXTECH_DIVINE_DESTINY_PLUS": "天命所归+",
+    "HEXTECH_PHYLACTERY_UNBOUND_PLUS": "无界命匣+",
+    "HEXTECH_INFUSED_CORE_PLUS": "注能核心+"
   },
   "monsterHexes": {
     "Slap": "扇巴掌",
@@ -556,7 +574,7 @@
     "PandorasBox": "潘朵拉的盒子",
     "ForbiddenGrimoire": "禁忌魔典",
     "TezcatarasMercy": "特兹卡塔拉的慈爱",
-    "ArcanePunch": "秘术冲拳",
+    "ArcanePunch": "升级：感染棱柱",
     "SymphonyOfWar": "战争交响乐",
     "Mystery": "？？？",
     "MindOverMatter": "心胜于物",
@@ -608,7 +626,13 @@
     "CeremonialBeast": "升级：仪式兽",
     "SoulFysh": "升级：灵魂异鱼",
     "ThievingHopper": "升级：偷窃草蜢",
-    "HauntedShip": "升级：幽灵船"
+    "HauntedShip": "升级：幽灵船",
+    "ReforgedHelmet": "重铸战盔",
+    "EndlessRotation": "轮转不息",
+    "SomethingForNothing": "无本万利",
+    "CorruptedBranch": "腐化树枝",
+    "MoreTheMerrier": "多多益善",
+    "Enlightenment": "开悟"
   },
   "characters": {
     "IRONCLAD": "战士",

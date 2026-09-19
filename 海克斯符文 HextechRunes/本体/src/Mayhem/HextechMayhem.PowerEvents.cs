@@ -2,40 +2,26 @@ namespace HextechRunes;
 
 internal sealed partial class HextechMayhemModifier
 {
+	public override bool TryModifyPowerAmountReceived(PowerModel canonicalPower, Creature target, decimal amount, Creature? applier, out decimal modifiedAmount)
+	{
+		modifiedAmount = HextechEnemyHexDispatcher.Transform(
+			this, amount,
+			(effect, context, current) => effect.ModifyPowerAmountReceived(context, canonicalPower, target, current, applier));
+		return modifiedAmount != amount;
+	}
+
 	public override async Task AfterPowerAmountChanged(PlayerChoiceContext choiceContext, PowerModel power, decimal amount, Creature? applier, CardModel? cardSource)
 	{
 		await HextechEnemyHexDispatcher.ForEachActive(
 			this,
 			(effect, context) => effect.AfterPowerAmountChanged(context, power, amount, applier, cardSource));
 
-		bool hasMonsterDebuffTrigger = HextechEnemyPowerTriggerHelper.TryGetMonsterDebuffTrigger(power, amount, applier, out Creature? target, out Creature? source);
-		bool suppressMonsterDebuffDuplicate = hasMonsterDebuffTrigger
-			&& HextechEnemyTriggerGuard.ShouldSuppressMonsterDebuffDuplicate(_combatTracking, power, amount, source, cardSource);
-		if (hasMonsterDebuffTrigger && !suppressMonsterDebuffDuplicate)
+		if (power.Owner.CombatState?.RunState == RunState
+			&& HextechEnemyPowerTriggerHelper.IsEnemyDebuffReceived(power, amount, applier, cardSource))
 		{
 			await HextechEnemyHexDispatcher.ForEachActive(
 				this,
-				(effect, context) => effect.AfterMonsterDebuffApplied(context, power, amount, target!, source!, cardSource));
-		}
-
-		Creature? courageSource = null;
-		bool hasCourageTrigger = false;
-		if (hasMonsterDebuffTrigger && !suppressMonsterDebuffDuplicate)
-		{
-			courageSource = source;
-			hasCourageTrigger = courageSource != null;
-		}
-		else if (HextechEnemyPowerTriggerHelper.TryGetMonsterSelfBuffTrigger(power, amount, applier, out Creature? buffSource))
-		{
-			courageSource = buffSource;
-			hasCourageTrigger = true;
-		}
-
-		if (hasCourageTrigger)
-		{
-			await HextechEnemyHexDispatcher.ForEachActive(
-				this,
-				(effect, context) => effect.AfterCourageTrigger(context, courageSource!));
+				(effect, context) => effect.AfterEnemyDebuffReceived(context, power.Owner));
 		}
 	}
 }

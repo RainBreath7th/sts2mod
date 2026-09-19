@@ -63,6 +63,7 @@ internal sealed partial class HextechMayhemCombatTrackingState
 	public readonly Dictionary<ulong, int> BackToBasicsCardsPlayedThisTurn = new();
 	public readonly Dictionary<ulong, int> PlayerCardsDrawnThisCombat = new();
 	public readonly Dictionary<ulong, int> SwiftAndSafePlayerCardsDrawnThisCombat = new();
+	public readonly Dictionary<ulong, int> NightstalkingPlayerCardsDrawnThisCombat = new();
 	[CombatTrackingClear(CombatTrackingClearPhase.PlayerTurnStart)]
 	public readonly HashSet<ulong> MindOverMatterPlayersTriggeredThisTurn = new();
 	[CombatTrackingClear(CombatTrackingClearPhase.EveryTurnBoundary)]

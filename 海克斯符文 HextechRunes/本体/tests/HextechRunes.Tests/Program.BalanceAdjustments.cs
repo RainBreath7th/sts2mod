@@ -26,7 +26,7 @@ internal static partial class Program
 		for (int tier = 1; tier <= 3; tier++)
 		{
 			Equal(tier + 2, FinalFormEnemyHex.ResolvePlating(100, tier), "Final Form grants 3/4/5 percent Plating");
-			Equal(tier + 2, CourageOfColossusEnemyHex.ResolvePlating(100, tier), "Courage grants 3/4/5 percent Plating");
+			Equal(tier, CourageOfColossusEnemyHex.ResolvePlating(100, tier), "Courage grants 1/2/3 percent Plating");
 		}
 		Equal(25, SoulEaterEnemyHex.ResolveMaxHpGain(100), "Soul Eater gains one quarter of the dead enemy's Max HP");
 		Equal(24, SoulEaterEnemyHex.ResolveMaxHpGain(99), "Soul Eater rounds the Max HP gain down");

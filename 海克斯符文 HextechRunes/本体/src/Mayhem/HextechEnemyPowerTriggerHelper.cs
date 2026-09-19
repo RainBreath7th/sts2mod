@@ -2,39 +2,23 @@ namespace HextechRunes;
 
 internal static class HextechEnemyPowerTriggerHelper
 {
-	public static bool TryGetMonsterDebuffTrigger(
-		PowerModel power,
-		decimal amount,
-		Creature? applier,
-		out Creature? target,
-		out Creature? source)
+	internal static bool IsEnemyDebuffReceived(PowerModel power, decimal amount, Creature? applier, CardModel? cardSource)
 	{
-		target = power.Owner;
-		source = applier;
-		return amount > 0m
-			&& target?.Side == CombatSide.Player
-			&& source?.Side == CombatSide.Enemy
-			&& power.GetTypeForAmount(amount) == PowerType.Debuff
-			&& power is not ITemporaryPower;
-	}
-
-	public static bool TryGetMonsterSelfBuffTrigger(PowerModel power, decimal amount, Creature? applier, out Creature? source)
-	{
-		source = null;
-		Creature? owner = power.Owner;
-		if (amount <= 0m
-			|| owner?.Side != CombatSide.Enemy
-			|| power.GetTypeForAmount(amount) != PowerType.Buff
-			|| HextechMonsterInteractionPolicy.ShouldIgnoreMonsterSelfBuff(power)
+		if (power.Owner?.Side != CombatSide.Enemy
+			|| !power.Owner.IsAlive
+			|| amount == 0m
 			|| power is ITemporaryPower
-			|| power is PlatingPower
-			|| power is BufferPower
-			|| (applier != null && applier != owner))
+			|| power.GetTypeForAmount(amount) != PowerType.Debuff)
 		{
 			return false;
 		}
 
-		source = owner;
-		return true;
+		// 普通减益减少层数不是再次施加。负力量等双向属性只记录外部施加的负变化；
+		// TemporaryStrength 到期由 Owner 自己扣回力量，不能再次触发扇巴掌。
+		return amount > 0m
+			|| (power.AllowNegative
+				&& power.GetTypeForAmount(-amount) == PowerType.Buff
+				&& applier != power.Owner
+				&& (applier != null || cardSource != null));
 	}
 }

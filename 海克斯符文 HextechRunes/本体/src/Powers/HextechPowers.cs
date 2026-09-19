@@ -118,6 +118,13 @@ public sealed class HextechBloodPactTemporaryStrengthPower : TemporaryStrengthPo
 	protected override bool IsVisibleInternal => false;
 }
 
+public sealed class HextechSlapTemporaryStrengthPower : TemporaryStrengthPower
+{
+	public override AbstractModel OriginModel => ModelDb.Relic<SlapRune>();
+
+	protected override bool IsVisibleInternal => false;
+}
+
 public sealed class HextechPowerShieldTemporaryStrengthPower : TemporaryStrengthPower
 {
 	public override AbstractModel OriginModel => ModelDb.Relic<PowerShieldRune>();

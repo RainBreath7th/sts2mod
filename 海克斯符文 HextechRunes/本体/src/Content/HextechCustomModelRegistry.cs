@@ -2,7 +2,15 @@ namespace HextechRunes;
 
 internal static class HextechCustomModelRegistry
 {
-	internal static IReadOnlyList<Type> EventRelicTypes { get; } = [];
+	// 只由欧洛巴斯的再次强化获得；不进入共享随机池或海克斯候选池。
+	internal static IReadOnlyList<Type> EventRelicTypes { get; } =
+	[
+		typeof(HextechBlackBloodPlus),
+		typeof(HextechRingOfTheDrakePlus),
+		typeof(HextechDivineDestinyPlus),
+		typeof(HextechPhylacteryUnboundPlus),
+		typeof(HextechInfusedCorePlus)
+	];
 
 	// 已退役的自定义稀有度 run modifier 只保留模型注册，避免旧局中的 modifier ID 无法解析。
 	internal static IReadOnlyList<Type> CustomRarityModifierTypes { get; } =
@@ -64,7 +72,8 @@ internal static class HextechCustomModelRegistry
 		typeof(CeremonialBeastHex),
 		typeof(SoulFyshHex),
 		typeof(ThievingHopperHex),
-		typeof(HauntedShipHex)
+		typeof(HauntedShipHex),
+		typeof(InfestedPrismHex)
 	];
 
 	internal static IReadOnlyList<Type> CustomCardTypes { get; } =

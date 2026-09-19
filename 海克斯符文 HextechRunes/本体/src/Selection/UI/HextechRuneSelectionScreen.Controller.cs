@@ -23,7 +23,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		{
 			_controllerNavigationActivated = true;
 			ConfigureControllerNavigation();
-			Control? initialFocus = _holders.FirstOrDefault();
+			Control? initialFocus = _holders.FirstOrDefault() ?? _enemyOnlyConfirm;
 			RestoreFocusDeferred(initialFocus ?? this);
 			GetViewport()?.SetInputAsHandled();
 			return;
@@ -47,6 +47,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		}
 
 		List<Control> cards = _holders.Cast<Control>().Where(CanReceiveFocus).ToList();
+		if (_enemyOnlyConfirm != null && CanReceiveFocus(_enemyOnlyConfirm)) cards.Add(_enemyOnlyConfirm);
 		List<Control> rerolls = _rerollButtons.Cast<Control>().Where(CanReceiveFocus).ToList();
 		List<Control> enemyActions = [];
 		int enemySlotCount = Math.Max(_enemyHexRerollButtons.Count, _enemyHexRemoveButtons.Count);
@@ -65,6 +66,11 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		ConfigureHorizontalNeighbors(cards);
 		ConfigureHorizontalNeighbors(rerolls);
 		ConfigureHorizontalNeighbors(enemyActions);
+		if (_enemyOnlyConfirm != null && CanReceiveFocus(_enemyOnlyConfirm))
+		{
+			_enemyOnlyConfirm.FocusNeighborTop = (enemyActions.FirstOrDefault() ?? _enemyOnlyConfirm).GetPath();
+			_enemyOnlyConfirm.FocusNeighborBottom = _enemyOnlyConfirm.GetPath();
+		}
 
 		for (int i = 0; i < _holders.Count; i++)
 		{
@@ -155,7 +161,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 	private Control? GetHolderForSlot(int slotIndex)
 	{
 		return _holders.Count == 0
-			? null
+			? _enemyOnlyConfirm
 			: _holders[Math.Clamp(slotIndex, 0, _holders.Count - 1)];
 	}
 

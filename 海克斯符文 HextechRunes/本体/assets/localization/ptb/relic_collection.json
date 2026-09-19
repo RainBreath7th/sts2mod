@@ -81,6 +81,7 @@
   "HEXTECH_REROLL": "Rerolar",
   "HEXTECH_CURRENT_TIER_LABEL": "Nível Atual: {0}",
   "HEXTECH_ENEMY_PREVIEW_LABEL": "Hex Inimigo Deste Ato",
+  "HEXTECH_ENEMY_CONFIRM": "Confirmar",
   "HEXTECH_ENEMY_REMOVE": "Remover",
   "HEXTECH_ENEMY_UNDO_REMOVE": "Desfazer",
   "HEXTECH_ENEMY_REMOVED_TITLE": "Sem Hex Inimigo",

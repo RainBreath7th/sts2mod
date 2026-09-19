@@ -9,6 +9,15 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 {
 	private const int DismissMouseReleaseWaitLimit = 30;
 
+	public void CompleteEnemyOnlySelection()
+	{
+		if (!_enemyOnly || _choiceLocked) return;
+		_choiceLocked = true;
+		if (_enemyOnlyConfirm != null) _enemyOnlyConfirm.Disabled = true;
+		foreach (Button button in _enemyHexRerollButtons.Concat(_enemyHexRemoveButtons)) button.Disabled = true;
+		_completionSource.TrySetResult([]);
+	}
+
 	private void OnHolderSelected(RelicModel relic)
 	{
 		if (_choiceLocked)

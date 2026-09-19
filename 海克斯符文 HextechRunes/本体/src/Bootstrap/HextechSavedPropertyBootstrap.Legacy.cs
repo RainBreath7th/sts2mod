@@ -46,6 +46,7 @@ internal static partial class HextechSavedPropertyBootstrap
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechTemporaryDexterityLossPower));
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechLethalTempoTemporaryStrengthPower));
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechBloodPactTemporaryStrengthPower));
+		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechSlapTemporaryStrengthPower));
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechPowerShieldTemporaryStrengthPower));
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechAttackReplayPower));
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechPlayerSlowPower));
@@ -56,6 +57,7 @@ internal static partial class HextechSavedPropertyBootstrap
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechMountainDragonSoulPower));
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechChemtechDragonSoulPower));
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechCloudDragonSoulPower));
+		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechVitalSparkPower));
 		WarnOnUninjectedSavedPropertyCarriers();
 		EnsureSavedPropertyNetIdBitSize();
 	}

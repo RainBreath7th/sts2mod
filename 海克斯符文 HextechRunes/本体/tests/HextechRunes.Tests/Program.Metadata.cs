@@ -754,9 +754,9 @@ internal static partial class Program
 			MonsterHexCatalog.GetEnemyHexPowerHoverTipTypes(MonsterHexKind.OmniDragonSoul),
 			"enemy Omni Dragon Soul should explain all three debuffs");
 		SequenceEqual(
-			new[] { typeof(TaintedPower) },
+			new[] { typeof(HextechVitalSparkPower), typeof(TaintedPower) },
 			MonsterHexCatalog.GetEnemyHexPowerHoverTipTypes(MonsterHexKind.ArcanePunch),
-			"enemy Arcane Punch should explain Tainted");
+			"Infested Prism upgrade should explain Vital Spark and Tainted");
 		SequenceEqual(
 			new[] { typeof(HextechPlayerSlowPower) },
 			MonsterHexCatalog.GetEnemyHexPowerHoverTipTypes(MonsterHexKind.FrostWraith),

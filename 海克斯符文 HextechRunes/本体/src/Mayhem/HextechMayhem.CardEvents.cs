@@ -2,6 +2,13 @@ namespace HextechRunes;
 
 internal sealed partial class HextechMayhemModifier
 {
+	public override Task AfterCardExhausted(PlayerChoiceContext choiceContext, CardModel card, bool causedByEthereal)
+	{
+		return HextechEnemyHexDispatcher.ForEachActive(
+			this,
+			(effect, context) => effect.AfterCardExhausted(context, choiceContext, card, causedByEthereal));
+	}
+
 	public override async Task AfterCardPlayed(PlayerChoiceContext context, CardPlay cardPlay)
 	{
 		if (TrackPlayerAttackCardPlayedThisTurn(cardPlay)

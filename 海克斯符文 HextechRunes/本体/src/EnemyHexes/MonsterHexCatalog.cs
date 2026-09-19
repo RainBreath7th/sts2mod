@@ -30,7 +30,7 @@ internal static class MonsterHexCatalog
 			[MonsterHexKind.DawnbringersResolve] = [typeof(RegenPower)],
 			[MonsterHexKind.ShrinkRay] = [typeof(ShrinkPower)],
 			[MonsterHexKind.SuperBrain] = [typeof(PlatingPower)],
-			[MonsterHexKind.Nightstalking] = [typeof(StrengthPower), typeof(PaperCutsPower)],
+			[MonsterHexKind.Nightstalking] = [typeof(SlipperyPower)],
 			[MonsterHexKind.ShrinkEngine] = [typeof(SlipperyPower)],
 			[MonsterHexKind.GetExcited] = [typeof(StrengthPower), typeof(PainfulStabsPower)],
 			[MonsterHexKind.ServantMaster] = [typeof(IllusionPower)],
@@ -55,7 +55,7 @@ internal static class MonsterHexCatalog
 			[MonsterHexKind.Porcupine] = [typeof(ThornsPower)],
 			[MonsterHexKind.MonarchsGaze] = [typeof(StrengthPower)],
 			[MonsterHexKind.SwiftAndSafe] = [typeof(ArtifactPower)],
-			[MonsterHexKind.ArcanePunch] = [typeof(TaintedPower)],
+			[MonsterHexKind.ArcanePunch] = [typeof(HextechVitalSparkPower), typeof(TaintedPower)],
 			[MonsterHexKind.Omega] = [typeof(DisintegrationPower)],
 			[MonsterHexKind.OminousPact] = [typeof(DoomPower)],
 			[MonsterHexKind.Cerberus] = [typeof(VigorPower)],
@@ -74,6 +74,7 @@ internal static class MonsterHexCatalog
 			[MonsterHexKind.Byrdonis] = [typeof(TerritorialPower)],
 			[MonsterHexKind.CeremonialBeast] = [typeof(StrengthPower)],
 			[MonsterHexKind.ThievingHopper] = [typeof(SwipePower)],
+			[MonsterHexKind.ReforgedHelmet] = [typeof(StrengthPower)],
 		};
 
 	private static readonly Lazy<IReadOnlyDictionary<MonsterHexKind, HextechRarityTier>> RarityByMonsterHex = new(BuildRarityByMonsterHex);
@@ -140,6 +141,7 @@ internal static class MonsterHexCatalog
 			[MonsterHexKind.HeavyHitter] = ("HpPerPercent", 15),
 			[MonsterHexKind.VitalitySurge] = ("HpPerPercent", 20),
 			[MonsterHexKind.ProteinShake] = ("HpPerPercent", 5),
+			[MonsterHexKind.MoreTheMerrier] = ("RelicsNeeded", 1),
 		};
 
 	public static string GetEnemyHexDescriptionFormatted(MonsterHexKind hex)
@@ -200,6 +202,8 @@ internal static class MonsterHexCatalog
 			tips.Add(HoverTipFactory.FromCard<Beckon>());
 		if (hex == MonsterHexKind.HauntedShip)
 			tips.Add(HoverTipFactory.FromCard<Dazed>());
+		if (hex is MonsterHexKind.SomethingForNothing or MonsterHexKind.CorruptedBranch)
+			tips.Add(HoverTipFactory.FromKeyword(CardKeyword.Exhaust));
 
 		if (hex == MonsterHexKind.Compensation)
 		{

@@ -30,7 +30,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		PanelContainer contentPanel = new()
 		{
 			Name = "ContentPanel",
-			CustomMinimumSize = new Vector2(1180f, 780f),
+			CustomMinimumSize = new Vector2(1180f, _enemyOnly ? 460f : 780f),
 			MouseFilter = MouseFilterEnum.Ignore
 		};
 		contentPanel.AddThemeStyleboxOverride("panel", CreateContentPanelStyle());
@@ -91,8 +91,31 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		row.AddThemeConstantOverride("separation", 28);
 		root.AddChild(row);
 		_cardsRow = row;
+		row.Visible = !_enemyOnly;
 
 		RebuildCards();
+		if (_enemyOnly)
+		{
+			_enemyOnlyConfirm = new Button
+			{
+				Text = new LocString(LocTable, "HEXTECH_ENEMY_CONFIRM").GetRawText(),
+				CustomMinimumSize = new Vector2(220f, 58f),
+				SizeFlagsHorizontal = SizeFlags.ShrinkCenter,
+				FocusMode = FocusModeEnum.All,
+				Disabled = !_enemyHexControlsEnabled,
+				MouseDefaultCursorShape = CursorShape.PointingHand
+			};
+			_enemyOnlyConfirm.AddThemeFontSizeOverride("font_size", 26);
+			_enemyOnlyConfirm.Pressed += () =>
+			{
+				if (_enemyHexControlsEnabled && !IsSelectionConfirmGuardActive())
+				{
+					GetViewport()?.SetInputAsHandled();
+					CompleteEnemyOnlySelection();
+				}
+			};
+			root.AddChild(_enemyOnlyConfirm);
+		}
 
 		_statusLabel = new MegaLabel()
 		{
@@ -105,6 +128,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		HextechUiTheme.ApplyDefaultMegaLabelTheme(_statusLabel);
 		_statusLabel.Modulate = new Color(0.88f, 0.92f, 0.97f, 0.82f);
 		root.AddChild(_statusLabel);
+		if (_enemyOnly && !_enemyHexControlsEnabled) ShowWaitingForRemotePlayers();
 	}
 
 	private void RebuildEnemyPreview()

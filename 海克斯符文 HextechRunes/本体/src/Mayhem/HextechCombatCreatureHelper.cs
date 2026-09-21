@@ -76,14 +76,20 @@ internal static class HextechCombatCreatureHelper
 			return;
 		}
 
-		var node = NCombatRoom.Instance?.GetCreatureNode(enemy);
-		if (node != null)
-		{
-			NCombatRoom.Instance?.RemoveCreatureNode(node);
-		}
-
 		CombatManager.Instance.RemoveCreature(enemy);
 		combatState.RemoveCreature(enemy);
+		try
+		{
+			var node = NCombatRoom.Instance?.GetCreatureNode(enemy);
+			if (node != null)
+			{
+				NCombatRoom.Instance?.RemoveCreatureNode(node);
+			}
+		}
+		catch (Exception ex)
+		{
+			Log.Warn($"[{ModInfo.Id}][Mayhem] Dead enemy visual cleanup failed: {ex.Message}");
+		}
 		HextechLog.Info($"[{ModInfo.Id}][Mayhem] Removed retained dead enemy after unsafe PainfulStabs cleanup: id={enemy.CombatId?.ToString() ?? "none"} model={enemy.ModelId.Entry}");
 	}
 }

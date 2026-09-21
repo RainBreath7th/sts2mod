@@ -154,5 +154,7 @@ internal enum MonsterHexKind
 	SomethingForNothing = 142, // 无本万利（棱彩）
 	CorruptedBranch = 143,    // 腐化树枝（棱彩）
 	MoreTheMerrier = 144,     // 多多益善（黄金）
-	Enlightenment = 145       // 开悟（黄金）
+	Enlightenment = 145,       // 开悟（黄金）
+	CorruptHeart = 146,       // 升级：腐化之心（棱彩）
+	BadTaste = 147            // 恶趣味（白银）
 }

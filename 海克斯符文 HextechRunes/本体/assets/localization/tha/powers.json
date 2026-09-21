@@ -1,7 +1,7 @@
 {
   "HEXTECH_VITAL_SPARK_POWER.title": "ประกายชีวิต",
-  "HEXTECH_VITAL_SPARK_POWER.description": "การ์ดทักษะของคุณได้รับ[gold]มลทิน[/gold]เท่ากับจำนวนชั้นของเอฟเฟกต์นี้",
-  "HEXTECH_VITAL_SPARK_POWER.smartDescription": "การ์ดทักษะของคุณได้รับ[gold]มลทิน[/gold] [blue]{Amount}[/blue] ชั้น",
+  "HEXTECH_VITAL_SPARK_POWER.description": "การ์ดทักษะของคุณได้รับ[gold]ปนเปื้อน[/gold]เท่ากับจำนวนชั้นของเอฟเฟกต์นี้",
+  "HEXTECH_VITAL_SPARK_POWER.smartDescription": "การ์ดทักษะของคุณได้รับ[gold]ปนเปื้อน[/gold] [blue]{Amount}[/blue] ชั้น",
   "HEXTECH_BURN_POWER.title": "เผาไหม้",
   "HEXTECH_BURN_POWER.description": "สร้างความเสียหายเท่ากับจำนวนนี้คิดเป็นเปอร์เซ็นต์ของ HP ปัจจุบัน แต่ไม่น้อยกว่าจำนวนนี้ จากนั้นเผาไหม้จะลดลง [blue]10%[/blue]",
   "HEXTECH_BURN_POWER.smartDescription": "สร้างความเสียหายเท่ากับ [blue]{Amount}%[/blue] ของ HP ปัจจุบัน แต่ไม่น้อยกว่า [blue]{Amount}[/blue] จากนั้นเผาไหม้จะลดลง [blue]10%[/blue]",
@@ -36,5 +36,8 @@
   "HEXTECH_RUNE_DEMON_FORM_PREVIEW.description": "ตอนเริ่มต้นเทิร์น ได้รับ [blue]1[/blue] [gold]ความแข็งแรง[/gold]",
   "HEXTECH_GALVANIC_POWER.title": "กัดกร่อน",
   "HEXTECH_GALVANIC_POWER.description": "การ์ดพลังถูกกัดเซาะด้วย[gold]กัดกร่อน[/gold]",
-  "HEXTECH_GALVANIC_POWER.smartDescription": "การ์ดพลังถูกกัดเซาะด้วย[gold]{AfflictionTitle}[/gold]"
+  "HEXTECH_GALVANIC_POWER.smartDescription": "การ์ดพลังถูกกัดเซาะด้วย[gold]{AfflictionTitle}[/gold]",
+  "HEXTECH_HANG_POWER.title": "แขวนคอ",
+  "HEXTECH_HANG_POWER.description": "ความเสียหายทั้งหมดที่ได้รับจะคูณด้วยจำนวนชั้น",
+  "HEXTECH_HANG_POWER.smartDescription": "ความเสียหายทั้งหมดที่ได้รับจะคูณด้วย [blue]{Amount}[/blue]"
 }

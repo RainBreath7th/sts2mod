@@ -1,134 +1,27 @@
-using System.Collections;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Godot;
 using HarmonyLib;
-using HextechRunes;
 using FormVfxKind = HextechRunes.HextechFormVfxSafetyHooks.FormVfxKind;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Combat;
-using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
-using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.GameActions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
-using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Powers;
-using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
-using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
-using System.Text.Json;
 
 namespace HextechRunes.Tests;
 
 internal static partial class Program
 {
-	private static void EnemyCoefficientAddsWithinHexAndMultipliesAcrossHexes()
-	{
-		decimal oneHex = HextechEnemyCoefficientHelper.CombineBonusFractionsByHex(
-		[
-			(MonsterHexKind.TankEngine, 0.05m),
-			(MonsterHexKind.TankEngine, 0.05m),
-			(MonsterHexKind.TankEngine, 0.05m),
-			(MonsterHexKind.TankEngine, 0.05m),
-			(MonsterHexKind.TankEngine, 0.05m)
-		]);
-		Equal(1.25m, oneHex, "five Tank Engine contributions should add inside one enemy hex sector");
-
-		decimal crossHex = HextechEnemyCoefficientHelper.CombineBonusFractionsByHex(
-		[
-			(MonsterHexKind.Goliath, 0.20m),
-			(MonsterHexKind.AstralBody, 0.30m)
-		]);
-		Equal(1.56m, crossHex, "different enemy hex sectors should multiply");
-	}
-
-	private static void EnemyMaxHpCoefficientSectorsUseBaseHp()
-	{
-		decimal scale = HextechEnemyCoefficientHelper.CombineBonusFractionsByHex(
-		[
-			(MonsterHexKind.Goliath, 0.20m),
-			(MonsterHexKind.AstralBody, 0.20m),
-			(MonsterHexKind.GoldenSpatula, 0.25m),
-			(MonsterHexKind.MadScientist, -0.30m)
-		]);
-
-		Equal(1.26m, scale, "enemy max HP hex sectors");
-		Equal(126m, Math.Floor(100m * scale), "enemy max HP should derive once from the tracked base HP");
-	}
-
-	private static void EnemyMaxHpLegacyMigrationRecoversMixedSinglePlayerEffects()
-	{
-		Equal(
-			100,
-			HextechLegacyEnemyMaxHpMigration.ResolveBaseMaxHp(
-				currentMaxHp: 113,
-				rawMonsterMaxHp: 100,
-				appliedFixedBonusFractions: [0.20m, 0.30m, 0.25m],
-				madScientistLossFraction: 0.30m,
-				tankEngineStacks: 5),
-			"legacy max HP migration should reverse fixed targets, Mad Scientist and compounded Tank Engine stacks");
-		Equal(
-			100,
-			HextechLegacyEnemyMaxHpMigration.ResolveBaseMaxHp(
-				currentMaxHp: 130,
-				rawMonsterMaxHp: 100,
-				appliedFixedBonusFractions: [0.20m, 0.30m],
-				madScientistLossFraction: 0m,
-				tankEngineStacks: 0),
-			"an old fixed target masks smaller unknown scaling, so migration should use the raw monster base");
-		Equal(
-			100,
-			HextechLegacyEnemyMaxHpMigration.ResolveBaseMaxHp(
-				currentMaxHp: 156,
-				rawMonsterMaxHp: null,
-				appliedFixedBonusFractions: [0.20m, 0.30m],
-				madScientistLossFraction: 0m,
-				tankEngineStacks: 0),
-			"legacy max HP migration should reverse chained fixed bonuses when the raw monster base is unavailable");
-
-		int rawlessMixedBase = HextechLegacyEnemyMaxHpMigration.ResolveBaseMaxHp(
-			currentMaxHp: 110,
-			rawMonsterMaxHp: null,
-			appliedFixedBonusFractions: [0.20m, 0.30m],
-			madScientistLossFraction: 0.30m,
-			tankEngineStacks: 0);
-		Equal(
-			110m,
-			Math.Floor(rawlessMixedBase * 1.20m * 1.30m * 0.70m),
-			"rawless legacy migration should preserve the observed max HP after the new coefficient projection");
-	}
-
-	private static void EnemyMaxHpLegacyMigrationPreservesMultiplayerScaling()
-	{
-		Equal(
-			200,
-			HextechLegacyEnemyMaxHpMigration.ResolveBaseMaxHp(
-				currentMaxHp: 161,
-				rawMonsterMaxHp: 100,
-				appliedFixedBonusFractions: [0.20m, 0.30m],
-				madScientistLossFraction: 0.30m,
-				tankEngineStacks: 3),
-			"legacy max HP migration should retain a multiplayer-scaled base above every old fixed target");
-		Equal(
-			200,
-			HextechLegacyEnemyMaxHpMigration.ResolveBaseMaxHp(
-				currentMaxHp: 200,
-				rawMonsterMaxHp: 100,
-				appliedFixedBonusFractions: [],
-				madScientistLossFraction: 0m,
-				tankEngineStacks: 0),
-			"a fresh externally-scaled enemy should keep its current max HP as the coefficient base");
-	}
-
 	private static void MonsterInteractionPolicyPreservesStructuralMonsterBuffs()
 	{
 		PowerModel[] structuralEnemyPowers =
@@ -386,27 +279,6 @@ internal static partial class Program
 		Equal(1.30m, VitalitySurgeEnemyHex.ResolveMultiplier(6000m), "Vitality Surge multiplier above cap");
 	}
 
-	private static void EnemyAttributeBoostsUseExpectedTiersAndCrossHexMultiplication()
-	{
-		Equal(0m, EnemyAttributeBoostValues.GetBonusFraction(MonsterHexKind.Stats, 1), "Stats tier one bonus");
-		Equal(0.05m, EnemyAttributeBoostValues.GetBonusFraction(MonsterHexKind.Stats, 2), "Stats tier two bonus");
-		Equal(0.10m, EnemyAttributeBoostValues.GetBonusFraction(MonsterHexKind.Stats, 3), "Stats tier three bonus");
-		Equal(0.05m, EnemyAttributeBoostValues.GetBonusFraction(MonsterHexKind.StatsOnStats, 1), "Stats on Stats tier one bonus");
-		Equal(0.10m, EnemyAttributeBoostValues.GetBonusFraction(MonsterHexKind.StatsOnStats, 2), "Stats on Stats tier two bonus");
-		Equal(0.15m, EnemyAttributeBoostValues.GetBonusFraction(MonsterHexKind.StatsOnStats, 3), "Stats on Stats tier three bonus");
-		Equal(0.10m, EnemyAttributeBoostValues.GetBonusFraction(MonsterHexKind.StatsOnStatsOnStats, 1), "Stats on Stats on Stats tier one bonus");
-		Equal(0.20m, EnemyAttributeBoostValues.GetBonusFraction(MonsterHexKind.StatsOnStatsOnStats, 2), "Stats on Stats on Stats tier two bonus");
-		Equal(0.30m, EnemyAttributeBoostValues.GetBonusFraction(MonsterHexKind.StatsOnStatsOnStats, 3), "Stats on Stats on Stats tier three bonus");
-
-		decimal combined = HextechEnemyCoefficientHelper.CombineBonusFractionsByHex(
-		[
-			(MonsterHexKind.Stats, 0.05m),
-			(MonsterHexKind.Stats, 0.05m),
-			(MonsterHexKind.StatsOnStats, 0.10m)
-		]);
-		Equal(1.21m, combined, "attribute bonuses should add within one hex and multiply across hexes");
-	}
-
 	private static void EnemyTwilightVeilMirrorsOnlyPositivePlayerBlock()
 	{
 		Expect(TwilightVeilEnemyHex.ShouldMirrorBlock(CombatSide.Player, 1m), "Twilight Veil should mirror positive player Block");
@@ -432,21 +304,6 @@ internal static partial class Program
 		Equal(1.29m, HeavyHitterEnemyHex.ResolveMultiplier(449m), "Heavy Hitter multiplier below cap");
 		Equal(1.30m, HeavyHitterEnemyHex.ResolveMultiplier(450m), "Heavy Hitter multiplier at cap");
 		Equal(1.30m, HeavyHitterEnemyHex.ResolveMultiplier(4500m), "Heavy Hitter multiplier above cap");
-	}
-
-	private static void EnemyMaxHpCoefficientThresholdsScaleWithPlayerCount()
-	{
-		Equal(1m, HeavyHitterEnemyHex.ResolveMultiplier(29m, 2), "two-player Heavy Hitter below 30-HP threshold");
-		Equal(1.01m, HeavyHitterEnemyHex.ResolveMultiplier(30m, 2), "two-player Heavy Hitter first threshold");
-		Equal(1.30m, HeavyHitterEnemyHex.ResolveMultiplier(900m, 2), "two-player Heavy Hitter cap");
-
-		Equal(1m, VitalitySurgeEnemyHex.ResolveMultiplier(39m, 2), "two-player Vitality Surge below 40-HP threshold");
-		Equal(1.01m, VitalitySurgeEnemyHex.ResolveMultiplier(40m, 2), "two-player Vitality Surge first threshold");
-		Equal(1.30m, VitalitySurgeEnemyHex.ResolveMultiplier(1200m, 2), "two-player Vitality Surge cap");
-
-		Equal(1m, HextechMonsterSustainHelper.ResolveProteinShakeSustainMultiplier(9m, 2), "two-player Protein Shake below 10-HP threshold");
-		Equal(1.01m, HextechMonsterSustainHelper.ResolveProteinShakeSustainMultiplier(10m, 2), "two-player Protein Shake first threshold");
-		Equal(2m, HextechMonsterSustainHelper.ResolveProteinShakeSustainMultiplier(1000m, 2), "two-player Protein Shake at 100 percent bonus");
 	}
 
 	private static void EnemyCuttingEdgeAlchemistHalvesSuccessfulPotionRolls()
@@ -585,94 +442,6 @@ internal static partial class Program
 		Expect(!HextechPersonalHiveSafetyHooks.ShouldRunOriginal(null), "ownerless personal hive should be neutralized");
 	}
 
-	private static void EnemyCompensationDefersHalfDamageRoundedDown()
-	{
-		Equal((0m, 0), CompensationEnemyHex.SplitDamage(0m), "zero damage split");
-		Equal((1m, 0), CompensationEnemyHex.SplitDamage(1m), "one damage stays immediate");
-		Equal((1m, 1), CompensationEnemyHex.SplitDamage(2m), "even damage splits evenly");
-		Equal((2m, 1), CompensationEnemyHex.SplitDamage(3m), "odd damage rounds the deferred half down");
-		Equal((3m, 2), CompensationEnemyHex.SplitDamage(5m), "five damage preserves total after split");
-		Equal((3.5m, 2), CompensationEnemyHex.SplitDamage(5.5m), "fractional damage preserves its immediate remainder");
-		Equal((500m, 499), CompensationEnemyHex.SplitDamage(999m), "large odd damage split");
-	}
-
-	private static void PlayerCompensationRequiresActiveCombatContext()
-	{
-		Expect(
-			CompensationRune.IsActiveCombatContext(combatInProgress: true, currentRoomIsCombat: true, combatStateMatchesRun: true),
-			"Compensation should replace damage during the active combat it belongs to");
-		Expect(
-			!CompensationRune.IsActiveCombatContext(combatInProgress: false, currentRoomIsCombat: true, combatStateMatchesRun: true),
-			"Compensation should not replace event or other out-of-combat damage");
-		Expect(
-			!CompensationRune.IsActiveCombatContext(combatInProgress: true, currentRoomIsCombat: false, combatStateMatchesRun: true),
-			"Compensation should require the current room to be a combat room");
-		Expect(
-			!CompensationRune.IsActiveCombatContext(combatInProgress: true, currentRoomIsCombat: true, combatStateMatchesRun: false),
-			"Compensation should reject stale combat state from another run");
-	}
-
-	private static void NextTurnDamageUsesTurnStartSnapshot()
-	{
-		Equal(0, HextechNextTurnDamagePower.GetDamageToResolve(5, 0), "new stacks should not resolve during the turn they are applied");
-		Equal(5, HextechNextTurnDamagePower.GetDamageToResolve(5, 5), "all stacks present at turn start should resolve");
-		Equal(5, HextechNextTurnDamagePower.GetDamageToResolve(8, 5), "stacks added during turn-start hooks should wait for the following turn");
-		Equal(3, HextechNextTurnDamagePower.GetDamageToResolve(3, 5), "resolution should never exceed the current amount");
-		Equal(0, HextechNextTurnDamagePower.GetDamageToResolve(-1, 5), "negative amounts should never deal damage");
-	}
-
-	private static void NextTurnDamageDoesNotRetriggerCompensation()
-	{
-		Expect(!HextechNextTurnDamagePower.IsResolvingDamage, "next-turn damage guard should start inactive");
-		Expect(!CompensationEnemyHex.ShouldSkipDamageReplacement(), "ordinary damage should remain eligible for compensation");
-
-		bool skippedDuringResolution = false;
-		HextechNextTurnDamagePower.RunWithDamageResolutionGuard(() =>
-		{
-			skippedDuringResolution = CompensationEnemyHex.ShouldSkipDamageReplacement();
-			return Task.CompletedTask;
-		}).GetAwaiter().GetResult();
-
-		Expect(skippedDuringResolution, "next-turn damage must bypass compensation instead of being delayed again");
-		Expect(!HextechNextTurnDamagePower.IsResolvingDamage, "next-turn damage guard should reset after guarded work");
-	}
-
-	private static void EnemyCompensationSkipsOutbreakPoisonResponse()
-	{
-		Expect(!HextechCombatHooks.IsResolvingOutbreakPowerPoisonResponse, "outbreak response guard should start inactive");
-		Expect(
-			!CompensationEnemyHex.ShouldSkipDamageReplacement(),
-			"ordinary unpowered damage with dealer should still be eligible for compensation replacement");
-
-		bool skippedInsideGuard = false;
-		HextechCombatHooks.RunWithOutbreakPowerPoisonResponseGuard(() =>
-		{
-			skippedInsideGuard = CompensationEnemyHex.ShouldSkipDamageReplacement();
-			return Task.CompletedTask;
-		}).GetAwaiter().GetResult();
-
-		Expect(skippedInsideGuard, "outbreak poison response damage should skip compensation replacement");
-		Expect(!HextechCombatHooks.IsResolvingOutbreakPowerPoisonResponse, "outbreak response guard should reset after guarded work");
-	}
-
-	private static void EnemyCompensationSkipsSleightOfFleshResponse()
-	{
-		Expect(!HextechCombatHooks.IsResolvingSleightOfFleshPowerDebuffResponse, "sleight response guard should start inactive");
-		Expect(
-			!CompensationEnemyHex.ShouldSkipDamageReplacement(),
-			"ordinary unpowered damage with dealer should still be eligible for compensation replacement");
-
-		bool skippedInsideGuard = false;
-		HextechCombatHooks.RunWithSleightOfFleshPowerDebuffResponseGuard(() =>
-		{
-			skippedInsideGuard = CompensationEnemyHex.ShouldSkipDamageReplacement();
-			return Task.CompletedTask;
-		}).GetAwaiter().GetResult();
-
-		Expect(skippedInsideGuard, "sleight of flesh response damage should skip compensation replacement to avoid the poison recursion stack overflow");
-		Expect(!HextechCombatHooks.IsResolvingSleightOfFleshPowerDebuffResponse, "sleight response guard should reset after guarded work");
-	}
-
 	private static void EnemyOmniDragonSoulUsesPlayerTurnStart()
 	{
 		MethodInfo[] declaredMethods = typeof(OmniDragonSoulEnemyHex).GetMethods(
@@ -681,82 +450,204 @@ internal static partial class Program
 		Expect(declaredMethods.All(method => method.Name != "BeforeEnemySideTurnStart"), "enemy Omni Dragon Soul should no longer apply its debuff at enemy turn start");
 	}
 
-	private static void CompensationReplacementGuardScopesAsyncWork()
+	private static void EnemyMoreTheMerrierUsesPooledRelicsForAllThreeMultipliers()
 	{
-		Expect(!HextechCombatHooks.IsApplyingCompensationReplacement, "compensation replacement guard should start inactive");
-		TaskCompletionSource gate = new();
-		bool sawActiveBeforeAwait = false;
-		bool sawActiveAfterAwait = false;
-		Task guarded = HextechCombatHooks.RunWithCompensationReplacementGuard(async () =>
-		{
-			sawActiveBeforeAwait = HextechCombatHooks.IsApplyingCompensationReplacement;
-			await gate.Task;
-			sawActiveAfterAwait = HextechCombatHooks.IsApplyingCompensationReplacement;
-		});
-
-		Expect(sawActiveBeforeAwait, "compensation replacement guard should be active before guarded work awaits");
-		Expect(!HextechCombatHooks.IsApplyingCompensationReplacement, "compensation replacement guard should not leak to caller context");
-		gate.SetResult();
-		guarded.GetAwaiter().GetResult();
-		Expect(sawActiveAfterAwait, "compensation replacement guard should remain active after await inside guarded work");
-		Expect(!HextechCombatHooks.IsApplyingCompensationReplacement, "compensation replacement guard should reset after guarded work");
-
-		HextechScopedDepthGuard enteredTaskGuard = new();
-		TaskCompletionSource enteredTaskGate = new(TaskCreationOptions.RunContinuationsAsynchronously);
-		bool enteredTaskActiveBeforeAwait = false;
-		bool enteredTaskActiveAfterAwait = false;
-		bool afterCompletionSawInactiveGuard = false;
-
-		async Task ObserveEnteredTask()
-		{
-			enteredTaskActiveBeforeAwait = enteredTaskGuard.IsActive;
-			await enteredTaskGate.Task;
-			enteredTaskActiveAfterAwait = enteredTaskGuard.IsActive;
-		}
-
-		enteredTaskGuard.Enter();
-		Task enteredTask = ObserveEnteredTask();
-		Task wrappedEnteredTask = enteredTaskGuard.WrapEnteredTask(
-			enteredTask,
-			() =>
-			{
-				afterCompletionSawInactiveGuard = !enteredTaskGuard.IsActive;
-				return Task.CompletedTask;
-			});
-
-		Expect(enteredTaskActiveBeforeAwait, "entered task guard should be active before the original task awaits");
-		Expect(!enteredTaskGuard.IsActive, "wrapping an entered task should immediately unwind the caller context");
-		enteredTaskGate.SetResult();
-		wrappedEnteredTask.GetAwaiter().GetResult();
-		Expect(enteredTaskActiveAfterAwait, "entered task guard should remain active after await inside the original task");
-		Expect(afterCompletionSawInactiveGuard, "entered task completion callback should run after the guarded context exits");
-		Expect(!enteredTaskGuard.IsActive, "entered task guard should remain inactive in the caller after completion");
-
-		enteredTaskGuard.Enter();
-		enteredTaskGuard.Enter();
-		Task nestedSynchronousTask = enteredTaskGuard.WrapEnteredTask(Task.CompletedTask);
-		Expect(enteredTaskGuard.IsActive, "wrapping a completed nested task should preserve the parent guard scope");
-		nestedSynchronousTask.GetAwaiter().GetResult();
-		enteredTaskGuard.Exit();
-		Expect(!enteredTaskGuard.IsActive, "nested completed task guard should unwind exactly one depth");
+		var (context, first, second) = CreatePrismaticEnemyFixture();
+		List<RelicModel> firstRelics = Enumerable.Range(0, 11).Select(_ => (RelicModel)CreateMutableTestModel<MoreTheMerrierRune>()).ToList();
+		List<RelicModel> secondRelics = Enumerable.Range(0, 10).Select(_ => (RelicModel)CreateMutableTestModel<MoreTheMerrierRune>()).ToList();
+		AccessTools.Field(typeof(Player), "_relics").SetValue(first, firstRelics);
+		AccessTools.Field(typeof(Player), "_relics").SetValue(second, secondRelics);
+		MoreTheMerrierEnemyHex effect = new();
+		Equal(1.10m, effect.ModifyDamageMultiplicative(context, null, 10m, ValueProp.Move, null, null), "21 relics across two players grant ten percent");
+		Equal(1.10m, effect.ModifyBlockMultiplicative(context, first.Creature, 10m, ValueProp.Move, null, null), "same block coefficient");
+		Equal(1.10m, effect.ModifyEnemyHealMultiplicative(context, first.Creature, 10m), "same healing coefficient");
+		secondRelics.Add(CreateMutableTestModel<MoreTheMerrierRune>());
+		Equal(1.11m, effect.ModifyEnemyHealMultiplicative(context, first.Creature, 10m), "pool before rounding; changes update immediately");
+		firstRelics.Clear();
+		secondRelics.Clear();
+		Equal(1m, effect.ModifyEnemyHealMultiplicative(context, first.Creature, 10m), "no relics means no bonus");
+		var row = HextechMonsterHexRegistry.Registrations.Single(r => r.Kind == effect.Kind);
+		Equal(144, (int)row.Kind, "append-only ID");
+		Expect(row.Rarity == HextechRarityTier.Gold && !row.Disabled && row.IconRelicType == typeof(MoreTheMerrierRune), "enabled gold with matching icon");
 	}
 
-	private static void CompensationReplacementSuppressesSleightOfFleshResponse()
+	private static void EnemyEnlightenmentFloorsDiscountedCostsWithoutChangingBase()
 	{
-		Expect(
-			!HextechCombatHooks.ShouldSuppressSleightOfFleshPowerDebuffResponse(true),
-			"sleight response should not be suppressed outside compensation replacement");
+		var (context, first, _) = CreatePrismaticEnemyFixture();
+		CardModel card = CreateMutableTestModel<StrikeIronclad>();
+		card.Owner = first;
+		EnlightenmentEnemyHex effect = new();
+		card.EnergyCost.SetThisTurn(0);
+		Equal(1m, effect.ModifyEnergyCostInCombatLate(context, card, card.EnergyCost.GetWithModifiers(CostModifiers.Local)), "turn-free cards cost one after local modifiers");
+		Equal(1m, effect.ModifyEnergyCostInCombatLate(context, card, -1m), "negative modified costs also floor to one");
+		Equal(2m, effect.ModifyEnergyCostInCombatLate(context, card, 2m), "positive costs above one remain intact");
+		Equal(0, card.EnergyCost.GetWithModifiers(CostModifiers.Local), "floor does not overwrite original temporary cost");
+		CardModel x = CreateMutableTestModel<Whirlwind>();
+		x.Owner = first;
+		Equal(0m, effect.ModifyEnergyCostInCombatLate(context, x, 0m), "X is not converted to fixed cost");
+		card.EnergyCost.EndOfTurnCleanup();
+		Equal(1, card.EnergyCost.GetWithModifiers(CostModifiers.Local), "native cleanup still restores original card cost");
+		var row = HextechMonsterHexRegistry.Registrations.Single(r => r.Kind == effect.Kind);
+		Equal(145, (int)row.Kind, "append-only ID");
+		Expect(row.Rarity == HextechRarityTier.Gold && !row.Disabled && row.IconRelicType == typeof(EnlightenmentRune), "enabled gold with matching icon");
+		var zeroCostEnemy = new SomethingForNothingEnemyHex();
+		var resources = new ResourceInfo { EnergyValue = 1, EnergySpent = 1, StarValue = 0, StarsSpent = 0 };
+		Expect(zeroCostEnemy.ModifyCardPlayResultPileTypeAndPosition(context, card, false, resources, PileType.Discard, CardPilePosition.Bottom) == null, "raised play cost no longer triggers zero-cost exhaust");
+	}
 
-		bool suppressedInsideGuard = false;
-		HextechCombatHooks.RunWithCompensationReplacementGuard(() =>
+	private static void FourPrismaticEnemiesKeepIdentityAndStrengthScope()
+	{
+		MonsterHexKind[] kinds = [MonsterHexKind.ReforgedHelmet, MonsterHexKind.EndlessRotation,
+			MonsterHexKind.SomethingForNothing, MonsterHexKind.CorruptedBranch];
+		Type[] icons = [typeof(ReforgedHelmetRune), typeof(EndlessRotationRune), typeof(SomethingForNothingRune), typeof(CorruptedBranchRune)];
+		for (int i = 0; i < kinds.Length; i++)
 		{
-			suppressedInsideGuard = HextechCombatHooks.ShouldSuppressSleightOfFleshPowerDebuffResponse(true);
-			return Task.CompletedTask;
-		}).GetAwaiter().GetResult();
+			Equal(140 + i, (int)kinds[i], "append-only identity");
+			var row = HextechMonsterHexRegistry.Registrations.Single(r => r.Kind == kinds[i]);
+			Equal(HextechRarityTier.Prismatic, row.Rarity, "prismatic enemy");
+			Equal(icons[i], row.IconRelicType, "reuse matching player icon");
+			Expect(!row.Disabled && HextechEnemyHexEffects.RegisteredKinds.Contains(kinds[i]), "enabled and implemented");
+		}
+		var (context, first, second) = CreatePrismaticEnemyFixture();
+		Creature enemy = CreatePrismaticTestCreature(CombatSide.Enemy, (CombatState)first.Creature.CombatState!);
+		ReforgedHelmetEnemyHex effect = new();
+		Equal(3m, effect.ModifyPowerAmountReceived(context, new StrengthPower(), enemy, 3m, null), "positive enemy strength is no longer doubled");
+		Equal(0m, effect.ModifyPowerAmountReceived(context, new StrengthPower(), enemy, -3m, first.Creature), "enemy strength reduction is blocked");
+		Equal(0m, effect.ModifyPowerAmountReceived(context, new StrengthPower(), enemy, -3m, enemy), "self-applied strength loss including temporary expiry is blocked");
+		Equal(-3m, effect.ModifyPowerAmountReceived(context, new DexterityPower(), enemy, -3m, null), "other stat reductions remain allowed");
+		Equal(-3m, effect.ModifyPowerAmountReceived(context, new StrengthPower(), second.Creature, -3m, enemy), "player strength reduction remains allowed");
+		Equal(3m, effect.ModifyPowerAmountReceived(context, new DexterityPower(), enemy, 3m, null), "other powers unchanged");
+		Equal(3m, effect.ModifyPowerAmountReceived(context, new StrengthPower(), second.Creature, 3m, null), "players unchanged");
+	}
 
-		Expect(suppressedInsideGuard, "sleight response should be suppressed during compensation replacement");
-		Expect(
-			!HextechCombatHooks.ShouldSuppressSleightOfFleshPowerDebuffResponse(false),
-			"sleight response should not be suppressed when the power change would not trigger sleight");
+	private static void EnemyRotationStacksOnlyCurrentHandUntilTurnEnd()
+	{
+		var (context, first, second) = CreatePrismaticEnemyFixture();
+		CardModel card = CreateMutableTestModel<StrikeIronclad>();
+		CardModel other = CreateMutableTestModel<StrikeIronclad>();
+		card.Owner = first;
+		other.Owner = second;
+		var hand = (List<CardModel>)AccessTools.Field(typeof(CardPile), "_cards").GetValue(first.PlayerCombatState!.Hand)!;
+		hand.Add(card);
+		((List<CardModel>)AccessTools.Field(typeof(CardPile), "_cards").GetValue(second.PlayerCombatState!.Hand)!).Add(other);
+		EndlessRotationEnemyHex effect = new();
+		effect.AfterShuffle(context, null!, first).GetAwaiter().GetResult();
+		effect.AfterShuffle(context, null!, first).GetAwaiter().GetResult();
+		Equal(3, card.EnergyCost.GetWithModifiers(CostModifiers.Local), "two shuffles add two");
+		Equal(1, other.EnergyCost.GetWithModifiers(CostModifiers.Local), "teammate hand unaffected");
+		CardModel later = CreateMutableTestModel<StrikeIronclad>();
+		later.Owner = first;
+		hand.Add(later);
+		Equal(1, later.EnergyCost.GetWithModifiers(CostModifiers.Local), "later draw not taxed retroactively");
+		card.EnergyCost.AfterCardPlayedCleanup();
+		Equal(3, card.EnergyCost.GetWithModifiers(CostModifiers.Local), "returning card keeps whole-turn tax");
+		card.EnergyCost.EndOfTurnCleanup();
+		Equal(1, card.EnergyCost.GetWithModifiers(CostModifiers.Local), "turn end restores cost");
+	}
+
+	private static void EnemyZeroCostExhaustUsesPlayCostRatherThanPayment()
+	{
+		var (context, first, _) = CreatePrismaticEnemyFixture();
+		SomethingForNothingEnemyHex effect = new();
+		CardModel attack = CreateMutableTestModel<StrikeIronclad>();
+		attack.Owner = first;
+		var free = new ResourceInfo { EnergyValue = 0, EnergySpent = 0, StarValue = 0, StarsSpent = 0 };
+		var auto = new ResourceInfo { EnergyValue = 2, EnergySpent = 0, StarValue = 0, StarsSpent = 0 };
+		Equal(PileType.Exhaust, effect.ModifyCardPlayResultPileTypeAndPosition(context, attack, false, free, PileType.Discard, CardPilePosition.Bottom)!.Value.Item1, "discounted zero-cost card exhausts");
+		Expect(effect.ModifyCardPlayResultPileTypeAndPosition(context, attack, true, auto, PileType.Discard, CardPilePosition.Bottom) == null, "free autoplay of costly card does not qualify");
+		CardModel power = CreateMutableTestModel<Corruption>();
+		power.Owner = first;
+		Equal(PileType.Exhaust, effect.ModifyCardPlayResultPileTypeAndPosition(context, power, true, free, PileType.None, CardPilePosition.Bottom)!.Value.Item1, "zero-cost power uses native exhaust instead of removal");
+	}
+
+	private static readonly List<(CardModel Card, PileType Pile)> EnemyBranchGenerated = [];
+
+	private static void EnemyCorruptedBranchKeepsOwnerAndRestoresRandomSequence()
+	{
+		Type[] pool = [typeof(Burn), typeof(Dazed), typeof(Slimed), typeof(Wound), typeof(MegaCrit.Sts2.Core.Models.Cards.Void)];
+		Type[] added = pool.Where(type => !ModelDb.Contains(type)).ToArray();
+		Harmony harmony = new("HextechRunes.Tests.EnemyCorruptedBranch");
+		try
+		{
+			foreach (Type type in added) ModelDb.Inject(type);
+			// 只隔离牌堆动画与存档 UI；保留真实状态牌创建、随机抽选与战斗序号。
+			harmony.Patch(AccessTools.Method(typeof(HextechCardGeneration), "AddGeneratedCardToCombat"),
+				prefix: new HarmonyMethod(typeof(Program), nameof(CaptureEnemyBranchGenerated)));
+			var (context, first, second) = CreatePrismaticEnemyFixture();
+			CorruptedBranchEnemyHex effect = new();
+			CardModel source = CreateMutableTestModel<StrikeIronclad>();
+			source.Owner = first;
+			effect.AfterCardExhausted(context, null!, source, true).GetAwaiter().GetResult();
+			string saved = context.Tracking.Serialize();
+			effect.AfterCardExhausted(context, null!, source, false).GetAwaiter().GetResult();
+			Type expectedNext = EnemyBranchGenerated[^1].Card.GetType();
+			context.Tracking.Restore(saved);
+			effect.AfterCardExhausted(context, null!, source, false).GetAwaiter().GetResult();
+			Equal(expectedNext, EnemyBranchGenerated[^1].Card.GetType(), "restored ordinal reproduces next status");
+			CardModel teammateSource = CreateMutableTestModel<StrikeIronclad>();
+			teammateSource.Owner = second;
+			effect.AfterCardExhausted(context, null!, teammateSource, false).GetAwaiter().GetResult();
+			Equal(4, EnemyBranchGenerated.Count, "one status per actual exhaust, including ethereal");
+			Expect(EnemyBranchGenerated.All(row => row.Pile == PileType.Draw && pool.Contains(row.Card.GetType())), "only fixed status pool into draw pile");
+			Expect(EnemyBranchGenerated.Take(3).All(row => row.Card.Owner == first) && EnemyBranchGenerated[^1].Card.Owner == second, "each status belongs to the exhausting player");
+			Equal(2, HextechCombatProcTracker.GetPlayerRuneProcsInCombat(context.Tracking, first, nameof(CorruptedBranchEnemyHex)), "first player counter");
+			Equal(1, HextechCombatProcTracker.GetPlayerRuneProcsInCombat(context.Tracking, second, nameof(CorruptedBranchEnemyHex)), "independent teammate counter");
+		}
+		finally
+		{
+			harmony.UnpatchAll(harmony.Id);
+			EnemyBranchGenerated.Clear();
+			foreach (Type type in added) ModelDb.Remove(type);
+		}
+	}
+
+	private static bool CaptureEnemyBranchGenerated(CardModel card, PileType pileType, bool addedByPlayer, CardPilePosition position, ref Task<CardPileAddResult?> __result)
+	{
+		Expect(!addedByPlayer && position == CardPilePosition.Random, "enemy generated card uses random insertion");
+		EnemyBranchGenerated.Add((card, pileType));
+		__result = Task.FromResult<CardPileAddResult?>(null);
+		return false;
+	}
+
+	private static void EnemyDebuffTriggersRejectOutgoingBuffsAndExpiry()
+	{
+		var (_, player, _) = CreatePrismaticEnemyFixture();
+		Creature enemy = CreatePrismaticTestCreature(CombatSide.Enemy, (CombatState)player.Creature.CombatState!);
+		T Power<T>(Creature owner) where T : PowerModel, new()
+		{
+			T power = CreateMutableTestModel<T>();
+			AccessTools.Property(typeof(PowerModel), nameof(PowerModel.Owner)).SetValue(power, owner);
+			return power;
+		}
+		var weak = Power<WeakPower>(enemy);
+		Expect(HextechEnemyPowerTriggerHelper.IsEnemyDebuffReceived(weak, 1, player.Creature, null), "receiving Weak triggers");
+		Expect(!HextechEnemyPowerTriggerHelper.IsEnemyDebuffReceived(weak, -1, player.Creature, null), "removing Weak does not trigger");
+		Expect(!HextechEnemyPowerTriggerHelper.IsEnemyDebuffReceived(Power<WeakPower>(player.Creature), 1, enemy, null), "outgoing player debuff no longer triggers");
+		var strength = Power<StrengthPower>(enemy);
+		Expect(!HextechEnemyPowerTriggerHelper.IsEnemyDebuffReceived(strength, 1, enemy, null), "self buff no longer triggers");
+		Expect(HextechEnemyPowerTriggerHelper.IsEnemyDebuffReceived(strength, -1, player.Creature, null), "external Strength loss triggers");
+		Expect(!HextechEnemyPowerTriggerHelper.IsEnemyDebuffReceived(strength, -1, enemy, null), "temporary Strength expiry must not re-arm the effects");
+		Expect(!HextechEnemyPowerTriggerHelper.IsEnemyDebuffReceived(Power<HextechTemporaryStrengthLossPower>(enemy), 1, player.Creature, null), "temporary wrapper does not double-count its underlying Strength change");
+		Expect(typeof(TemporaryStrengthPower).IsAssignableFrom(typeof(HextechSlapTemporaryStrengthPower)), "Slap uses native temporary Strength cleanup");
+	}
+
+	private static void NightstalkingDrawProgressIsIndependentAndSurvivesReload()
+	{
+		HextechMayhemCombatTrackingState state = new();
+		var counts = state.NightstalkingPlayerCardsDrawnThisCombat;
+		int threshold = NightstalkingEnemyHex.CardsPerSlippery;
+		Equal(0, HextechEnemyDrawProgress.RecordTotal(counts, 1, 11, threshold), "eleven draws do not trigger");
+		Equal(0, HextechEnemyDrawProgress.RecordTotal(counts, 2, 11, threshold), "teammates do not pool incomplete groups");
+		Equal(1, HextechEnemyDrawProgress.RecordTotal(counts, 1, 12, threshold), "twelfth draw grants one proc");
+		Equal(0, HextechEnemyDrawProgress.RecordTotal(counts, 1, 12, threshold), "repeated multiplayer settlement does not repeat rewards");
+		Equal(0, state.PlayerCardsDrawnThisCombat.Count, "Warmog counter remains separate");
+		HextechMayhemCombatTrackingState restored = new();
+		HextechMayhemCombatTrackingSerializer.Restore(restored, HextechMayhemCombatTrackingSerializer.Serialize(state));
+		Equal(1, HextechEnemyDrawProgress.RecordTotal(restored.NightstalkingPlayerCardsDrawnThisCombat, 2, 12, threshold), "teammate carries eleven draws through save/load");
+		Equal(2, HextechEnemyDrawProgress.RecordTotal(restored.NightstalkingPlayerCardsDrawnThisCombat, 1, 36, threshold), "batched draw history grants each crossed threshold once");
+		restored.PreparePlayerSideTurnStart();
+		Equal(36, restored.NightstalkingPlayerCardsDrawnThisCombat[1], "draw counter spans turns");
+		restored.Reset();
+		Equal(0, restored.NightstalkingPlayerCardsDrawnThisCombat.Count, "next combat resets draws");
 	}
 }

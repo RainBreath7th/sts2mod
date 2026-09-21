@@ -84,7 +84,14 @@ internal static class HextechKnifeHelper
 			card.AddKeyword(CardKeyword.Exhaust);
 		}
 		InkshadowRune.TryApplyForOwner(card, card.Owner);
-		card.InvokeEnergyCostChanged();
+		try
+		{
+			card.InvokeEnergyCostChanged();
+		}
+		catch (Exception ex)
+		{
+			Log.Warn($"[{ModInfo.Id}][BigKnife] Cost visual refresh failed: {ex.Message}");
+		}
 	}
 
 	public static async Task<CardModel?> CreateOneBigKnifeBladeInHand(Player owner, CombatState combatState)

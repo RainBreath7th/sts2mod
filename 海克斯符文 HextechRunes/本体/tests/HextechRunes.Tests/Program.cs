@@ -66,6 +66,16 @@ internal static partial class Program
 #endif
 		TestCase[] tests =
 		[
+			new(nameof(GameplayDeterminismApisRequireReviewedExceptions), GameplayDeterminismApisRequireReviewedExceptions),
+			new(nameof(RandomGenerationClassesMatchReviewedManifest), RandomGenerationClassesMatchReviewedManifest),
+			new(nameof(CrossOrbKeepsSilkenTressOnFinalRewardsInEitherRelicOrder), CrossOrbKeepsSilkenTressOnFinalRewardsInEitherRelicOrder),
+			new(nameof(RoyaltiesUpgradePaysImmediatelyAndPreservesLegacyAccrual), RoyaltiesUpgradePaysImmediatelyAndPreservesLegacyAccrual),
+			new(nameof(ImmediateGoldPaysOwnerAndDoesNotRepeatAtVictory), ImmediateGoldPaysOwnerAndDoesNotRepeatAtVictory),
+			new(nameof(ImmediateGoldFeedbackStopsAndLaterDamageStillPays), ImmediateGoldFeedbackStopsAndLaterDamageStillPays),
+			new(nameof(PlayerUpgradeKeywordsAndNoDrawStayOwnerScoped), PlayerUpgradeKeywordsAndNoDrawStayOwnerScoped),
+			new(nameof(ClawUpgradeSeparatesPermanentGrowthFromNativeCombatGrowth), ClawUpgradeSeparatesPermanentGrowthFromNativeCombatGrowth),
+			new(nameof(PersistentPowerUpgradesDoNotAffectOtherPlayers), PersistentPowerUpgradesDoNotAffectOtherPlayers),
+			new(nameof(CardUpgradeReplacementBodiesMatchReviewedVanilla), CardUpgradeReplacementBodiesMatchReviewedVanilla),
 			new(nameof(ArchaicToothTransformsEternalOnlyWithinItsNativeObtainTask), ArchaicToothTransformsEternalOnlyWithinItsNativeObtainTask),
 			new(nameof(OrobasSecondUpgradePreservesNativeAndForeignMappings), OrobasSecondUpgradePreservesNativeAndForeignMappings),
 			new(nameof(OrobasPlusDrawAndLightningStayOwnerScoped), OrobasPlusDrawAndLightningStayOwnerScoped),
@@ -280,6 +290,7 @@ internal static partial class Program
 			new(nameof(MonsterHexMetadataKeepsDisabledKindsOutOfRarityPools), MonsterHexMetadataKeepsDisabledKindsOutOfRarityPools),
 			new(nameof(NewEnemyHexesReusePlayerRuneIconsAndRarities), NewEnemyHexesReusePlayerRuneIconsAndRarities),
 			new(nameof(FiveEnemyUpgradesHaveStableIdentityAndAutoPatrolDisabled), FiveEnemyUpgradesHaveStableIdentityAndAutoPatrolDisabled),
+			new(nameof(CorruptHeartAndEnemyBadTasteHaveStableIdentityAndVakuIsConfigurableDefaultOff), CorruptHeartAndEnemyBadTasteHaveStableIdentityAndVakuIsConfigurableDefaultOff),
 			new(nameof(MonsterUpgradeIntentsPreserveAttacksAndDoNotAccumulate), MonsterUpgradeIntentsPreserveAttacksAndDoNotAccumulate),
 			new(nameof(HopperEscapeSurvivesTheNextNativeMoveRoll), HopperEscapeSurvivesTheNextNativeMoveRoll),
 			new(nameof(HopperSkipsSleepingEnemiesAndMinions), HopperSkipsSleepingEnemiesAndMinions),
@@ -468,9 +479,14 @@ internal static partial class Program
 			?? throw new InvalidOperationException($"{type.FullName}.{fieldName} should not be null");
 		if (value is IDictionary dictionary)
 		{
-			DictionaryEntry[] entries = dictionary
-				.Cast<DictionaryEntry>()
-				.ToArray();
+			// 泛型 Dictionary 的 IEnumerable 枚举器返回 KeyValuePair；通过 IDictionary
+			// 的专用枚举器取 Entry，避免在实际保存守卫执行前就因测试快照类型转换失败。
+			List<DictionaryEntry> entries = [];
+			IDictionaryEnumerator enumerator = dictionary.GetEnumerator();
+			while (enumerator.MoveNext())
+			{
+				entries.Add(enumerator.Entry);
+			}
 			return () =>
 			{
 				dictionary.Clear();

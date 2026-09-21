@@ -36,5 +36,8 @@
   "HEXTECH_RUNE_DEMON_FORM_PREVIEW.description": "At the start of your turn, gain [blue]1[/blue] [gold]Strength[/gold].",
   "HEXTECH_GALVANIC_POWER.title": "Galvanic",
   "HEXTECH_GALVANIC_POWER.description": "Powers are afflicted with [gold]Galvanized[/gold].",
-  "HEXTECH_GALVANIC_POWER.smartDescription": "Powers are afflicted with [gold]{AfflictionTitle}[/gold]."
+  "HEXTECH_GALVANIC_POWER.smartDescription": "Powers are afflicted with [gold]{AfflictionTitle}[/gold].",
+  "HEXTECH_HANG_POWER.title": "Hang",
+  "HEXTECH_HANG_POWER.description": "All damage taken is multiplied by the number of stacks.",
+  "HEXTECH_HANG_POWER.smartDescription": "All damage taken is multiplied by [blue]{Amount}[/blue]."
 }

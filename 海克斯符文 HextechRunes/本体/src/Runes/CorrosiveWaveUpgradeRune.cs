@@ -14,25 +14,15 @@ public sealed class CorrosiveWaveUpgradeRune : CardUpgradeRuneBase<CorrosiveWave
 
 	protected override bool IsAvailableForCharacter(Player player) => IsSilentPlayer(player);
 
-	public override (PileType, CardPilePosition) ModifyCardPlayResultPileTypeAndPositionCompat(
-		CardModel card,
-		bool isAutoPlay,
-		ResourceInfo resources,
-		PileType pileType,
-		CardPilePosition position)
+	// 给牌本身加消耗词条，而不是在结算时改去向：卡面会显示消耗，也会和"遗忘之魂"这类按词条生效的效果正常互动。
+	public override bool TryModifyKeywordsInCombat(CardModel card, ISet<CardKeyword> keywords)
 	{
-		if (card.Owner != Owner || !ShouldExhaust(card, pileType))
-		{
-			return (pileType, position);
-		}
-
-		Flash();
-		return (PileType.Exhaust, position);
+		return Owner != null && GrantsExhaust(card, Owner) && keywords.Add(CardKeyword.Exhaust);
 	}
 
-	internal static bool ShouldExhaust(CardModel card, PileType resultPile)
+	internal static bool GrantsExhaust(CardModel card, Player owner)
 	{
-		return resultPile is not PileType.None && card is CorrosiveWave;
+		return card.Owner == owner && card is CorrosiveWave;
 	}
 
 	[HarmonyPatch(typeof(CorrosiveWavePower), nameof(CorrosiveWavePower.AfterSideTurnEnd), typeof(PlayerChoiceContext), typeof(CombatSide), typeof(IEnumerable<Creature>))]

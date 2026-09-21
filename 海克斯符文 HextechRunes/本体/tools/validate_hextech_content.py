@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 import re
 import sys
 from pathlib import Path
@@ -11,6 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SRC = REPO_ROOT / "src"
 LOCALIZATION = REPO_ROOT / "assets" / "localization"
 TELEMETRY_LABELS = REPO_ROOT / "server" / "hextech-telemetry" / "labels.json"
+OFFICIAL_ZHS_TITLES = REPO_ROOT / "tools" / "official_zhs_titles.json"
 
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -495,6 +497,87 @@ def validate_telemetry_labels(errors: list[str]) -> None:
             fail(errors, f"telemetry monster label mismatch for {kind}: expected {expected!r}, got {actual!r}")
 
 
+def validate_official_name_references(errors: list[str]) -> None:
+    """校对源码绑定的升级卡名和高亮引用；普通强调词不是原版模型名。"""
+    snapshot = json.loads(read(OFFICIAL_ZHS_TITLES))
+    tables = {path.stem: json.loads(read(path)) for path in (LOCALIZATION / "zhs").glob("*.json")}
+    official = set(snapshot["cards"].values()) | set(snapshot["powers"].values())
+    official.update(snapshot["other_official_terms"].values())
+    custom = {value for entries in tables.values() for key, value in entries.items()
+              if key.endswith(".title") and isinstance(value, str)}
+    # 分类/公式/动作强调、组合术语及自有升级牌名；不得用这个表豁免错写的原版名称。
+    emphasis = {
+        "稀有", "罕见", "X", "减半", "翻倍", "诅咒", "手牌", "状态牌", "龙魂卡牌",
+        "临时力量", "闪电充能球", "灼热攻击+1",
+        "海克斯：", "属性锻造器：", "铁甲战士海克斯：", "静默猎手海克斯：",
+        "储君海克斯：", "故障机器人海克斯：", "亡灵契约师海克斯：",
+    }
+    for table, entries in tables.items():
+        for key, value in entries.items():
+            if not isinstance(value, str) or key.endswith(".flavor"):
+                continue
+            for term in re.findall(r"\[gold\]([^\[\]{}]+)\[/gold\]", value):
+                if term not in official | custom | emphasis:
+                    fail(errors, f"zhs/{table}.{key}: unrecognized model reference {term!r}; check official_zhs_titles.json or the custom glossary")
+    relics = tables["relics"]
+    for path in sorted((SRC / "Runes").glob("*.cs")):
+        for rune, card in re.findall(r"\bclass\s+(\w+)\s*:\s*CardUpgradeRuneBase<(\w+)>", read(path)):
+            expected_card = snapshot["cards"].get(model_id_entry(card))
+            key = f"{model_id_entry(rune)}.title"
+            if expected_card is None:
+                fail(errors, f"{path.relative_to(REPO_ROOT)}: official card title missing from snapshot for {card}")
+            elif relics.get(key) != f"升级：{expected_card}":
+                fail(errors, f"zhs/relics.{key}: expected official card name 升级：{expected_card!s}, got {relics.get(key)!r}")
+
+
+def localization_format(text: str) -> tuple[set[str], Counter, list[str]]:
+    # 比较变量身份，不比较各语言的 plural/diff 等格式；嵌套格式里的变量也计入。
+    variables = set(re.findall(r"(?<!\{)\{([A-Za-z_]\w*|\d+)(?=[:.}])", text))
+    tags: Counter = Counter()
+    stack: list[str] = []
+    problems: list[str] = []
+    for match in re.finditer(r"\[(/?)([A-Za-z][A-Za-z0-9_]*)(?:[= ][^\]]*)?\]", text):
+        closing, name = match.groups()
+        tags[closing + name] += 1
+        if closing:
+            if not stack or stack[-1] != name:
+                problems.append(f"unexpected [/{name}]")
+            else:
+                stack.pop()
+        else:
+            stack.append(name)
+    if stack:
+        problems.append("unclosed " + ", ".join(stack))
+    return variables, tags, problems
+
+
+def validate_localization_format_parity(errors: list[str]) -> None:
+    """九语逐键：占位符集合一致，BBCode 嵌套配平。"""
+    languages = ("zhs", "eng", "esp", "spa", "jpn", "kor", "ptb", "rus", "tha")
+    for language in languages:
+        if not (LOCALIZATION / language).is_dir():
+            fail(errors, f"required localization directory missing: {language}")
+    for baseline_path in sorted((LOCALIZATION / "zhs").glob("*.json")):
+        baseline = json.loads(read(baseline_path))
+        for language in languages:
+            path = LOCALIZATION / language / baseline_path.name
+            if not path.exists():
+                fail(errors, f"required localization file missing: {language}/{baseline_path.name}")
+                continue
+            entries = json.loads(read(path))
+            for key, value in entries.items():
+                if not isinstance(value, str) or key not in baseline or not isinstance(baseline[key], str):
+                    continue
+                variables, tags, problems = localization_format(value)
+                expected_variables, expected_tags, _ = localization_format(baseline[key])
+                label = f"{language}/{baseline_path.name}:{key}"
+                if problems:
+                    fail(errors, f"{label}: BBCode unbalanced: {'; '.join(problems)}")
+                if variables != expected_variables:
+                    fail(errors, f"{label}: placeholders {sorted(variables)} != zhs {sorted(expected_variables)}")
+                # 各语言高亮哪些词由译文决定，标签数量不要求与中文一致；只要求配平。
+
+
 def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []
@@ -506,6 +589,8 @@ def main() -> int:
     validate_icon_assets(errors, warnings)
     validate_localization_key_parity(errors)
     validate_telemetry_labels(errors)
+    validate_official_name_references(errors)
+    validate_localization_format_parity(errors)
 
     if errors:
         print("Hextech content validation failed:")

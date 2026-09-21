@@ -47,9 +47,12 @@
   "colorDiscoveryRune.selectionScreenPrompt": "选择1张牌加入手牌。",
   "COLOR_DISCOVERY_RUNE.selectionScreenPrompt": "选择1张牌加入手牌。",
   "FEEL_THE_BURN_CARD.title": "感受燃烧",
-  "FEEL_THE_BURN_CARD.description": "移除所有敌人的所有正面效果。\n给予其[blue]{HextechBurnPower}[/blue]层[gold]灼烧[/gold]。",
+  "FEEL_THE_BURN_CARD.description": "移除所有敌人的所有正面效果。\n对其施加[blue]{HextechBurnPower}[/blue]层[gold]灼烧[/gold]。",
   "FEEL_THE_BURN_CARD.flavor": "先掐灭他们的气焰，再点燃你的。",
   "OK_BOOMERANG_CARD.title": "回力OK镖",
   "OK_BOOMERANG_CARD.description": "对所有敌人造成{Damage:diff()}点伤害[blue]{Hits}[/blue]次。\n将此牌返回你的手牌。",
-  "OK_BOOMERANG_CARD.flavor": "它飞走时像玩笑，飞回时像催债。"
+  "OK_BOOMERANG_CARD.flavor": "它飞走时像玩笑，飞回时像催债。",
+  "QUANTUM_COMPUTING_CARD.title": "量子计算",
+  "QUANTUM_COMPUTING_CARD.description": "对所有敌人造成其最大生命值{DamagePercent:diff()}%的伤害，并回复相当于所造成伤害值{HealPercent:diff()}%的生命。",
+  "QUANTUM_COMPUTING_CARD.flavor": "答案还没出现，敌人的生命值已经开始坍缩。"
 }

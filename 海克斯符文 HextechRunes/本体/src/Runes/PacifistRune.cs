@@ -2,6 +2,9 @@ namespace HextechRunes;
 
 public sealed class PacifistRune : HextechRelicBase
 {
+	private const decimal SustainMultiplierValue = 1.5m;
+	private const decimal SustainBonusPercentValue = (SustainMultiplierValue - 1m) * 100m;
+
 	private static readonly HashSet<PacifistRune> RunesWithPendingDoom = new();
 
 	private readonly List<PendingDoomApplication> _pendingDoomApplications = [];
@@ -9,8 +12,9 @@ public sealed class PacifistRune : HextechRelicBase
 
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
-		new DynamicVar("SustainMultiplier", 1.5m),
-		new PowerVar<DoomPower>(1m)
+		new DynamicVar("SustainMultiplier", SustainMultiplierValue),
+		new PowerVar<DoomPower>(1m),
+		new DynamicVar("SustainBonusPercent", SustainBonusPercentValue)
 	];
 
 	protected override IEnumerable<IHoverTip> ExtraHoverTips =>

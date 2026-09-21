@@ -2,6 +2,9 @@ namespace HextechRunes;
 
 public sealed class LifeFlowRune : HextechRelicBase
 {
+	private const decimal HealPercentValue = 0.05m;
+	private const decimal HealDisplayPercentValue = HealPercentValue * 100m;
+
 	private int _procsThisTurn;
 
 	[SavedProperty(SerializationCondition.SaveIfNotTypeDefault)]
@@ -26,8 +29,9 @@ public sealed class LifeFlowRune : HextechRelicBase
 
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
-		new DynamicVar("HealPercent", 0.05m),
-		new DynamicVar("MaxProcsPerTurn", 3m)
+		new DynamicVar("HealPercent", HealPercentValue),
+		new DynamicVar("MaxProcsPerTurn", 3m),
+		new DynamicVar("HealDisplayPercent", HealDisplayPercentValue)
 	];
 
 	public override bool IsAvailableForPlayer(Player player)

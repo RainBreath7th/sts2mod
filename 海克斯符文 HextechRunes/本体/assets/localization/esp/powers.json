@@ -24,8 +24,8 @@
   "HEXTECH_DRAGON_SOUL_POWER.description": "Gana energía adicional igual a esta cantidad cada turno.",
   "HEXTECH_DRAGON_SOUL_POWER.smartDescription": "Gana [blue]{Amount}[/blue] energía extra cada turno.",
   "HEXTECH_MOUNTAIN_DRAGON_SOUL_POWER.title": "Alma de dragón de montaña",
-  "HEXTECH_MOUNTAIN_DRAGON_SOUL_POWER.description": "Al comienzo de tu turno, gana [gold]Blindaje[/gold] igual a esta cantidad.",
-  "HEXTECH_MOUNTAIN_DRAGON_SOUL_POWER.smartDescription": "Al comienzo del turno de esta criatura, obtiene [blue]{Amount}[/blue] [gold]Blindaje[/gold].",
+  "HEXTECH_MOUNTAIN_DRAGON_SOUL_POWER.description": "Al comienzo de tu turno, gana [gold]Revestimiento[/gold] igual a esta cantidad.",
+  "HEXTECH_MOUNTAIN_DRAGON_SOUL_POWER.smartDescription": "Al comienzo del turno de esta criatura, obtiene [blue]{Amount}[/blue] [gold]Revestimiento[/gold].",
   "HEXTECH_CHEMTECH_DRAGON_SOUL_POWER.title": "Alma de dragón químicotecnológico",
   "HEXTECH_CHEMTECH_DRAGON_SOUL_POWER.description": "Al comienzo de tu turno, obtén pociones aleatorias iguales a esta cantidad.",
   "HEXTECH_CHEMTECH_DRAGON_SOUL_POWER.smartDescription": "Al comienzo del turno de esta criatura, obtén [blue]{Amount}[/blue] pociones aleatorias.",
@@ -35,6 +35,9 @@
   "HEXTECH_RUNE_SERPENT_FORM_PREVIEW.description": "Siempre que juegues una carta, inflige [blue]3[/blue] de daño a un enemigo aleatorio.",
   "HEXTECH_RUNE_DEMON_FORM_PREVIEW.description": "Al comienzo de tu turno, gana [blue]1[/blue] [gold]Fuerza[/gold].",
   "HEXTECH_GALVANIC_POWER.title": "Galvanismo",
-  "HEXTECH_GALVANIC_POWER.description": "Se les aplica [gold]galvanismo[/gold] a los poderes.",
-  "HEXTECH_GALVANIC_POWER.smartDescription": "Se les aplica [gold]{AfflictionTitle}[/gold] a los poderes."
+  "HEXTECH_GALVANIC_POWER.description": "Se les aplica [gold]Galvanismo[/gold] a los poderes.",
+  "HEXTECH_GALVANIC_POWER.smartDescription": "Se les aplica [gold]{AfflictionTitle}[/gold] a los poderes.",
+  "HEXTECH_HANG_POWER.title": "Ahorcar",
+  "HEXTECH_HANG_POWER.description": "Todo el daño recibido se multiplica por las acumulaciones.",
+  "HEXTECH_HANG_POWER.smartDescription": "Todo el daño recibido se multiplica por [blue]{Amount}[/blue]."
 }

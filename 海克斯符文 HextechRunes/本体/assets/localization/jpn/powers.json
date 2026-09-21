@@ -36,5 +36,8 @@
   "HEXTECH_RUNE_DEMON_FORM_PREVIEW.description": "自分のターンの開始時に、[blue]1[/blue] [gold]筋力[/gold]を獲得します。",
   "HEXTECH_GALVANIC_POWER.title": "ガルバニック",
   "HEXTECH_GALVANIC_POWER.description": "パワーは[gold]ガルバニック[/gold]の影響を受ける。",
-  "HEXTECH_GALVANIC_POWER.smartDescription": "パワーは[gold]{AfflictionTitle}[/gold]の影響を受けている。"
+  "HEXTECH_GALVANIC_POWER.smartDescription": "パワーは[gold]{AfflictionTitle}[/gold]の影響を受けている。",
+  "HEXTECH_HANG_POWER.title": "吊殺",
+  "HEXTECH_HANG_POWER.description": "受けるすべてのダメージが累積数倍になる。",
+  "HEXTECH_HANG_POWER.smartDescription": "受けるすべてのダメージが[blue]{Amount}[/blue]倍になる。"
 }

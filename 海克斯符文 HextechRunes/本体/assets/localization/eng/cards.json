@@ -51,5 +51,8 @@
   "FEEL_THE_BURN_CARD.flavor": "Snuff out their fire, then light your own.",
   "OK_BOOMERANG_CARD.title": "OK Boomerang",
   "OK_BOOMERANG_CARD.description": "Deal {Damage:diff()} damage to ALL enemies [blue]{Hits}[/blue] times.\nReturn this card to your hand.",
-  "OK_BOOMERANG_CARD.flavor": "It leaves like a joke and returns like a debt collector."
+  "OK_BOOMERANG_CARD.flavor": "It leaves like a joke and returns like a debt collector.",
+  "QUANTUM_COMPUTING_CARD.title": "Quantum Computing",
+  "QUANTUM_COMPUTING_CARD.description": "Deal damage to all enemies equal to {DamagePercent:diff()}% of their Max HP, then heal for {HealPercent:diff()}% of the damage dealt.",
+  "QUANTUM_COMPUTING_CARD.flavor": "Before the answer appears, enemy HP has already collapsed."
 }

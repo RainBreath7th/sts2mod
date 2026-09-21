@@ -20,6 +20,8 @@ internal static class HextechAssets
 
 	public const string OkBoomerangCardPortraitPath = "res://HextechRunes/images/cards/okBoomerangCard.png";
 
+	public const string QuantumComputingCardPortraitPath = "res://HextechRunes/images/cards/quantumComputingCard.png";
+
 	public const string ReprogramCardPortraitPath = "res://HextechRunes/images/cards/reprogramCard.png";
 
 	public const string MikaelsBlessingCardPortraitPath = "res://HextechRunes/images/cards/mikaelsBlessingCard.png";

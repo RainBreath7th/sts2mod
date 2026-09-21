@@ -2,9 +2,13 @@ namespace HextechRunes;
 
 public sealed class BoneGuardRune : HextechRelicBase
 {
+	private const decimal BlockMultiplierValue = 0.5m;
+	private const decimal BlockPercentValue = BlockMultiplierValue * 100m;
+
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
-		new DynamicVar("BlockMultiplier", 0.5m)
+		new DynamicVar("BlockMultiplier", BlockMultiplierValue),
+		new DynamicVar("BlockPercent", BlockPercentValue)
 	];
 
 	public override bool IsAvailableForPlayer(Player player)

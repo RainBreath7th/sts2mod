@@ -1,0 +1,15 @@
+# 原版局部替换守卫：入口与异步结算体。
+MegaCrit.Sts2.Core.Models.Powers.LoopPower::AfterPlayerTurnStart(MegaCrit.Sts2.Core.GameActions.Multiplayer.PlayerChoiceContext,MegaCrit.Sts2.Core.Entities.Players.Player)=c88b748f2ea99cec56826da7fc4e92c5e4cbb221
+MegaCrit.Sts2.Core.Models.Powers.LoopPower+<AfterPlayerTurnStart>d__4::MoveNext()=1c45282a91e2379bfbd731f9eb037a8a24080598
+MegaCrit.Sts2.Core.Models.Powers.RagePower::AfterSideTurnEnd(MegaCrit.Sts2.Core.GameActions.Multiplayer.PlayerChoiceContext,MegaCrit.Sts2.Core.Combat.CombatSide,System.Collections.Generic.IEnumerable`1[[MegaCrit.Sts2.Core.Entities.Creatures.Creature, sts2, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null]])=56ef6bd340d65a0761c5cb1cb74f89f558995bdc
+MegaCrit.Sts2.Core.Models.Powers.RagePower+<AfterSideTurnEnd>d__7::MoveNext()=6dea3ee8fa2d4b1c24760fbe0188a5813a020de2
+MegaCrit.Sts2.Core.Models.Powers.ReflectPower::AfterSideTurnStart(MegaCrit.Sts2.Core.Combat.CombatSide,System.Collections.Generic.IReadOnlyList`1[[MegaCrit.Sts2.Core.Entities.Creatures.Creature, sts2, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null]],MegaCrit.Sts2.Core.Combat.ICombatState)=53ecafb59ab7bae6fbd1216896d9da4caf0c5870
+MegaCrit.Sts2.Core.Models.Powers.ReflectPower+<AfterSideTurnStart>d__5::MoveNext()=27be30e43b6f28c5eb027939ba04d929b8b8ab1d
+MegaCrit.Sts2.Core.Models.Cards.FlakCannon::OnPlay(MegaCrit.Sts2.Core.GameActions.Multiplayer.PlayerChoiceContext,MegaCrit.Sts2.Core.Entities.Cards.CardPlay)=f016ed99dacc8cc37d49146038b6118363ec46b2
+MegaCrit.Sts2.Core.Models.Cards.FlakCannon+<OnPlay>d__6::MoveNext()=cf5dad3573dab9168ab8e9fa3038f9c96f99cd44
+MegaCrit.Sts2.Core.Models.Cards.Hang::OnPlay(MegaCrit.Sts2.Core.GameActions.Multiplayer.PlayerChoiceContext,MegaCrit.Sts2.Core.Entities.Cards.CardPlay)=8ae32472cb738bbc95105cf2321e64699d3f28ab
+MegaCrit.Sts2.Core.Models.Cards.Hang+<OnPlay>d__3::MoveNext()=f42ff7eb0d4b8cd8260f38b38319931b71b2aa5d
+MegaCrit.Sts2.Core.Models.Powers.InfernoPower::AfterDamageReceived(MegaCrit.Sts2.Core.GameActions.Multiplayer.PlayerChoiceContext,MegaCrit.Sts2.Core.Entities.Creatures.Creature,MegaCrit.Sts2.Core.Entities.Creatures.DamageResult,MegaCrit.Sts2.Core.ValueProps.ValueProp,MegaCrit.Sts2.Core.Entities.Creatures.Creature,MegaCrit.Sts2.Core.Models.CardModel)=4c29f7f6a3861ea96f474b8235e6904c255b29af
+MegaCrit.Sts2.Core.Models.Powers.InfernoPower+<AfterDamageReceived>d__8::MoveNext()=8fcf5d844146eee5ca170110c239a7475029433e
+MegaCrit.Sts2.Core.Models.Powers.FlameBarrierPower::AfterDamageReceived(MegaCrit.Sts2.Core.GameActions.Multiplayer.PlayerChoiceContext,MegaCrit.Sts2.Core.Entities.Creatures.Creature,MegaCrit.Sts2.Core.Entities.Creatures.DamageResult,MegaCrit.Sts2.Core.ValueProps.ValueProp,MegaCrit.Sts2.Core.Entities.Creatures.Creature,MegaCrit.Sts2.Core.Models.CardModel)=5b799d1c280f83b87d83680365f3cd0ca2729910
+MegaCrit.Sts2.Core.Models.Powers.FlameBarrierPower+<AfterDamageReceived>d__4::MoveNext()=85f0fc8a4005c080ab18407f66665f5d01aa439b

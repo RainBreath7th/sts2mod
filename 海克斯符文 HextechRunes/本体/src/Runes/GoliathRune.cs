@@ -2,6 +2,11 @@ namespace HextechRunes;
 
 public sealed class GoliathRune : HextechRelicBase, IHextechMaxHpScalingRune
 {
+	private const decimal ScaleValue = 1.35m;
+	private const decimal MaxHpBonusPercentValue = (ScaleValue - 1m) * 100m;
+	private const decimal StatMultiplierValue = 1.2m;
+	private const decimal SustainBonusPercentValue = (StatMultiplierValue - 1m) * 100m;
+
 	private int _baseMaxHp;
 
 	[SavedProperty(SerializationCondition.SaveIfNotTypeDefault)]
@@ -22,9 +27,11 @@ public sealed class GoliathRune : HextechRelicBase, IHextechMaxHpScalingRune
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
 		new DynamicVar("HpGainPercent", 0.35m),
-		new DynamicVar("DamageMultiplier", 1.2m),
-		new DynamicVar("SustainMultiplier", 1.2m),
-		new DynamicVar("Scale", 1.35m)
+		new DynamicVar("DamageMultiplier", StatMultiplierValue),
+		new DynamicVar("SustainMultiplier", StatMultiplierValue),
+		new DynamicVar("Scale", ScaleValue),
+		new DynamicVar("MaxHpBonusPercent", MaxHpBonusPercentValue),
+		new DynamicVar("SustainBonusPercent", SustainBonusPercentValue)
 	];
 
 	public decimal MaxHpScale => DynamicVars["Scale"].BaseValue;

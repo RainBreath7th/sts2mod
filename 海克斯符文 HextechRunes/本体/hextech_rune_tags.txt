@@ -1,5 +1,6 @@
 [我方 / 通用]
 我方	ScapegoatRune	祸水东引	标签=综合
+我方	VakuuMockeryRune	瓦库的嘲弄	标签=随机
 我方	SlapRune	扇巴掌	标签=输出
 我方	DexterityToStrengthRune	敏捷转力量	标签=输出
 我方	StrengthToDexterityRune	力量转敏捷	标签=生存
@@ -37,7 +38,7 @@
 我方	StatsRune	属性！	标签=随机
 我方	StartupRoutineRune	启动流程	标签=生存
 我方	CollectorRune	收集者	标签=经济
-我方	SoulCallingRune	引魂	标签=运转
+#我方	SoulCallingRune	引魂	标签=运转
 我方	EasyDoesItRune	顺手的事	标签=综合
 我方	HiddenGemUpgradeRune	升级：未掘宝石	标签=综合
 我方	OceanDragonSoulRune	海洋龙魂	标签=生存
@@ -64,7 +65,7 @@
 #我方	PiggyBankRune	小猪存钱罐	标签=经济
 我方	OrobasBlessingRune	欧洛巴斯的祝福	标签=综合
 我方	CrossOrbRune	十字圣球	标签=综合
-我方	IllusoryWeaponRune	虚幻武器	标签=输出
+#我方	IllusoryWeaponRune	虚幻武器	标签=输出
 #我方	NeowsGrudgeRune	涅奥的怨恨	标签=输出
 #我方	SuperBrainRune	超强大脑	标签=综合
 我方	OverflowRune	溢流	标签=综合
@@ -161,7 +162,7 @@
 我方	MobileHomeRune	移动房车	标签=综合
 我方	CosplayRune	COSPLAY	标签=综合
 我方	MiseryRune	苦楚	标签=综合
-我方	GhostFormRune	幽魂形态	标签=生存
+#我方	GhostFormRune	幽魂形态	标签=生存
 我方	ForbiddenGrimoireRune	禁忌魔典	标签=综合
 我方	ForgottenSoulRune	遗忘之魂	标签=综合
 我方	UpgradeRune	神化	标签=综合
@@ -200,16 +201,18 @@
 我方	TransmuteChaosRune	质变：混沌	标签=随机
 我方	DoubleVisionRune	复视	标签=综合
 我方	PrismaticEggRune	棱彩蛋	标签=随机
-我方	SomethingForNothingRune	无本万利	标签=运转
+#我方	SomethingForNothingRune	无本万利	标签=运转
 我方	StrikeUpgradeRune	升级：打击	标签=输出
 我方	DefendUpgradeRune	升级：防御	标签=生存
 我方	JackpotUpgradeRune	升级：大奖	标签=随机
-
 我方	RallyingCallRune	一呼百应	标签=运转
 我方	EndlessRotationRune	轮转不息	标签=运转
 
 [我方 / 铁甲战士]
 我方	BloodDebtRune	血债血偿	标签=放血
+我方	RageUpgradeRune	升级：狂怒	标签=生存
+我方	InfernoUpgradeRune	升级：狱火	标签=输出
+我方	FlameBarrierUpgradeRune	升级：火焰屏障	标签=输出
 我方	BloodPactRune	歃血	标签=放血
 我方	PlateletRune	血小板	标签=放血
 我方	BodySlamUpgradeRune	升级：全身撞击	标签=输出
@@ -217,7 +220,7 @@
 我方	SweepingBladeRune	横扫之刃	标签=输出
 我方	BloodlettingUpgradeRune	升级：放血	标签=放血
 我方	BattleTranceUpgradeRune	升级：战斗专注	标签=运转
-我方	JuggernautUpgradeRune	升级：势不可挡	标签=输出
+我方	JuggernautUpgradeRune	升级：势不可当	标签=输出
 我方	BerserkRune	狂暴	标签=运转
 我方	BrutalityRune	残虐	标签=放血
 我方	LifeFlowRune	生命回流	标签=烧牌
@@ -269,8 +272,9 @@
 我方	TerminalIllnessRune	病入膏肓	标签=中毒
 我方	ExtremeSpeedRune	极限速度	标签=运转
 我方	CorrosiveWaveUpgradeRune	升级：腐蚀波	标签=中毒
-
 我方	VenomousBladeRune	见血封喉	标签=小刀
+我方	BulletTimeUpgradeRune	升级：子弹时间	标签=过牌
+我方	NightmareUpgradeRune	升级：夜魇	标签=运转
 
 [我方 / 储君]
 我方	ChargeUpRune	蓄能	标签=运转
@@ -302,8 +306,10 @@
 我方	SkyDrillUpgradeRune	升级：天际钻头	标签=输出
 我方	TrinityRune	三位一体	标签=辉星
 我方	CrashLandingUpgradeRune	升级：迫降	标签=输出
-
 我方	KingdomArmyRune	王国军势	标签=铸剑
+我方	ParticleWallUpgradeRune	升级：粒子墙	标签=生存
+我方	ReflectUpgradeRune	升级：倒映	标签=生存
+我方	RoyaltiesUpgradeRune	升级：王国资产	标签=经济
 
 [我方 / 故障机器人]
 我方	DexterityStrengthToFocusRune	敏捷力量转集中	标签=产球
@@ -336,11 +342,16 @@
 我方	NightmareRune	梦魇	标签=产球
 我方	StormUpgradeRune	升级：雷暴	标签=产球
 我方	DualcastUpgradeRune	升级：双重释放	标签=产球
-
 我方	MyriadManifestationsRune	森罗万象	标签=产球
+我方	LoopUpgradeRune	升级：循环	标签=产球
+我方	FlakCannonUpgradeRune	升级：散射炮	标签=状态
+我方	ClawUpgradeRune	升级：爪击	标签=输出
+我方	RebootUpgradeRune	升级：重启	标签=过牌
+我方	SmokestackUpgradeRune	升级：烟囱	标签=状态
 
 [我方 / 亡灵契约师]
 我方	NetherSoulRune	冥土追魂	标签=虚无
+我方	HangUpgradeRune	升级：吊杀	标签=输出
 我方	TauntRune	嘲弄	标签=灾厄
 我方	BoneGuardRune	尸骨护主	标签=召唤
 我方	PlasterRune	石膏	标签=召唤
@@ -363,7 +374,7 @@
 我方	BorrowedTimeUpgradeRune	升级：预借时间	标签=运转
 我方	MiseryUpgradeRune	升级：苦难	标签=灾厄
 我方	MiserableFateRune	悲惨命运	标签=灾厄
-我方	DieForYouRune	为你而死	标签=召唤
+#我方	DieForYouRune	为你而死	标签=召唤
 我方	CompensationRune	代偿	标签=灾厄
 我方	OminousPactRune	不详契约	标签=灾厄
 我方	ThoughtOverwriteRune	思维覆写	标签=虚无
@@ -373,6 +384,6 @@
 我方	UndyingUpgradeRune	升级：不死	标签=虚无
 我方	SowUpgradeRune	升级：播种	标签=输出
 我方	ReapUpgradeRune	升级：收割	标签=输出
-我方	AutoPatrolRune	自动巡逻	标签=召唤
+#我方	AutoPatrolRune	自动巡逻	标签=召唤
 我方	NeurosurgeUpgradeRune	升级：精神过载	标签=灾厄
 我方	ReaperFormUpgradeRune	升级：死神形态	标签=综合

@@ -155,8 +155,15 @@ public sealed class HextechAttackReplayPower : PowerModel
 			return;
 		}
 
-		Flash();
 		await PowerCmd.Remove(this);
+		try
+		{
+			Flash();
+		}
+		catch (Exception ex)
+		{
+			Log.Warn($"[{ModInfo.Id}][AttackReplay] Flash failed: {ex.Message}");
+		}
 	}
 
 	private bool ShouldReplay(CardModel card)

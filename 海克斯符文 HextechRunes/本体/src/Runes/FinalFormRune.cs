@@ -2,6 +2,9 @@ namespace HextechRunes;
 
 public sealed class FinalFormRune : HextechRelicBase
 {
+	private const decimal PlatingPercentValue = 0.10m;
+	private const decimal PlatingDisplayPercentValue = PlatingPercentValue * 100m;
+
 	private bool _triggeredThisTurn;
 
 	[SavedProperty(SerializationCondition.SaveIfNotTypeDefault)]
@@ -19,8 +22,9 @@ public sealed class FinalFormRune : HextechRelicBase
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
 		new DynamicVar("MinCost", 2m),
-		new DynamicVar("PlatingPercent", 0.10m),
-		new CardsVar(2)
+		new DynamicVar("PlatingPercent", PlatingPercentValue),
+		new CardsVar(2),
+		new DynamicVar("PlatingDisplayPercent", PlatingDisplayPercentValue)
 	];
 
 	protected override IEnumerable<IHoverTip> ExtraHoverTips =>

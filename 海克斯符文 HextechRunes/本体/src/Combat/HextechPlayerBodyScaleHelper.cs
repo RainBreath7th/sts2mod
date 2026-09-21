@@ -20,6 +20,13 @@ internal static class HextechPlayerBodyScaleHelper
 		scale += player.GetRelic<ShrinkEngineRune>()?.BodyScaleDelta ?? 0f;
 		scale += player.GetRelic<NineDragonPowerRune>()?.BodyScaleDelta ?? 0f;
 
-		NCombatRoom.Instance?.GetCreatureNode(player.Creature)?.SetDefaultScaleTo(Math.Max(MinScale, scale), 0f);
+		try
+		{
+			NCombatRoom.Instance?.GetCreatureNode(player.Creature)?.SetDefaultScaleTo(Math.Max(MinScale, scale), 0f);
+		}
+		catch (Exception ex)
+		{
+			Log.Warn($"[{ModInfo.Id}][BodyScale] Creature visual failed: {ex.Message}");
+		}
 	}
 }

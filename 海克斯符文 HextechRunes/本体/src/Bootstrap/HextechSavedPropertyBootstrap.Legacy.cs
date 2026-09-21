@@ -58,6 +58,7 @@ internal static partial class HextechSavedPropertyBootstrap
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechChemtechDragonSoulPower));
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechCloudDragonSoulPower));
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechVitalSparkPower));
+		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechHangPower));
 		WarnOnUninjectedSavedPropertyCarriers();
 		EnsureSavedPropertyNetIdBitSize();
 	}

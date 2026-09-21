@@ -60,7 +60,14 @@ public sealed class MadScientistRune : HextechRelicBase
 			}
 
 			player.PlayerCombatState.OrbQueue.AddCapacity(amount);
-			NCombatRoom.Instance?.GetCreatureNode(player.Creature)?.OrbManager?.AddSlotAnim(amount);
+			try
+			{
+				NCombatRoom.Instance?.GetCreatureNode(player.Creature)?.OrbManager?.AddSlotAnim(amount);
+			}
+			catch (Exception ex)
+			{
+				Log.Warn($"[{ModInfo.Id}][MadScientist] Orb slot visual failed: {ex.Message}");
+			}
 			__result = Task.CompletedTask;
 			return false;
 		}

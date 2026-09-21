@@ -198,9 +198,13 @@ public sealed class SilverHpForge : HextechForgeBase, IHextechPercentHpForge
 
 public sealed class SilverAttackForge : HextechForgeBase, IHextechDamageCoefficientForge
 {
+	private const decimal DamageMultiplierValue = 1.05m;
+	private const decimal DamageBonusPercentValue = (DamageMultiplierValue - 1m) * 100m;
+
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
-		new DynamicVar("DamageMultiplier", 1.05m)
+		new DynamicVar("DamageMultiplier", DamageMultiplierValue),
+		new DynamicVar("DamageBonusPercent", DamageBonusPercentValue)
 	];
 
 	public decimal DamageBonusFractionTotal => StackedMultiplier(DynamicVars["DamageMultiplier"].BaseValue) - 1m;
@@ -215,9 +219,13 @@ public sealed class SilverAttackForge : HextechForgeBase, IHextechDamageCoeffici
 
 public sealed class SilverProtectionForge : HextechForgeBase, IHextechSustainCoefficientForge
 {
+	private const decimal SustainMultiplierValue = 1.05m;
+	private const decimal SustainBonusPercentValue = (SustainMultiplierValue - 1m) * 100m;
+
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
-		new DynamicVar("SustainMultiplier", 1.05m)
+		new DynamicVar("SustainMultiplier", SustainMultiplierValue),
+		new DynamicVar("SustainBonusPercent", SustainBonusPercentValue)
 	];
 
 	public decimal SustainBonusFractionTotal => StackedMultiplier(DynamicVars["SustainMultiplier"].BaseValue) - 1m;

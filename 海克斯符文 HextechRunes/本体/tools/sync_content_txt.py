@@ -10,13 +10,13 @@
 - 标签中文: assets/localization/zhs/relic_collection.json 的 HEXTECH_TAG.*
 
 目标文件与策略:
-- hextech_rune_tags_todo.txt   纯生成物,全量重生成(保留既有行序,新条目插到注册表邻位)。
+- hextech_rune_tags.txt        纯生成物,全量重生成(保留既有行序,新条目插到注册表邻位)。
 - hextech_relic_flavors.txt    生成物,全量重生成;PERMANENT/PENDING_OVERRIDES 保留 txt 人工值。
 - hextech_relics_summary.txt   混合物,只做增量:补缺失条目、修 #禁用前缀/品级前缀;
                                描述永不覆盖(单条采纳用 --accept-json);删除需 --prune。
 
 模式:
-- 默认 --check: 报告差异;存在需落盘的差异时 exit 1(待裁决项不影响退出码)。
+- 默认只读预览: 报告差异;存在需落盘的差异时 exit 1(待裁决项不影响退出码)。
 - --apply: 写回三个 txt。
 - --apply --prune: 同时删除 summary 中已从注册表移除的条目。
 - --accept-json "锚": 单条采纳 JSON 描述覆盖 summary 条目,锚格式见 --help 示例,
@@ -28,6 +28,8 @@
 from __future__ import annotations
 
 import argparse
+import ast
+from decimal import Decimal
 import json
 import re
 import sys
@@ -36,7 +38,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SPONSOR = ROOT.parent / "HextechRunesSponsorPack"
 
-TAGS_TXT = ROOT / "hextech_rune_tags_todo.txt"
+TAGS_TXT = ROOT / "hextech_rune_tags.txt"
 FLAVORS_TXT = ROOT / "hextech_relic_flavors.txt"
 SUMMARY_TXT = ROOT / "hextech_relics_summary.txt"
 
@@ -82,8 +84,84 @@ def read(path: Path) -> str:
 
 
 def strip_markup(text: str) -> str:
-    text = re.sub(r"\[/?[A-Za-z]+\]", "", text)
+    text = re.sub(r"\[/?[A-Za-z][A-Za-z0-9_]*(?:[= ][^\]]*)?\]", "", text)
+    text = re.sub(r"<br\s*/?>", "", text, flags=re.I)
     return text.replace("\n", "")
+
+
+def class_sources(roots: tuple[Path, ...]) -> dict[str, str]:
+    """按类边界读取，避免同文件的另一张卡覆盖本类变量。"""
+    result: dict[str, str] = {}
+    for root in roots:
+        for path in sorted(root.rglob("*.cs")):
+            source = read(path)
+            # 保留偏移；字符串/注释里的花括号不参与 C# 类边界计数。
+            masked = re.sub(r'//[^\n]*|/\*.*?\*/|@"(?:""|[^"])*"|"(?:\\.|[^"\\])*"',
+                            lambda match: " " * len(match.group()), source, flags=re.S)
+            for match in re.finditer(r"\bclass\s+(\w+)[^;{]*\{", masked):
+                depth, end = 1, match.end()
+                while end < len(masked) and depth:
+                    depth += (masked[end] == "{") - (masked[end] == "}")
+                    end += 1
+                result.setdefault(match.group(1).replace("_", "").casefold(), source[match.start():end])
+    return result
+
+
+def canonical_values(source: str) -> dict[str, str]:
+    """只解释声明里的数值/常量算式，不执行 C#，也不猜测运行时变量。"""
+    constants = dict(re.findall(r"\bconst\s+\w+\s+(\w+)\s*=\s*([^;]+);", source))
+
+    def number(expression: str, resolving: frozenset[str] = frozenset()) -> Decimal:
+        expression = expression.strip()
+        if expression in constants:
+            if expression in resolving:
+                raise ValueError("循环常量")
+            return number(constants[expression], resolving | {expression})
+        expression = re.sub(r"(?<=\d)[mMfFdD]\b", "", expression)
+        tree = ast.parse(expression, mode="eval").body
+
+        def evaluate(node: ast.AST) -> Decimal:
+            if isinstance(node, ast.Constant) and type(node.value) in (int, float):
+                return Decimal(str(node.value))
+            if isinstance(node, ast.Name):
+                if node.id not in constants:
+                    raise ValueError(f"非静态常量: {node.id}")
+                return number(node.id, resolving)
+            if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+                return evaluate(node.operand) * (-1 if isinstance(node.op, ast.USub) else 1)
+            if isinstance(node, ast.BinOp):
+                left, right = evaluate(node.left), evaluate(node.right)
+                if isinstance(node.op, ast.Add):
+                    return left + right
+                if isinstance(node.op, ast.Sub):
+                    return left - right
+                if isinstance(node.op, ast.Mult):
+                    return left * right
+                # C# 整型除法与 decimal 除法不同；未保留完整类型系统时禁止猜值。
+            raise ValueError(f"不支持静态求值: {expression}")
+
+        return evaluate(tree)
+
+    values: dict[str, str] = {}
+    canonical = re.search(r"\bCanonicalVars\s*=>\s*\[(.*?)\];", source, re.S)
+    if canonical is None:
+        return values
+    for match in re.finditer(r"new\s+(\w+Var)(?:<(\w+)>)?\s*\(([^()]*)\)", canonical.group(1)):
+        kind, power, arguments = match.groups()
+        args = [arg.strip() for arg in arguments.split(",")]
+        first_argument = constants.get(args[0], args[0]).strip()
+        if kind == "DynamicVar" or re.fullmatch(r'"[^\"]+"', first_argument):
+            name = constants.get(args[0], args[0]).strip().strip('"')
+            expression = args[1]
+        else:
+            name = power if kind == "PowerVar" else kind.removesuffix("Var")
+            expression = args[0]
+        try:
+            value = format(number(expression), "f")
+        except (ValueError, SyntaxError, ArithmeticError):
+            continue  # 真正使用了无法求值的占位符时，由渲染入口报错，禁止裸变量进入 TXT。
+        values[name] = value.rstrip("0").rstrip(".") if "." in value else value
+    return values
 
 
 # ---------------------------------------------------------------------------
@@ -221,19 +299,51 @@ class Truth:
             self.cards.setdefault(stem, {})[field] = value
 
     def resolve_placeholders(self, cls: str, text: str) -> str:
-        """把描述中的 {DynamicVar} 占位符按该类源码里的 DynamicVar 基准值代入。"""
+        """离线说明使用未升级的 CanonicalVars；依赖对局的数值显示公式。"""
         if "{" not in text:
-            return text
+            return strip_markup(text)
+        if not hasattr(self, "_class_sources"):
+            self._class_sources = class_sources((ROOT / "src", SPONSOR / "src"))
+        source = self._class_sources.get(cls.replace("_", "").casefold(), "")
+        values = canonical_values(source)
+        if cls == "FlyingKickRune":
+            # 当前 ExecutePercent 在获得玩家实例后刷新，离线不能冒充玩家实际阈值。
+            values["ExecutePercent"] = (
+                f"（{values['BaseExecutePercent']}+自身最大生命值×"
+                f"{values['OwnerMaxHpToExecutePercent']}%）"
+            )
+        return self.render_placeholders(cls, text, values)
+
+    @staticmethod
+    def render_placeholders(cls: str, text: str, values: dict[str, str]) -> str:
+        def replace(match: re.Match) -> str:
+            name, formatter = match.group(1), match.group(2)
+            if name not in values:
+                raise ValueError(f"{cls}: TXT 无法解析 {{{name}}}，请补充其离线数值来源。")
+            value = values[name]
+            if formatter == "energyIcons()":
+                return f"{value}点能量"
+            if formatter not in (None, "diff()"):
+                raise ValueError(f"{cls}: TXT 尚未支持格式 {formatter}")
+            return value
+
+        rendered = re.sub(r"\{(\w+)(?::([^{}]+))?\}", replace, text)
+        if "{" in rendered or "}" in rendered:
+            raise ValueError(f"{cls}: TXT 尚未支持的复合占位符: {rendered}")
+        return strip_markup(rendered)
+
+    def enemy_summary(self, cls: str, kind: str) -> str:
+        text = self.enemy_description(cls) or ""
+        if "{" not in text:
+            return strip_markup(text)
+        # 这是敌方 LocString 真正使用的参数表，不能套用同名玩家符文的变量。
+        catalog = read(ROOT / "src" / "EnemyHexes" / "MonsterHexCatalog.cs")
         values: dict[str, str] = {}
-        for src_root in (ROOT / "src", SPONSOR / "src"):
-            for path in src_root.rglob(f"{cls}.cs"):
-                for name, num in re.findall(
-                    r'new DynamicVar\("(\w+)",\s*([0-9.]+)m', read(path)
-                ):
-                    values[name] = num.rstrip("0").rstrip(".") if "." in num else num
-        return re.sub(
-            r"\{(\w+)\}", lambda m: values.get(m.group(1), m.group(0)), text
-        )
+        for entry in re.finditer(rf"\[MonsterHexKind\.{re.escape(kind)}\]\s*=\s*([^\n]+)", catalog):
+            for name, base in re.findall(r'\("(\w+)",\s*(\d+)\)', entry.group(1)):
+                values[name] = "N" if base == "1" else f"{base}N"
+        rendered = self.render_placeholders(cls, text, values)
+        return rendered + "（N为玩家人数）"
 
     def title(self, cls: str) -> str | None:
         return self.loc.get(cls, "title")
@@ -274,7 +384,7 @@ def insert_position(existing: list[str], anchor_order: list[str], item: str) -> 
 
 
 # ---------------------------------------------------------------------------
-# 1) hextech_rune_tags_todo.txt —— 全量重生成
+# 1) hextech_rune_tags.txt —— 全量重生成
 
 
 def generate_tags(truth: Truth, current_text: str, report: list[str]) -> str:
@@ -559,7 +669,7 @@ def summary_truth(truth: Truth) -> dict[str, list[dict]]:
                 "rarity": RARITY_ZH[reg["rarity"]],
                 "title": title,
                 "disabled": reg["disabled"],
-                "desc": strip_markup(truth.enemy_description(reg["class"]) or ""),
+                "desc": truth.enemy_summary(reg["class"], reg["kind"]),
                 "suffix": "",
             }
         )
@@ -585,7 +695,7 @@ def summary_truth(truth: Truth) -> dict[str, list[dict]]:
         desc = fields.get("hoverTip") or fields.get("description") or ""
         sections["卡牌"].append(
             {"rarity": None, "title": title, "disabled": False,
-             "desc": strip_markup(desc), "suffix": ""}
+             "desc": truth.resolve_placeholders(stem, desc), "suffix": ""}
         )
     for cls in truth.event_relics:
         title = truth.title(cls)
@@ -593,7 +703,7 @@ def summary_truth(truth: Truth) -> dict[str, list[dict]]:
             continue
         sections["事件遗物"].append(
             {"rarity": None, "title": title, "disabled": False,
-             "desc": strip_markup(truth.loc.get(cls, "description") or ""), "suffix": ""}
+             "desc": truth.resolve_placeholders(cls, truth.loc.get(cls, "description") or ""), "suffix": ""}
         )
     return sections
 

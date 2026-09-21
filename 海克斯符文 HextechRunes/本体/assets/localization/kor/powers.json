@@ -36,5 +36,8 @@
   "HEXTECH_RUNE_DEMON_FORM_PREVIEW.description": "턴 시작 시 [gold]힘[/gold]을 [blue]1[/blue] 얻습니다.",
   "HEXTECH_GALVANIC_POWER.title": "전류",
   "HEXTECH_GALVANIC_POWER.description": "파워 카드에 [gold]전기 자극[/gold]의 고난이 부여됩니다.",
-  "HEXTECH_GALVANIC_POWER.smartDescription": "파워 카드에 [gold]{AfflictionTitle}[/gold]의 고난이 부여됩니다."
+  "HEXTECH_GALVANIC_POWER.smartDescription": "파워 카드에 [gold]{AfflictionTitle}[/gold]의 고난이 부여됩니다.",
+  "HEXTECH_HANG_POWER.title": "교살",
+  "HEXTECH_HANG_POWER.description": "받는 모든 피해가 중첩 수만큼 곱해집니다.",
+  "HEXTECH_HANG_POWER.smartDescription": "받는 모든 피해가 [blue]{Amount}[/blue]배가 됩니다."
 }

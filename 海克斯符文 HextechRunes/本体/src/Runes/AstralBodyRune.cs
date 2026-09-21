@@ -4,6 +4,9 @@ namespace HextechRunes;
 // 之后的所有最大生命增减都按系数放大,顶栏面板"生命系数"也随之显示 150%(玩家实报此前显示 100%)。
 public sealed class AstralBodyRune : HextechRelicBase, IHextechMaxHpScalingRune
 {
+	private const decimal DamageMultiplierValue = 0.9m;
+	private const decimal DamageReductionPercentValue = (1m - DamageMultiplierValue) * 100m;
+
 	private int _baseMaxHp;
 
 	[SavedProperty(SerializationCondition.SaveIfNotTypeDefault)]
@@ -26,7 +29,8 @@ public sealed class AstralBodyRune : HextechRelicBase, IHextechMaxHpScalingRune
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
 		new DynamicVar("MaxHpPercent", 50m),
-		new DynamicVar("DamageMultiplier", 0.9m)
+		new DynamicVar("DamageMultiplier", DamageMultiplierValue),
+		new DynamicVar("DamageReductionPercent", DamageReductionPercentValue)
 	];
 
 	public override async Task AfterObtained()

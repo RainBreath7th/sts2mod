@@ -2,6 +2,9 @@ namespace HextechRunes;
 
 public sealed class TankEngineRune : HextechRelicBase, IHextechSharedCombatVictoryRune, IHextechMaxHpScalingRune
 {
+	private const decimal HpGainPercentValue = 0.06m;
+	private const decimal MaxHpGainDisplayPercentValue = HpGainPercentValue * 100m;
+
 	private int _baseMaxHp;
 	private int _stacks;
 
@@ -35,8 +38,9 @@ public sealed class TankEngineRune : HextechRelicBase, IHextechSharedCombatVicto
 
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
-		new DynamicVar("HpGainPercent", 0.06m),
-		new DynamicVar("ScalePercent", 6m)
+		new DynamicVar("HpGainPercent", HpGainPercentValue),
+		new DynamicVar("ScalePercent", 6m),
+		new DynamicVar("MaxHpGainDisplayPercent", MaxHpGainDisplayPercentValue)
 	];
 
 	public decimal MaxHpScale => 1m + _stacks * DynamicVars["HpGainPercent"].BaseValue;

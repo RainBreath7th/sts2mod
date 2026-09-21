@@ -3,7 +3,7 @@
   "TRICK_MAGIC_CARD.description": "[blue]{Cards}[/blue] カードを引きます。 [blue]{BufferPower}[/blue] [gold]バッファー[/gold]を獲得します。次にプレイする攻撃は [blue]{Replays}[/blue] 回再生されます。",
   "TRICK_MAGIC_CARD.flavor": "観客にはリボンが見えます。敵はその請求書を見ます。",
   "BLADE_WALTZ_CARD.title": "ブレードワルツ",
-  "BLADE_WALTZ_CARD.description": "ランダムな敵に{Damage:diff()}ダメージを[blue]{Hits}[/blue]回与えます。 [blue]{IntangiblePower}[/blue] [gold]無形[/gold]を獲得します。",
+  "BLADE_WALTZ_CARD.description": "ランダムな敵に{Damage:diff()}ダメージを[blue]{Hits}[/blue]回与えます。 [blue]{IntangiblePower}[/blue] [gold]霊体[/gold]を獲得します。",
   "BLADE_WALTZ_CARD.flavor": "回す、切る、弓を引く。",
   "CATALYST_CARD.title": "触媒",
   "CATALYST_CARD.description": "敵の毒を現在の量の[blue]{PoisonMultiplier}[/blue]倍に設定します。",
@@ -51,5 +51,8 @@
   "FEEL_THE_BURN_CARD.flavor": "相手の火を消してから、自分の火を灯せ。",
   "OK_BOOMERANG_CARD.title": "OKブーメラン",
   "OK_BOOMERANG_CARD.description": "敵全体に{Damage:diff()}ダメージを[blue]{Hits}[/blue]回与える。\nこのカードを手札に戻す。",
-  "OK_BOOMERANG_CARD.flavor": "冗談のように飛んでいき、借金取りのように帰ってくる。"
+  "OK_BOOMERANG_CARD.flavor": "冗談のように飛んでいき、借金取りのように帰ってくる。",
+  "QUANTUM_COMPUTING_CARD.title": "量子コンピューティング",
+  "QUANTUM_COMPUTING_CARD.description": "すべての敵に最大 HP の {DamagePercent:diff()}%のダメージを与え、その後、与えたダメージの {HealPercent:diff()}%を回復します。",
+  "QUANTUM_COMPUTING_CARD.flavor": "答えが出る前にすでに敵のHPは崩壊している。"
 }

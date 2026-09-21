@@ -128,7 +128,6 @@ internal static partial class HextechCombatVfx
 	private static readonly Color DivineFlashColor = new(1f, 0.97f, 0.82f);
 	// 吞噬灵魂:幽青色亡魂。
 	private static readonly Color SoulColor = new(0.42f, 0.95f, 0.82f);
-	private static readonly Color SoulCoreColor = new(0.78f, 1f, 0.95f);
 	// 神圣干预:天降光柱与光尘。
 	private static readonly Color DivineShaftColor = new(1f, 0.93f, 0.62f);
 	private static readonly Color DivineDustColor = new(1f, 0.95f, 0.75f);
@@ -441,5 +440,4 @@ internal static partial class HextechCombatVfx
 		Creature[] snapshot = [.. targets];
 		Callable.From(() => RunQuantumPulse(owner, snapshot)).CallDeferred();
 	}
-
 }

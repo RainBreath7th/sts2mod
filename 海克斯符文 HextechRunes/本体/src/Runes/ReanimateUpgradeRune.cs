@@ -75,7 +75,14 @@ public sealed class ReanimateUpgradeRune : CardUpgradeRuneBase<Reanimate>
 		{
 			if (card is Reanimate)
 			{
-				card.InvokeEnergyCostChanged();
+				try
+				{
+					card.InvokeEnergyCostChanged();
+				}
+				catch (Exception ex)
+				{
+					Log.Warn($"[{ModInfo.Id}][ReanimateUpgrade] Cost visual refresh failed: {ex.Message}");
+				}
 			}
 		}
 	}

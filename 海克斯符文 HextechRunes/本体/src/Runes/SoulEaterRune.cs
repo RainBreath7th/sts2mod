@@ -2,11 +2,15 @@ namespace HextechRunes;
 
 public sealed class SoulEaterRune : HextechRelicBase
 {
+	private const decimal MaxHpGainPercentValue = 0.05m;
+	private const decimal MaxHpGainDisplayPercentValue = MaxHpGainPercentValue * 100m;
+
 	private const int CreatureStatHardCap = 999999999;
 
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
-		new DynamicVar("MaxHpGainPercent", 0.05m)
+		new DynamicVar("MaxHpGainPercent", MaxHpGainPercentValue),
+		new DynamicVar("MaxHpGainDisplayPercent", MaxHpGainDisplayPercentValue)
 	];
 
 	[SavedProperty(SerializationCondition.SaveIfNotTypeDefault)]

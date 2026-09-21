@@ -1,9 +1,6 @@
-using System.Collections;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using Godot;
 using HarmonyLib;
-using HextechRunes;
 using FormVfxKind = HextechRunes.HextechFormVfxSafetyHooks.FormVfxKind;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Combat;
@@ -15,9 +12,7 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.GameActions;
-using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
@@ -34,7 +29,7 @@ internal static partial class Program
 	private static void ConfigMigrationForceResetsBelowV15()
 	{
 		(int version, IReadOnlySet<string> disabled) = HextechRuneConfiguration.MigrateDisabledIdsForTests(14, ["some-user-custom-id"]);
-		Equal(36, version, "v14 config should land on current version");
+		Equal(39, version, "v14 config should land on current version");
 		SetEqual(HextechRuneConfiguration.GetDefaultDisabledPlayerRuneIds().ToArray(), disabled, "v14 config should force-reset to factory defaults");
 	}
 
@@ -42,7 +37,7 @@ internal static partial class Program
 	{
 		IReadOnlySet<string> baseline = HextechPlayerRuneConfigIds.FromTypes(Version15FactoryDisabledRuneTypes);
 		(int version, IReadOnlySet<string> migrated) = HextechRuneConfiguration.MigrateDisabledIdsForTests(15, baseline);
-		Equal(36, version, "v15 config should land on current version");
+		Equal(39, version, "v15 config should land on current version");
 		SetEqual(
 			HextechRuneConfiguration.GetDefaultDisabledPlayerRuneIds().ToArray(),
 			migrated,
@@ -52,7 +47,7 @@ internal static partial class Program
 	private static void ConfigMigrationV26AddsNewPlayerDefaultDisables()
 	{
 		(int version, IReadOnlySet<string> disabled) = HextechRuneConfiguration.MigrateDisabledIdsForTests(26, []);
-		Equal(36, version, "v26 player config should land on current version");
+		Equal(39, version, "v26 player config should land on current version");
 		SetEqual(
 			HextechPlayerRuneConfigIds.FromTypes(
 			[
@@ -61,7 +56,11 @@ internal static partial class Program
 				typeof(FeyMagicRune),
 				typeof(AstralBodyRune),
 				typeof(IllusoryWeaponRune),
-				typeof(AutoPatrolRune)
+				typeof(AutoPatrolRune),
+				typeof(SomethingForNothingRune),
+				typeof(SoulCallingRune),
+				typeof(GhostFormRune),
+				typeof(DieForYouRune)
 			]).ToArray(),
 			disabled,
 			"v26 player config migration should add the newly default-disabled runes");
@@ -72,7 +71,7 @@ internal static partial class Program
 		string id = ModelDb.GetId<IllusoryWeaponRune>().Entry;
 		Expect(HextechRuneConfiguration.GetDefaultDisabledPlayerRuneIds().Contains(id), "new config defaults disable Illusory Weapon");
 		(_, IReadOnlySet<string> migrated) = HextechRuneConfiguration.MigrateDisabledIdsForTests(33, ["other-custom-rune"]);
-		SetEqual(new[] {id, ModelDb.GetId<AutoPatrolRune>().Entry, "other-custom-rune"}, migrated, "upgrade adds default disables and preserves custom selections");
+		SetEqual(new[] {id, ModelDb.GetId<AutoPatrolRune>().Entry, ModelDb.GetId<SomethingForNothingRune>().Entry, ModelDb.GetId<SoulCallingRune>().Entry, ModelDb.GetId<GhostFormRune>().Entry, ModelDb.GetId<DieForYouRune>().Entry, "other-custom-rune"}, migrated, "upgrade adds default disables and preserves custom selections");
 		(_, IReadOnlySet<string> reenabling) = HextechRuneConfiguration.MigrateDisabledIdsForTests(34, []);
 		Expect(!reenabling.Contains(id), "manual reenable after migration is preserved");
 		Expect(HextechContentRegistry.PlayerRuneMetadata.IsConfigurable(typeof(IllusoryWeaponRune)), "default disable remains configurable");
@@ -81,13 +80,13 @@ internal static partial class Program
 	private static void ConfigMigrationCurrentVersionPreservesCustomDisabledIds()
 	{
 		string customId = HextechRuneConfiguration.GetDefaultDisabledPlayerRuneIds().OrderBy(static id => id, StringComparer.Ordinal).First();
-		(int version, IReadOnlySet<string> disabled) = HextechRuneConfiguration.MigrateDisabledIdsForTests(36, [customId]);
-		Equal(36, version, "current-version config keeps version");
+		(int version, IReadOnlySet<string> disabled) = HextechRuneConfiguration.MigrateDisabledIdsForTests(39, [customId]);
+		Equal(39, version, "current-version config keeps version");
 		SetEqual([customId], disabled, "current-version config should pass user selection through unchanged");
 
 		(int monsterVersion, IReadOnlySet<string> disabledMonsters) =
-			HextechRuneConfiguration.MigrateDisabledMonsterHexIdsForTests(36, [MonsterHexKind.FrostWraith.ToString()]);
-		Equal(36, monsterVersion, "current-version monster config keeps version");
+			HextechRuneConfiguration.MigrateDisabledMonsterHexIdsForTests(39, [MonsterHexKind.FrostWraith.ToString()]);
+		Equal(39, monsterVersion, "current-version monster config keeps version");
 		SetEqual(
 			[MonsterHexKind.FrostWraith.ToString()],
 			disabledMonsters,
@@ -119,7 +118,7 @@ internal static partial class Program
 				27,
 				new HextechRarityWeights(4, 5, 6),
 				new HextechRarityWeights(0, 7, 8));
-		Equal(36, migratedVersion, "v27 rarity config should land on current version");
+		Equal(39, migratedVersion, "v27 rarity config should land on current version");
 		Equal(new HextechRarityWeights(4, 5, 6), migratedWeights, "v27 normal weights should become rune weights");
 		Equal(true, ruleEnabledWithZeroLegacySilverWeight, "legacy rarity config should enable consecutive-Silver prevention by default");
 
@@ -147,7 +146,7 @@ internal static partial class Program
 	{
 		string id = ModelDb.GetId<AdvanceToRetreatRune>().Entry;
 		(int version, IReadOnlySet<string> disabled) = HextechRuneConfiguration.MigrateDisabledIdsForTests(29, [id]);
-		Equal(36, version, "v29 player config should land on current version");
+		Equal(39, version, "v29 player config should land on current version");
 		Expect(!disabled.Contains(id), "v29 player config migration should enable Advance to Retreat");
 	}
 
@@ -155,7 +154,7 @@ internal static partial class Program
 	{
 		string id = ModelDb.GetId<HappyAccidentRune>().Entry;
 		(int version, IReadOnlySet<string> disabled) = HextechRuneConfiguration.MigrateDisabledIdsForTests(30, [id]);
-		Equal(36, version, "v30 player config should land on current version");
+		Equal(39, version, "v30 player config should land on current version");
 		Expect(!disabled.Contains(id), "v30 player config migration should enable Happy Accident");
 	}
 
@@ -163,7 +162,7 @@ internal static partial class Program
 	{
 		(int migratedVersion, int migratedLimit) =
 			HextechRuneConfiguration.MigrateMonsterHexRerollLimitForTests(32, HextechRuneConfiguration.InfiniteRerollLimit);
-		Equal(36, migratedVersion, "v32 config should land on current version");
+		Equal(39, migratedVersion, "v32 config should land on current version");
 		Equal(1, migratedLimit, "v32 infinite enemy rerolls should migrate to the new one-reroll default");
 
 		(_, int finiteLimit) = HextechRuneConfiguration.MigrateMonsterHexRerollLimitForTests(32, 4);
@@ -176,6 +175,36 @@ internal static partial class Program
 			HextechRuneConfiguration.InfiniteRerollLimit,
 			currentInfiniteLimit,
 			"v33 explicit infinite enemy rerolls should be preserved");
+	}
+
+	private static void GetExcitedDefaultsMigrateOnceAndRemainConfigurable()
+	{
+		string enemyId = MonsterHexKind.GetExcited.ToString();
+		Expect(HextechRuneConfiguration.GetDefaultDisabledPlayerRuneIds().Contains(ModelDb.GetId<GetExcitedRune>().Entry), "player default is disabled");
+		Expect(HextechRuneConfiguration.GetDefaultDisabledMonsterHexIds().Contains(enemyId), "enemy default is disabled");
+		var migrated = HextechRuneConfiguration.MigrateDisabledMonsterHexIdsForTests(35, [MonsterHexKind.FrostWraith.ToString()]);
+		Expect(migrated.DisabledMonsterHexIds.SetEquals(new[] { enemyId, MonsterHexKind.ShoulderVaku.ToString(), MonsterHexKind.FrostWraith.ToString() }), "migration adds Get Excited and the later enemy default disables, keeps custom selections");
+		var custom = HextechRuneConfiguration.MigrateDisabledMonsterHexIdsForTests(migrated.ConfigVersion, []);
+		Equal(0, custom.DisabledMonsterHexIds.Count, "manual re-enable persists after migration");
+		Expect(!HextechMonsterHexRegistry.Registrations.Single(row => row.Kind == MonsterHexKind.GetExcited).Disabled, "config default does not hard-remove content");
+	}
+
+	private static void ChaosChanceConfigurationRoundTripsAndDefaults()
+	{
+		HextechRunConfigurationSnapshot defaults = HextechRuneConfiguration.GetDefaultSnapshot();
+		Equal(33, defaults.ChaosRuneChancePercent, "default chance");
+		HextechRunConfigurationSnapshot snapshot = defaults with { ChaosRuneChancePercent = 73 };
+		PlayerChoiceResult roll = HextechChoiceCodec.CreateActRoll(0, HextechRarityTier.Gold, null, false,
+			snapshot.EnemyHexCountsByAct, snapshot.DisabledPlayerRuneIds, snapshot);
+		Expect(HextechChoiceCodec.TryDecodeActRoll(roll, 0, out _, out _, out _, out _, out _, out HextechRunConfigurationSnapshot decoded), "snapshot decodes");
+		Equal(73, decoded.ChaosRuneChancePercent, "host chance wins");
+		Equal(73, HextechConfigShareCodec.TryParseForTests(HextechConfigShareCodec.Export(snapshot), defaults)!.Snapshot.ChaosRuneChancePercent, "share code preserves chance");
+		Equal(0, HextechRuneConfiguration.NormalizeSnapshot(snapshot with { ChaosRuneChancePercent = -1 }).ChaosRuneChancePercent, "lower bound");
+		Equal(100, HextechRuneConfiguration.NormalizeSnapshot(snapshot with { ChaosRuneChancePercent = 101 }).ChaosRuneChancePercent, "upper bound");
+		string json = JsonSerializer.Serialize(snapshot);
+		Equal(73, JsonSerializer.Deserialize<HextechRunConfigurationSnapshot>(json)!.ChaosRuneChancePercent, "save JSON preserves chance");
+		json = json.Replace(",\"ChaosRuneChancePercent\":73", "");
+		Equal(33, JsonSerializer.Deserialize<HextechRunConfigurationSnapshot>(json)!.ChaosRuneChancePercent, "old JSON default");
 	}
 
 	private static void EnemyHexCountStateNormalizesMissingAndOutOfRangeValues()
@@ -238,171 +267,6 @@ internal static partial class Program
 		Expect(
 			calls.All(static method => method.DeclaringType != typeof(HextechCustomRunModifierCompatibility)),
 			"mod initialization should not install retired custom rarity modifier UI hooks");
-	}
-
-	private static void StuffedToRuinChallengeUsesThreeFixedActPlans()
-	{
-		SequenceEqual(
-			new[] { typeof(StuffedToRuinChallengeModifier), typeof(DefenseCounterMasterChallengeModifier), typeof(BruteForceChallengeModifier), typeof(EightPennyGateChallengeModifier), typeof(ListlessChallengeModifier) },
-			HextechCustomModelRegistry.CustomChallengeModifierTypes,
-			"custom-run challenge registry");
-		Expect(
-			HextechCustomModelRegistry.AllCustomModifierTypes.Contains(typeof(StuffedToRuinChallengeModifier)),
-			"challenge modifier should be included in saved-property model registration");
-
-		HextechPresetChallengeActPlan[] expectedPlans =
-		[
-			new(HextechRarityTier.Prismatic, [ MonsterHexKind.ForgottenSoul ]),
-			new(HextechRarityTier.Gold, [ MonsterHexKind.PhrogParasite, MonsterHexKind.ManipulateReality ]),
-			new(HextechRarityTier.Silver, [ MonsterHexKind.LeafSlime, MonsterHexKind.DizzySpinning ])
-		];
-		for (int actIndex = 0; actIndex < expectedPlans.Length; actIndex++)
-		{
-			Expect(
-				HextechPresetChallengeRegistry.TryGetActPlan(typeof(StuffedToRuinChallengeModifier), actIndex, out HextechPresetChallengeActPlan actualPlan),
-				$"challenge act {actIndex + 1} should exist");
-			Equal(expectedPlans[actIndex].PlayerRarity, actualPlan.PlayerRarity, $"challenge act {actIndex + 1} player rarity");
-			SequenceEqual(expectedPlans[actIndex].EnemyHexes, actualPlan.EnemyHexes, $"challenge act {actIndex + 1} enemy hexes");
-		}
-
-		Expect(
-			!HextechPresetChallengeRegistry.TryGetActPlan(typeof(StuffedToRuinChallengeModifier), 3, out _),
-			"challenge should not schedule a fourth acquisition");
-		HextechRunConfigurationSnapshot defaultSnapshot = HextechRuneConfiguration.GetDefaultSnapshot();
-		SequenceEqual(new[] { 1, 1, 1 }, defaultSnapshot.PlayerHexCountsByAct, "challenge default player counts");
-		SequenceEqual(new[] { 1, 2, 3 }, defaultSnapshot.EnemyHexCountsByAct, "challenge default enemy counts");
-		SequenceEqual(new[] { 1, 2, 2 }, expectedPlans.Select(static plan => plan.EnemyHexes.Count), "challenge fixed enemy counts");
-		Expect(
-			defaultSnapshot.RuneRarityWeightsByAct.All(static weights => weights == new HextechRarityWeights(1, 1, 1)),
-			"challenge default rarity weights should be 1:1:1 in every act");
-	}
-
-	private static void DefenseCounterMasterChallengeUsesThreeFixedActPlans()
-	{
-		Expect(
-			HextechCustomModelRegistry.AllCustomModifierTypes.Contains(typeof(DefenseCounterMasterChallengeModifier)),
-			"defense counter challenge should be included in saved-property model registration");
-
-		HextechPresetChallengeActPlan[] expectedPlans =
-		[
-			new(HextechRarityTier.Prismatic, [ MonsterHexKind.Exoskeleton ]),
-			new(HextechRarityTier.Gold, [ MonsterHexKind.HundredRefinements, MonsterHexKind.Porcupine ]),
-			new(HextechRarityTier.Prismatic, [ MonsterHexKind.ProteinShake, MonsterHexKind.UnmovableMountain ])
-		];
-		for (int actIndex = 0; actIndex < expectedPlans.Length; actIndex++)
-		{
-			Expect(
-				HextechPresetChallengeRegistry.TryGetActPlan(typeof(DefenseCounterMasterChallengeModifier), actIndex, out HextechPresetChallengeActPlan actualPlan),
-				$"defense counter challenge act {actIndex + 1} should exist");
-			Equal(expectedPlans[actIndex].PlayerRarity, actualPlan.PlayerRarity, $"defense counter challenge act {actIndex + 1} player rarity");
-			SequenceEqual(expectedPlans[actIndex].EnemyHexes, actualPlan.EnemyHexes, $"defense counter challenge act {actIndex + 1} enemy hexes");
-		}
-
-		Expect(
-			!HextechPresetChallengeRegistry.TryGetActPlan(typeof(DefenseCounterMasterChallengeModifier), 3, out _),
-			"defense counter challenge should not schedule a fourth acquisition");
-		SequenceEqual(new[] { 1, 2, 2 }, expectedPlans.Select(static plan => plan.EnemyHexes.Count), "defense counter challenge fixed enemy counts");
-	}
-
-	private static void BruteForceChallengeUsesThreeFixedActPlans()
-	{
-		Expect(
-			HextechCustomModelRegistry.AllCustomModifierTypes.Contains(typeof(BruteForceChallengeModifier)),
-			"brute force challenge should be included in saved-property model registration");
-
-		HextechPresetChallengeActPlan[] expectedPlans =
-		[
-			new(HextechRarityTier.Prismatic, [ MonsterHexKind.Goliath ]),
-			new(HextechRarityTier.Gold, [ MonsterHexKind.AstralBody, MonsterHexKind.VitalitySurge ]),
-			new(HextechRarityTier.Gold, [ MonsterHexKind.StatsOnStats, MonsterHexKind.TankEngine ])
-		];
-		for (int actIndex = 0; actIndex < expectedPlans.Length; actIndex++)
-		{
-			Expect(
-				HextechPresetChallengeRegistry.TryGetActPlan(typeof(BruteForceChallengeModifier), actIndex, out HextechPresetChallengeActPlan actualPlan),
-				$"brute force challenge act {actIndex + 1} should exist");
-			Equal(expectedPlans[actIndex].PlayerRarity, actualPlan.PlayerRarity, $"brute force challenge act {actIndex + 1} player rarity");
-			SequenceEqual(expectedPlans[actIndex].EnemyHexes, actualPlan.EnemyHexes, $"brute force challenge act {actIndex + 1} enemy hexes");
-		}
-
-		Expect(
-			!HextechPresetChallengeRegistry.TryGetActPlan(typeof(BruteForceChallengeModifier), 3, out _),
-			"brute force challenge should not schedule a fourth acquisition");
-		SequenceEqual(new[] { 1, 2, 2 }, expectedPlans.Select(static plan => plan.EnemyHexes.Count), "brute force challenge fixed enemy counts");
-	}
-
-	private static void EightPennyGateChallengeUsesThreeFixedActPlans()
-	{
-		Expect(
-			HextechCustomModelRegistry.AllCustomModifierTypes.Contains(typeof(EightPennyGateChallengeModifier)),
-			"eight-penny gate challenge should be included in saved-property model registration");
-
-		HextechPresetChallengeActPlan[] expectedPlans =
-		[
-			new(HextechRarityTier.Prismatic, [ MonsterHexKind.EightPennyGate ]),
-			new(HextechRarityTier.Prismatic, [ MonsterHexKind.IGrip ]),
-			new(HextechRarityTier.Prismatic, [ MonsterHexKind.IInspect ])
-		];
-		for (int actIndex = 0; actIndex < expectedPlans.Length; actIndex++)
-		{
-			Expect(
-				HextechPresetChallengeRegistry.TryGetActPlan(typeof(EightPennyGateChallengeModifier), actIndex, out HextechPresetChallengeActPlan actualPlan),
-				$"eight-penny gate challenge act {actIndex + 1} should exist");
-			Equal(expectedPlans[actIndex].PlayerRarity, actualPlan.PlayerRarity, $"eight-penny gate challenge act {actIndex + 1} player rarity");
-			SequenceEqual(expectedPlans[actIndex].EnemyHexes, actualPlan.EnemyHexes, $"eight-penny gate challenge act {actIndex + 1} enemy hexes");
-		}
-
-		Expect(
-			!HextechPresetChallengeRegistry.TryGetActPlan(typeof(EightPennyGateChallengeModifier), 3, out _),
-			"eight-penny gate challenge should not schedule a fourth acquisition");
-		SequenceEqual(new[] { 1, 1, 1 }, expectedPlans.Select(static plan => plan.EnemyHexes.Count), "eight-penny gate challenge fixed enemy counts");
-	}
-
-	private static void ListlessChallengeUsesThreeFixedActPlans()
-	{
-		Expect(
-			HextechCustomModelRegistry.AllCustomModifierTypes.Contains(typeof(ListlessChallengeModifier)),
-			"listless challenge should be included in saved-property model registration");
-
-		HextechPresetChallengeActPlan[] expectedPlans =
-		[
-			new(HextechRarityTier.Gold, [ MonsterHexKind.MonarchsGaze ]),
-			new(HextechRarityTier.Silver, [ MonsterHexKind.TheLost, MonsterHexKind.TheForgotten ]),
-			new(HextechRarityTier.Prismatic, [ MonsterHexKind.LagavulinMatriarch, MonsterHexKind.MasterOfDuality ])
-		];
-		for (int actIndex = 0; actIndex < expectedPlans.Length; actIndex++)
-		{
-			Expect(
-				HextechPresetChallengeRegistry.TryGetActPlan(typeof(ListlessChallengeModifier), actIndex, out HextechPresetChallengeActPlan actualPlan),
-				$"listless challenge act {actIndex + 1} should exist");
-			Equal(expectedPlans[actIndex].PlayerRarity, actualPlan.PlayerRarity, $"listless challenge act {actIndex + 1} player rarity");
-			SequenceEqual(expectedPlans[actIndex].EnemyHexes, actualPlan.EnemyHexes, $"listless challenge act {actIndex + 1} enemy hexes");
-		}
-
-		Expect(
-			!HextechPresetChallengeRegistry.TryGetActPlan(typeof(ListlessChallengeModifier), 3, out _),
-			"listless challenge should not schedule a fourth acquisition");
-		SequenceEqual(new[] { 1, 2, 2 }, expectedPlans.Select(static plan => plan.EnemyHexes.Count), "listless challenge fixed enemy counts");
-	}
-
-	private static void PresetChallengesArePairwiseMutuallyExclusive()
-	{
-		foreach (Type selectedType in HextechCustomModelRegistry.CustomChallengeModifierTypes)
-		{
-			foreach (Type candidateType in HextechCustomModelRegistry.CustomChallengeModifierTypes)
-			{
-				Equal(
-					selectedType != candidateType,
-					HextechPresetChallengeRegistry.AreMutuallyExclusiveChallengeTypes(selectedType, candidateType),
-					$"challenge exclusivity {selectedType.Name} -> {candidateType.Name}");
-			}
-		}
-
-		Expect(
-			!HextechPresetChallengeRegistry.AreMutuallyExclusiveChallengeTypes(
-				typeof(StuffedToRuinChallengeModifier),
-				typeof(HextechSilverRunModifier)),
-			"preset challenges should not untick ordinary custom-run modifiers");
 	}
 
 	private static void RunConfigurationDefaultSnapshotDisablesRiskyContent()

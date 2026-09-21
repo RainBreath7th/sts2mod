@@ -1,6 +1,6 @@
 {
   "TRICK_MAGIC_CARD.title": "Magia de Truque",
-  "TRICK_MAGIC_CARD.description": "Compre [blue]{Cards}[/blue] cartas. Ganhe [blue]{BufferPower}[/blue] de [gold]Prevenção[/gold]. O próximo Ataque que você jogar é repetido [blue]{Replays}[/blue] vez(es).",
+  "TRICK_MAGIC_CARD.description": "Compre [blue]{Cards}[/blue] cartas. Ganhe [blue]{BufferPower}[/blue] de [gold]Amortecedor[/gold]. O próximo Ataque que você jogar é repetido [blue]{Replays}[/blue] vez(es).",
   "TRICK_MAGIC_CARD.flavor": "O público vê fitas. O inimigo vê a conta.",
   "BLADE_WALTZ_CARD.title": "Valsa das Lâminas",
   "BLADE_WALTZ_CARD.description": "Causa {Damage:diff()} de dano a inimigos aleatórios [blue]{Hits}[/blue] vezes. Ganhe [blue]{IntangiblePower}[/blue] de [gold]Intangível[/gold].",
@@ -18,7 +18,7 @@
   "HEXTECH_DRAGON_SOUL_CARD.description": "Ganha [blue]{Energy}[/blue] de Energia extra a cada turno.",
   "HEXTECH_DRAGON_SOUL_CARD.flavor": "O raio na bobina nunca dorme.",
   "MOUNTAIN_DRAGON_SOUL_CARD.title": "Alma do Dragão da Montanha",
-  "MOUNTAIN_DRAGON_SOUL_CARD.description": "No início do seu turno, ganha [blue]{PlatingPower}[/blue] [gold]Placas de Armadura[/gold].",
+  "MOUNTAIN_DRAGON_SOUL_CARD.description": "No início do seu turno, ganha [blue]{PlatingPower}[/blue] [gold]Blindagem[/gold].",
   "MOUNTAIN_DRAGON_SOUL_CARD.flavor": "A montanha não recua.",
   "CHEMTECH_DRAGON_SOUL_CARD.title": "Alma do Dragão Quimtec",
   "CHEMTECH_DRAGON_SOUL_CARD.description": "No início do seu turno, obtém [blue]{PotionCount}[/blue] Poção aleatória.",
@@ -51,5 +51,8 @@
   "FEEL_THE_BURN_CARD.flavor": "Apague o fogo deles, depois acenda o seu.",
   "OK_BOOMERANG_CARD.title": "Bumerangue OK",
   "OK_BOOMERANG_CARD.description": "Causa {Damage:diff()} de dano a TODOS os inimigos [blue]{Hits}[/blue] vezes.\nDevolva esta carta à sua mão.",
-  "OK_BOOMERANG_CARD.flavor": "Parte como uma piada e volta como um cobrador."
+  "OK_BOOMERANG_CARD.flavor": "Parte como uma piada e volta como um cobrador.",
+  "QUANTUM_COMPUTING_CARD.title": "Computação Quântica",
+  "QUANTUM_COMPUTING_CARD.description": "Cause dano a todos os inimigos igual a {DamagePercent:diff()}% de seus PV máximos, e então cure-se em {HealPercent:diff()}% do dano causado.",
+  "QUANTUM_COMPUTING_CARD.flavor": "Antes que a resposta apareça, os PV do inimigo já colapsaram."
 }

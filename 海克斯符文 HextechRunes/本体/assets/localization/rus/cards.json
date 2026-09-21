@@ -1,9 +1,9 @@
 {
   "TRICK_MAGIC_CARD.title": "Иллюзорная магия",
-  "TRICK_MAGIC_CARD.description": "Вы добираете [blue]{Cards}[/blue] карты. Получите [blue]{BufferPower}[/blue] [gold]Буфер(а)[/gold]. Следующая разыгранная вами Атака разыгрывается ещё [blue]{Replays}[/blue] раз.",
+  "TRICK_MAGIC_CARD.description": "Вы добираете [blue]{Cards}[/blue] карты. Получите [blue]{BufferPower}[/blue] [gold]Буфер[/gold]. Следующая разыгранная вами Атака разыгрывается ещё [blue]{Replays}[/blue] раз.",
   "TRICK_MAGIC_CARD.flavor": "Зрители видят ленты. Враг видит счёт.",
   "BLADE_WALTZ_CARD.title": "Вальс клинков",
-  "BLADE_WALTZ_CARD.description": "Наносит {Damage:diff()} урона случайному врагу [blue]{Hits}[/blue] раз. Получите [blue]{IntangiblePower}[/blue] [gold]неосязаемость[/gold].",
+  "BLADE_WALTZ_CARD.description": "Наносит {Damage:diff()} урона случайному врагу [blue]{Hits}[/blue] раз. Получите [blue]{IntangiblePower}[/blue] [gold]Неосязаемость[/gold].",
   "BLADE_WALTZ_CARD.flavor": "Кружись, режь, мочи.",
   "CATALYST_CARD.title": "Катализатор",
   "CATALYST_CARD.description": "Устанавливает Яд врага равным [blue]{PoisonMultiplier}[/blue]-кратному текущему количеству.",
@@ -18,7 +18,7 @@
   "HEXTECH_DRAGON_SOUL_CARD.description": "Даёт {Energy:energyIcons()} в начале хода.",
   "HEXTECH_DRAGON_SOUL_CARD.flavor": "Молния в катушке не знает сна.",
   "MOUNTAIN_DRAGON_SOUL_CARD.title": "Душа горного дракона",
-  "MOUNTAIN_DRAGON_SOUL_CARD.description": "Даёт [blue]{PlatingPower}[/blue] [gold]Панциря[/gold] в начале хода.",
+  "MOUNTAIN_DRAGON_SOUL_CARD.description": "Даёт [blue]{PlatingPower}[/blue] [gold]Панцирь[/gold] в начале хода.",
   "MOUNTAIN_DRAGON_SOUL_CARD.flavor": "Гора не ведает отступления.",
   "CHEMTECH_DRAGON_SOUL_CARD.title": "Душа химтек-дракона",
   "CHEMTECH_DRAGON_SOUL_CARD.description": "Даёт [blue]{PotionCount}[/blue] случайное зелье в начале хода.",
@@ -51,5 +51,8 @@
   "FEEL_THE_BURN_CARD.flavor": "Сначала потуши их огонь, потом разожги свой.",
   "OK_BOOMERANG_CARD.title": "ОК-бумеранг",
   "OK_BOOMERANG_CARD.description": "Наносит {Damage:diff()} урона всем врагам [blue]{Hits}[/blue] раз(а).\nВерните эту карту в руку.",
-  "OK_BOOMERANG_CARD.flavor": "Улетает как шутка, возвращается как коллектор."
+  "OK_BOOMERANG_CARD.flavor": "Улетает как шутка, возвращается как коллектор.",
+  "QUANTUM_COMPUTING_CARD.title": "Квантовые вычисления",
+  "QUANTUM_COMPUTING_CARD.description": "Нанесите всем врагам урон в размере {DamagePercent:diff()}% от их макс. ОЗ, затем исцелитесь на {HealPercent:diff()}% от нанесённого урона.",
+  "QUANTUM_COMPUTING_CARD.flavor": "Прежде чем появится ответ, ОЗ врага уже схлопнулись."
 }

@@ -20,14 +20,39 @@ internal static class HextechAncientRelicHelper
 		typeof(BeautifulBracelet)
 	];
 
+	private static readonly Type[] VakuuRelicTypes =
+	[
+		typeof(BloodSoakedRose),
+		typeof(ChoicesParadox),
+		typeof(DistinguishedCape),
+		typeof(Fiddle),
+		typeof(JeweledMask),
+		typeof(LordsParasol),
+		typeof(MusicBox),
+		typeof(PreservedFog),
+		typeof(SereTalon),
+		typeof(WhisperingEarring)
+	];
+
 	public static RelicModel CreateRandomNonupeipeRelic(Player player, string source)
 	{
-		Type[] candidates = NonupeipeRelicTypes
+		return CreateRandomAncientRelic(NonupeipeRelicTypes, player, source);
+	}
+
+	// 逐件获得时依次调用：上一件入手后遗物数与已持有集合都变了，下一件自然不会重复。
+	public static RelicModel CreateRandomVakuuRelic(Player player, string source)
+	{
+		return CreateRandomAncientRelic(VakuuRelicTypes, player, source);
+	}
+
+	private static RelicModel CreateRandomAncientRelic(Type[] pool, Player player, string source)
+	{
+		Type[] candidates = pool
 			.Where(type => !HasRelic(player, type))
 			.ToArray();
 		if (candidates.Length == 0)
 		{
-			candidates = NonupeipeRelicTypes;
+			candidates = pool;
 		}
 
 		Type relicType = HextechStableRandom.Pick(

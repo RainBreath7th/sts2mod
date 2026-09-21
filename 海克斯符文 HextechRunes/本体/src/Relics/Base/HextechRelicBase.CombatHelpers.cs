@@ -109,4 +109,17 @@ public abstract partial class HextechRelicBase
 			&& power.GetTypeForAmount(amount) == PowerType.Debuff
 			&& power is not ITemporaryPower;
 	}
+
+	// 与上面对称：持有者自己实际收到负面效果，来源不限（敌人、敌方海克斯、自己的牌或海克斯）。
+	// 同样排除临时属性的包装 Power，它们到期会自行回收，不算一次真正的负面效果。
+	protected bool TryGetOwnerReceivedDebuff(PowerModel power, decimal amount, out Creature? target)
+	{
+		target = power.Owner;
+		return amount > 0m
+			&& Owner != null
+			&& target == Owner.Creature
+			&& !target.IsDead
+			&& power.GetTypeForAmount(amount) == PowerType.Debuff
+			&& power is not ITemporaryPower;
+	}
 }

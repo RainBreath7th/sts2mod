@@ -2,6 +2,9 @@ namespace HextechRunes;
 
 public sealed class FanTheHammerRune : HextechRelicBase
 {
+	private const decimal DamageMultiplierValue = 0.35m;
+	private const decimal DamagePercentValue = DamageMultiplierValue * 100m;
+
 	private bool _triggeredThisTurn;
 	private HextechCombatState? _turnStateCombat;
 	private int _turnStateRoundNumber = -1;
@@ -23,7 +26,8 @@ public sealed class FanTheHammerRune : HextechRelicBase
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
 		new DynamicVar("Replays", 3m),
-		new DynamicVar("DamageMultiplier", 0.35m)
+		new DynamicVar("DamageMultiplier", DamageMultiplierValue),
+		new DynamicVar("DamagePercent", DamagePercentValue)
 	];
 
 	public override Task BeforeCombatStart()

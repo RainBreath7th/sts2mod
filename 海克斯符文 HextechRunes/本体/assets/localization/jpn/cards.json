@@ -5,7 +5,7 @@
   "BLADE_WALTZ_CARD.title": "ブレードワルツ",
   "BLADE_WALTZ_CARD.description": "ランダムな敵に{Damage:diff()}ダメージを[blue]{Hits}[/blue]回与える。 [blue]{IntangiblePower}[/blue] [gold]霊体[/gold]を得る。",
   "BLADE_WALTZ_CARD.flavor": "回す、切る、弓を引く。",
-  "CATALYST_CARD.title": "触媒",
+  "CATALYST_CARD.title": "促進剤",
   "CATALYST_CARD.description": "敵の毒を[blue]{PoisonMultiplier}[/blue]倍にする。",
   "CATALYST_CARD.flavor": "毒素がまだ呼吸している場合、まだ増殖する可能性があります。",
   "OCEAN_DRAGON_SOUL_CARD.title": "オーシャンドラゴンソウル",

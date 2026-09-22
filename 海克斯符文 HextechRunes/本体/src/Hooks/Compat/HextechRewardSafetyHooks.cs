@@ -256,7 +256,7 @@ internal static class HextechRewardSafetyHooks
 			}
 
 			if (save.RewardType == RewardType.Relic
-				&& save.WasGoldStolenBack
+				&& HextechWaxRelicReward.IsWaxSave(save)
 				&& save.PredeterminedModelId != ModelId.none)
 			{
 				RelicModel relic = ModelDb.GetById<RelicModel>(save.PredeterminedModelId).ToMutable();

@@ -39,5 +39,8 @@
   "HEXTECH_GALVANIC_POWER.smartDescription": "На Таланты накладывается порча [gold]«{AfflictionTitle}»[/gold].",
   "HEXTECH_HANG_POWER.title": "Повешение",
   "HEXTECH_HANG_POWER.description": "Весь получаемый урон умножается на число зарядов.",
-  "HEXTECH_HANG_POWER.smartDescription": "Весь получаемый урон умножается на [blue]{Amount}[/blue]."
+  "HEXTECH_HANG_POWER.smartDescription": "Весь получаемый урон умножается на [blue]{Amount}[/blue].",
+  "HEXTECH_NEUROSURGE_POWER.title": "Мозговой штурм",
+  "HEXTECH_NEUROSURGE_POWER.description": "В начале вашего хода накладывает [gold]Злой рок[/gold], равный количеству зарядов, на ВСЕХ врагов.",
+  "HEXTECH_NEUROSURGE_POWER.smartDescription": "В начале вашего хода накладывает [blue]{Amount}[/blue] [gold]Злой рок[/gold] на ВСЕХ врагов."
 }

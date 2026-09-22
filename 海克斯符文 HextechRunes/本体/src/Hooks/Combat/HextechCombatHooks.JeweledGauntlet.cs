@@ -64,6 +64,12 @@ internal static partial class HextechCombatHooks
 		}
 
 		await Cmd.CustomScaledWait(0.1f, 0.2f);
+		// 等待期间第三方延迟伤害、阶段切换或遭遇销毁都可能改写怪物状态;写入执行态前按当前状态再核一次。
+		if (!CanPerformJeweledGauntletRepeat(monster, repeatState.Move, creature.CombatState))
+		{
+			return;
+		}
+
 		MonsterIsPerformingMoveField!.SetValue(monster, true);
 		IReadOnlyList<Creature> targets = combatState!.PlayerCreatures.ToArray();
 		try

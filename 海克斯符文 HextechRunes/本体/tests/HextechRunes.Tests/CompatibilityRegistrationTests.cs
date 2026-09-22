@@ -18,8 +18,8 @@ internal static partial class Program
 		Type runeType = typeof(CompatibilityLateSavedPropertyRune);
 		Type cacheType = typeof(SavedPropertiesTypeCache);
 		FieldInfo canonicalizedField = typeof(HextechSavedPropertyNetIdHooks)
-			.GetField("_canonicalized", BindingFlags.NonPublic | BindingFlags.Static)
-			?? throw new InvalidOperationException("SavedProperty canonicalized field should exist");
+			.GetField("_registrationFrozen", BindingFlags.NonPublic | BindingFlags.Static)
+			?? throw new InvalidOperationException("SavedProperty registration-frozen field should exist");
 		FieldInfo cacheField = cacheType.GetField("_cache", BindingFlags.NonPublic | BindingFlags.Static)
 			?? throw new InvalidOperationException("0.107 SavedProperty per-type cache should exist");
 		IDictionary cache = (IDictionary)(cacheField.GetValue(null)

@@ -39,5 +39,8 @@
   "HEXTECH_GALVANIC_POWER.smartDescription": "パワーは[gold]{AfflictionTitle}[/gold]の影響を受けている。",
   "HEXTECH_HANG_POWER.title": "吊殺",
   "HEXTECH_HANG_POWER.description": "受けるすべてのダメージが累積数倍になる。",
-  "HEXTECH_HANG_POWER.smartDescription": "受けるすべてのダメージが[blue]{Amount}[/blue]倍になる。"
+  "HEXTECH_HANG_POWER.smartDescription": "受けるすべてのダメージが[blue]{Amount}[/blue]倍になる。",
+  "HEXTECH_NEUROSURGE_POWER.title": "ニューロサージ",
+  "HEXTECH_NEUROSURGE_POWER.description": "自分のターン開始時、敵全体にスタック数と同じ量の[gold]破滅[/gold]を付与する。",
+  "HEXTECH_NEUROSURGE_POWER.smartDescription": "自分のターン開始時、敵全体に[blue]{Amount}[/blue]の[gold]破滅[/gold]を付与する。"
 }

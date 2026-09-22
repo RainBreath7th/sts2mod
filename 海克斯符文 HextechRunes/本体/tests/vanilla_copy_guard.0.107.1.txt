@@ -13,3 +13,5 @@ MegaCrit.Sts2.Core.Models.Powers.InfernoPower::AfterDamageReceived(MegaCrit.Sts2
 MegaCrit.Sts2.Core.Models.Powers.InfernoPower+<AfterDamageReceived>d__8::MoveNext()=8fcf5d844146eee5ca170110c239a7475029433e
 MegaCrit.Sts2.Core.Models.Powers.FlameBarrierPower::AfterDamageReceived(MegaCrit.Sts2.Core.GameActions.Multiplayer.PlayerChoiceContext,MegaCrit.Sts2.Core.Entities.Creatures.Creature,MegaCrit.Sts2.Core.Entities.Creatures.DamageResult,MegaCrit.Sts2.Core.ValueProps.ValueProp,MegaCrit.Sts2.Core.Entities.Creatures.Creature,MegaCrit.Sts2.Core.Models.CardModel)=5b799d1c280f83b87d83680365f3cd0ca2729910
 MegaCrit.Sts2.Core.Models.Powers.FlameBarrierPower+<AfterDamageReceived>d__4::MoveNext()=85f0fc8a4005c080ab18407f66665f5d01aa439b
+MegaCrit.Sts2.Core.Models.Cards.Neurosurge::OnPlay(MegaCrit.Sts2.Core.GameActions.Multiplayer.PlayerChoiceContext,MegaCrit.Sts2.Core.Entities.Cards.CardPlay)=c1c823de44813800a56420750d31fdc8f6524d00
+MegaCrit.Sts2.Core.Models.Cards.Neurosurge+<OnPlay>d__5::MoveNext()=ec829af0855c735f2502876948eb21279f749cb6

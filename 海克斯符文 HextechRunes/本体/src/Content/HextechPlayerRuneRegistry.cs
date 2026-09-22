@@ -91,7 +91,6 @@ internal static class HextechPlayerRuneRegistry
 		Rune<RecycleBinRune>(HextechRarityTier.Silver, characterPool: PlayerRuneCharacterPool.Defect, characterOrder: 19, tagKey: "STATUS"),
 		Rune<KnowThyPlaceUpgradeRune>(HextechRarityTier.Silver, characterPool: PlayerRuneCharacterPool.Regent, characterOrder: 15, tagKey: "COMPREHENSIVE"),
 		Rune<MentalShieldRune>(HextechRarityTier.Silver, tagKey: "SURVIVAL"),
-		Rune<PacifistRune>(HextechRarityTier.Silver, flags: PlayerRuneFlags.Disabled, tagKey: "SURVIVAL"),
 		Rune<KakaRune>(HextechRarityTier.Silver, flags: PlayerRuneFlags.Disabled, tagKey: "OUTPUT"),
 		Rune<BrutalForceRune>(HextechRarityTier.Silver, tagKey: "OUTPUT"),
 		Rune<TransmuteGoldRune>(HextechRarityTier.Silver, tagKey: "RANDOM"),

@@ -165,7 +165,7 @@ internal static partial class Program
 			(typeof(LoopPower), nameof(LoopPower.AfterPlayerTurnStart)),
 			(typeof(RagePower), nameof(RagePower.AfterSideTurnEnd)),
 			(typeof(ReflectPower), nameof(ReflectPower.AfterSideTurnStart)),
-			(typeof(FlakCannon), "OnPlay"), (typeof(Hang), "OnPlay"),
+			(typeof(FlakCannon), "OnPlay"), (typeof(Hang), "OnPlay"), (typeof(Neurosurge), "OnPlay"),
 			(typeof(InfernoPower), nameof(InfernoPower.AfterDamageReceived)),
 			(typeof(FlameBarrierPower), nameof(FlameBarrierPower.AfterDamageReceived))
 		];

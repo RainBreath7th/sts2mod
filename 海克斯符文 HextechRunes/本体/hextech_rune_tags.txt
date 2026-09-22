@@ -54,7 +54,6 @@
 我方	UniversalScopeRune	万用瞄准镜	标签=运转
 我方	StokeRune	添柴	标签=综合
 我方	TwinFlamesRune	双生火焰	标签=输出
-#我方	PacifistRune	和平主义者	标签=生存
 #我方	KakaRune	咔咔！	标签=输出
 我方	BrutalForceRune	残暴之力	标签=输出
 我方	TransmuteGoldRune	质变：黄金阶	标签=随机

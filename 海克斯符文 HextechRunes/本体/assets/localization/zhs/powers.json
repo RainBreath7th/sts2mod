@@ -39,5 +39,8 @@
   "HEXTECH_GALVANIC_POWER.smartDescription": "能力牌被侵蚀为[gold]{AfflictionTitle}[/gold]。",
   "HEXTECH_HANG_POWER.title": "吊杀",
   "HEXTECH_HANG_POWER.description": "受到的所有伤害乘以层数。",
-  "HEXTECH_HANG_POWER.smartDescription": "受到的所有伤害乘以[blue]{Amount}[/blue]。"
+  "HEXTECH_HANG_POWER.smartDescription": "受到的所有伤害乘以[blue]{Amount}[/blue]。",
+  "HEXTECH_NEUROSURGE_POWER.title": "精神过载",
+  "HEXTECH_NEUROSURGE_POWER.description": "在你的回合开始时，对所有敌人施加等同于层数的[gold]灾厄[/gold]。",
+  "HEXTECH_NEUROSURGE_POWER.smartDescription": "在你的回合开始时，对所有敌人施加[blue]{Amount}[/blue]层[gold]灾厄[/gold]。"
 }

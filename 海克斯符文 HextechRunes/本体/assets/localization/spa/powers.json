@@ -39,5 +39,8 @@
   "HEXTECH_GALVANIC_POWER.smartDescription": "Los cartas de Poder obtienen la aflicción [gold]{AfflictionTitle}[/gold].",
   "HEXTECH_HANG_POWER.title": "Ahorcar",
   "HEXTECH_HANG_POWER.description": "Todo el daño recibido se multiplica por las acumulaciones.",
-  "HEXTECH_HANG_POWER.smartDescription": "Todo el daño recibido se multiplica por [blue]{Amount}[/blue]."
+  "HEXTECH_HANG_POWER.smartDescription": "Todo el daño recibido se multiplica por [blue]{Amount}[/blue].",
+  "HEXTECH_NEUROSURGE_POWER.title": "Sobrecarga neuronal",
+  "HEXTECH_NEUROSURGE_POWER.description": "Al comienzo de tu turno, aplica [gold]Condena[/gold] igual a la cantidad de este poder a TODOS los enemigos.",
+  "HEXTECH_NEUROSURGE_POWER.smartDescription": "Al comienzo de tu turno, aplica [blue]{Amount}[/blue] de [gold]Condena[/gold] a TODOS los enemigos."
 }

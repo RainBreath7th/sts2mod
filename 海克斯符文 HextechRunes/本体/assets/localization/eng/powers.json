@@ -39,5 +39,8 @@
   "HEXTECH_GALVANIC_POWER.smartDescription": "Powers are afflicted with [gold]{AfflictionTitle}[/gold].",
   "HEXTECH_HANG_POWER.title": "Hang",
   "HEXTECH_HANG_POWER.description": "All damage taken is multiplied by the number of stacks.",
-  "HEXTECH_HANG_POWER.smartDescription": "All damage taken is multiplied by [blue]{Amount}[/blue]."
+  "HEXTECH_HANG_POWER.smartDescription": "All damage taken is multiplied by [blue]{Amount}[/blue].",
+  "HEXTECH_NEUROSURGE_POWER.title": "Neurosurge",
+  "HEXTECH_NEUROSURGE_POWER.description": "At the start of your turn, apply [gold]Doom[/gold] equal to this power's amount to ALL enemies.",
+  "HEXTECH_NEUROSURGE_POWER.smartDescription": "At the start of your turn, apply [blue]{Amount}[/blue] [gold]Doom[/gold] to ALL enemies."
 }

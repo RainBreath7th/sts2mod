@@ -82,6 +82,7 @@ HextechRunes.HextechRuneSelectionScreen.RerollSfxPlayer : AudioStreamPlayer
 HextechRunes.HextechRuneSelectionScreen.SelectSfxPlayer : AudioStreamPlayer
 HextechRunes.HextechSavedPropertyNetIdHooks._canonicalized : Boolean
 HextechRunes.HextechSavedPropertyNetIdHooks._installed : Boolean
+HextechRunes.HextechSavedPropertyNetIdHooks._registrationFrozen : Boolean
 HextechRunes.HextechShopForgeHooks._randomForgeShopHooksAvailable : Nullable`1
 HextechRunes.HextechTextures._missingTexture : Texture2D
 HextechRunes.HextechUpdateChecker._cachedResult : UpdateCheckResult

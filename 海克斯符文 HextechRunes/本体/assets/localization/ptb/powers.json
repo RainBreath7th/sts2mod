@@ -39,5 +39,8 @@
   "HEXTECH_GALVANIC_POWER.smartDescription": "Poderes recebem [gold]{AfflictionTitle}[/gold].",
   "HEXTECH_HANG_POWER.title": "Enforcar",
   "HEXTECH_HANG_POWER.description": "Todo dano recebido é multiplicado pelo número de acúmulos.",
-  "HEXTECH_HANG_POWER.smartDescription": "Todo dano recebido é multiplicado por [blue]{Amount}[/blue]."
+  "HEXTECH_HANG_POWER.smartDescription": "Todo dano recebido é multiplicado por [blue]{Amount}[/blue].",
+  "HEXTECH_NEUROSURGE_POWER.title": "Sobrecarga Neural",
+  "HEXTECH_NEUROSURGE_POWER.description": "No início do seu turno, aplica [gold]Ruína[/gold] igual à quantidade deste poder a TODOS os inimigos.",
+  "HEXTECH_NEUROSURGE_POWER.smartDescription": "No início do seu turno, aplica [blue]{Amount}[/blue] de [gold]Ruína[/gold] a TODOS os inimigos."
 }

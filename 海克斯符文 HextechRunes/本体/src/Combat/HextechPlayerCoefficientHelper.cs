@@ -40,11 +40,6 @@ internal static class HextechPlayerCoefficientHelper
 			multiplier *= 1.25m;
 		}
 
-		if (player.GetRelic<PacifistRune>() is PacifistRune pacifistRune)
-		{
-			multiplier *= pacifistRune.SustainMultiplier;
-		}
-
 		if (player.GetRelic<SacrificeRune>() is SacrificeRune sacrificeRune)
 		{
 			multiplier *= sacrificeRune.SustainMultiplier;
@@ -122,11 +117,6 @@ internal static class HextechPlayerCoefficientHelper
 
 	private static decimal GetDamageMultiplier(Player player)
 	{
-		if (player.GetRelic<PacifistRune>() != null)
-		{
-			return 0m;
-		}
-
 		return MultiplyRelicModifiers(
 			player,
 			"damage",

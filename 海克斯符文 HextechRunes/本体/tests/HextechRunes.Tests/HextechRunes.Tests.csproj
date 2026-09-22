@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/HextechRunes.csproj" />
+    <ProjectReference Include="../../loader/HextechRunes.Loader.csproj" />
 	<ProjectReference Include="../../../HextechRunesSponsorPack/src/HextechRunesSponsorPack.csproj" />
   </ItemGroup>
 

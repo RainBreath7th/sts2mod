@@ -1,72 +1,51 @@
 using HarmonyLib;
+
 namespace HextechRunes;
 
-// 升级：精神过载(仅骨妹) —— 把 Neurosurge 每回合施加的灾厄(DoomPower)从「自身」改为「全体敌人」。
-// 真正的重定向在 HextechNeurosurgeHooks(Harmony 改 NeurosurgePower.AfterSideTurnStart)。本类仅负责门控与 hover。
+// 升级：精神过载(仅骨妹) —— 持有时,打出精神过载不再施加原版减益,改为施加本模组的同名正面效果
+// HextechNeurosurgePower(你的回合开始时对所有敌人施加等同于层数的灾厄)。
+// 只在卡牌 OnPlay 处替换施加对象;不再触碰原版 NeurosurgePower 的 Type/AfterSideTurnStart,
+// 也不需要人工制品的特判(正面效果本来就不会被拦)。
 public sealed class NeurosurgeUpgradeRune : CardUpgradeRuneBase<Neurosurge>
 {
 	protected override IEnumerable<IHoverTip> ExtraHoverTips =>
 	[
 		HoverTipFactory.FromCard<Neurosurge>(),
+		HoverTipFactory.FromPower<HextechNeurosurgePower>(),
 		HoverTipFactory.FromPower<DoomPower>()
 	];
 
 	protected override bool IsAvailableForCharacter(Player player) => IsNecrobinderPlayer(player);
 
-	[HarmonyPatch(typeof(NeurosurgePower), nameof(NeurosurgePower.AfterSideTurnStart), typeof(CombatSide), typeof(IReadOnlyList<Creature>), typeof(ICombatState))]
-	[HextechPatch("rune.neurosurge.turn-start", "升级精神过载")]
-	private static class AfterSideTurnStartPatch
+	/// <summary>只对持有本符文的玩家自己的精神过载生效;队友的牌保持原版。</summary>
+	internal static bool ShouldSwapToHextechPower(CardModel card)
+	{
+		return card is Neurosurge && card.Owner?.GetRelic<NeurosurgeUpgradeRune>() != null;
+	}
+
+	// 与原版 Neurosurge.OnPlay 等价的一行(PowerCmd.Apply<NeurosurgePower>),只把施加的能力换成海克斯版;
+	// 原版体的 IL 由 vanilla_copy_guard 冻结,游戏更新后漂移会在测试与启动日志里显形。
+	internal static Task PlayUpgraded(PlayerChoiceContext choiceContext, Neurosurge card)
+	{
+		Creature owner = card.Owner.Creature;
+		return PowerCmd.Apply<HextechNeurosurgePower>(choiceContext, owner, card.DynamicVars["NeurosurgePower"].IntValue, owner, card);
+	}
+
+	[HarmonyPatch(typeof(Neurosurge), "OnPlay", typeof(PlayerChoiceContext), typeof(CardPlay))]
+	[HextechPatch("rune.neurosurge.on-play", "升级精神过载", Rune = typeof(NeurosurgeUpgradeRune))]
+	private static class OnPlayPatch
 	{
 		[HarmonyPrefix]
 		[HarmonyPriority(Priority.Low)]
-		private static bool Prefix(NeurosurgePower __instance, IReadOnlyList<Creature> participants, ref Task __result)
+		private static bool Prefix(Neurosurge __instance, PlayerChoiceContext choiceContext, ref Task __result)
 		{
-			Creature? owner = __instance.Owner;
-			if (owner?.Player?.GetRelic<NeurosurgeUpgradeRune>() != null && participants.Contains(owner))
+			if (!ShouldSwapToHextechPower(__instance))
 			{
-				__result = HextechNeurosurgeHooks.RedirectDoomToEnemies(__instance, owner);
-				return false;
+				return true;
 			}
 
-			return true;
-		}
-	}
-
-	[HarmonyPatch(typeof(NeurosurgePower), nameof(NeurosurgePower.Type), MethodType.Getter)]
-	[HextechPatch("rune.neurosurge.type", "升级精神过载")]
-	private static class TypePatch
-	{
-		[HarmonyPostfix]
-		private static void Postfix(NeurosurgePower __instance, ref PowerType __result)
-		{
-			if (__result == PowerType.Debuff && HextechNeurosurgeHooks.OwnsUpgradeRune(__instance.Owner))
-			{
-				__result = PowerType.Buff;
-			}
-		}
-	}
-
-	[HarmonyPatch(typeof(ArtifactPower), nameof(ArtifactPower.TryModifyPowerAmountReceived), new[] { typeof(PowerModel), typeof(Creature), typeof(decimal), typeof(Creature), typeof(decimal) }, new[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out })]
-	[HextechPatch("rune.neurosurge.artifact", "升级精神过载")]
-	private static class ArtifactPatch
-	{
-		[HarmonyPrefix]
-		[HarmonyPriority(Priority.Low)]
-		private static bool Prefix(
-			PowerModel canonicalPower,
-			Creature target,
-			decimal amount,
-			ref decimal modifiedAmount,
-			ref bool __result)
-		{
-			if (canonicalPower is NeurosurgePower && HextechNeurosurgeHooks.OwnsUpgradeRune(target))
-			{
-				modifiedAmount = amount;
-				__result = false;
-				return false;
-			}
-
-			return true;
+			__result = PlayUpgraded(choiceContext, __instance);
+			return false;
 		}
 	}
 }

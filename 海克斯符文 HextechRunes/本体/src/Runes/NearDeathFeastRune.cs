@@ -50,9 +50,10 @@ public sealed class NearDeathFeastRune : HextechRelicBase
 		return IsIroncladPlayer(player);
 	}
 
-	public override bool ShowCounter => Owner != null && !IsCanonical;
+	// 规范模型上读 Owner 会触发 AssertMutable(RelicModel.Owner 三版同契约),必须先判 IsCanonical。
+	public override bool ShowCounter => !IsCanonical && Owner != null;
 
-	public override int DisplayAmount => Owner != null ? GetDeathNegativeHpLimit(Owner.Creature) : 0;
+	public override int DisplayAmount => !IsCanonical && Owner != null ? GetDeathNegativeHpLimit(Owner.Creature) : 0;
 
 	internal static bool HasDyingState(Creature creature)
 	{

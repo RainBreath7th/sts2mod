@@ -62,6 +62,8 @@ internal static partial class HextechSavedPropertyBootstrap
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechVitalSparkPower));
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechHangPower));
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechNeurosurgePower));
+		// 已退出注册表但仍保留类型的锻造器:旧存档里的实例仍会带 SavedStackCount 往返,载体必须继续注入。
+		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(SilverPlatingForge));
 		WarnOnUninjectedSavedPropertyCarriers();
 		EnsureSavedPropertyNetIdBitSize();
 	}

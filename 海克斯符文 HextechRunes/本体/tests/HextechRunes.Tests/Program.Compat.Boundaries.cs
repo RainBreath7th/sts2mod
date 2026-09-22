@@ -138,6 +138,15 @@ internal static partial class Program
 		Equal(0L, HextechCombatHooks.CurrentActualDamageCommandId, "clean after the outer command returns");
 	}
 
+	// 规范遗物被图鉴或第三方遍历时会读计数器 getter;RelicModel.Owner 在规范模型上 AssertMutable,所以必须先判 IsCanonical。
+	private static void NearDeathFeastCountersAreSafeOnCanonicalRelic()
+	{
+		NearDeathFeastRune canonical = (NearDeathFeastRune)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(NearDeathFeastRune));
+		Expect(canonical.IsCanonical, "uninitialized model is canonical");
+		Expect(!canonical.ShowCounter, "canonical relic shows no counter and does not touch Owner");
+		Equal(0, canonical.DisplayAmount, "canonical relic displays 0 and does not touch Owner");
+	}
+
 	private static void WaxRelicRewardSaveMarkerIsOwnedAndLegacyCompatible()
 	{
 		ModelId wax = ModelDb.GetId<TezcatarasMercyRune>();

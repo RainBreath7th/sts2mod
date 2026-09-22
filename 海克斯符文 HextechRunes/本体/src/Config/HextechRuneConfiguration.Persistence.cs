@@ -39,7 +39,16 @@ internal static partial class HextechRuneConfiguration
 			}
 
 			RuneConfig? parsed = JsonSerializer.Deserialize<RuneConfig>(File.ReadAllText(configPath), JsonOptions);
+			bool fromNewerVersion = parsed != null && parsed.ConfigVersion > CurrentConfigVersion;
 			RuneConfig config = NormalizeLoadedConfig(parsed ?? new RuneConfig());
+			if (fromNewerVersion)
+			{
+				// 更新版本写的配置退回本版本读取:类型化模型不保留未知字段,回写会把版本号压回并丢掉未来字段。
+				// 只在内存里使用规范化结果,不覆盖文件;用户在本版本改设置时才会重写。
+				Log.Warn($"[{ModInfo.Id}][RuneConfig] Config version {parsed!.ConfigVersion} is newer than supported {CurrentConfigVersion}; using it in memory without rewriting the file.", 2);
+				return config;
+			}
+
 			SaveConfig(config);
 			return config;
 		}

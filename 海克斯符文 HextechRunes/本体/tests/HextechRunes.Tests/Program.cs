@@ -78,6 +78,7 @@ internal static partial class Program
 			new(nameof(NeurosurgeUpgradeSwapsVanillaPowerForHextechBuffOnlyForOwner), NeurosurgeUpgradeSwapsVanillaPowerForHextechBuffOnlyForOwner),
 			new(nameof(LoaderRefusesNewerVariantForKnownOlderHost), LoaderRefusesNewerVariantForKnownOlderHost),
 			new(nameof(WaxRelicRewardSaveMarkerIsOwnedAndLegacyCompatible), WaxRelicRewardSaveMarkerIsOwnedAndLegacyCompatible),
+			new(nameof(DamageCommandScopeRestoresCallerContextAndKeepsTaskContext), DamageCommandScopeRestoresCallerContextAndKeepsTaskContext),
 			new(nameof(CardUpgradeReplacementBodiesMatchReviewedVanilla), CardUpgradeReplacementBodiesMatchReviewedVanilla),
 			new(nameof(ArchaicToothTransformsEternalOnlyWithinItsNativeObtainTask), ArchaicToothTransformsEternalOnlyWithinItsNativeObtainTask),
 			new(nameof(OrobasSecondUpgradePreservesNativeAndForeignMappings), OrobasSecondUpgradePreservesNativeAndForeignMappings),

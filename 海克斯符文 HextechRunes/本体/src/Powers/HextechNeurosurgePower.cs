@@ -18,9 +18,22 @@ public sealed class HextechNeurosurgePower : HextechPowerBase
 
 	protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<DoomPower>()];
 
-	public override async Task AfterSideTurnStart(CombatSide side, HextechCombatState combatState)
+	/// <summary>
+	/// 与原版 NeurosurgePower.AfterSideTurnStart 同一守卫:只有持有者本人参与这次回合开始才触发。
+	/// 额外回合(佩尔之眼等)只带单个玩家重入回合开始 Hook,队友的能力不能跟着触发。
+	/// </summary>
+	internal static bool ShouldApplyDoom(Creature owner, CombatSide side, IReadOnlyList<Creature> participants, int amount)
 	{
-		if (side != CombatSide.Player || Owner.Side != CombatSide.Player || Owner.IsDead || Amount <= 0)
+		return side == CombatSide.Player
+			&& owner.Side == CombatSide.Player
+			&& !owner.IsDead
+			&& amount > 0
+			&& participants.Contains(owner);
+	}
+
+	public override async Task AfterSideTurnStartForParticipants(CombatSide side, IReadOnlyList<Creature> participants, HextechCombatState combatState)
+	{
+		if (!ShouldApplyDoom(Owner, side, participants, Amount))
 		{
 			return;
 		}
@@ -35,6 +48,12 @@ public sealed class HextechNeurosurgePower : HextechPowerBase
 		ThrowingPlayerChoiceContext context = new();
 		foreach (Creature enemy in enemies)
 		{
+			// 前一次施加的回调可能让后续目标死亡或离场;逐个复核,不对已离场目标施加。
+			if (enemy.IsDead || !combatState.Creatures.Contains(enemy))
+			{
+				continue;
+			}
+
 			await PowerCmd.Apply<DoomPower>(context, enemy, Amount, Owner, null);
 		}
 	}

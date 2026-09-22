@@ -23,12 +23,15 @@ public sealed class NeurosurgeUpgradeRune : CardUpgradeRuneBase<Neurosurge>
 		return card is Neurosurge && card.Owner?.GetRelic<NeurosurgeUpgradeRune>() != null;
 	}
 
-	// 与原版 Neurosurge.OnPlay 等价的一行(PowerCmd.Apply<NeurosurgePower>),只把施加的能力换成海克斯版;
-	// 原版体的 IL 由 vanilla_copy_guard 冻结,游戏更新后漂移会在测试与启动日志里显形。
-	internal static Task PlayUpgraded(PlayerChoiceContext choiceContext, Neurosurge card)
+	// 原版 Neurosurge.OnPlay 的完整复制体(三个版本反编译一致:PowerUp 动画 → 获得能量 → 抽牌 → 施加能力),
+	// 只把最后一步施加的能力换成海克斯版;原版体的 IL 由 vanilla_copy_guard 冻结,游戏更新后漂移会在测试与启动日志里显形。
+	internal static async Task PlayUpgraded(PlayerChoiceContext choiceContext, Neurosurge card)
 	{
-		Creature owner = card.Owner.Creature;
-		return PowerCmd.Apply<HextechNeurosurgePower>(choiceContext, owner, card.DynamicVars["NeurosurgePower"].IntValue, owner, card);
+		Player owner = card.Owner;
+		await CreatureCmd.TriggerAnim(owner.Creature, "PowerUp", owner.Character.PowerUpAnimDelay);
+		await PlayerCmd.GainEnergy(card.DynamicVars.Energy.BaseValue, owner);
+		await CardPileCmd.Draw(choiceContext, card.DynamicVars.Cards.BaseValue, owner);
+		await PowerCmd.Apply<HextechNeurosurgePower>(choiceContext, owner.Creature, card.DynamicVars["NeurosurgePower"].IntValue, owner.Creature, card);
 	}
 
 	[HarmonyPatch(typeof(Neurosurge), "OnPlay", typeof(PlayerChoiceContext), typeof(CardPlay))]

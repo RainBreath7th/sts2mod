@@ -61,9 +61,18 @@ public abstract class HextechPowerBase : PowerModel
 		return Task.CompletedTask;
 	}
 
-	public sealed override Task AfterSideTurnStart(CombatSide side, IReadOnlyList<Creature> participants, HextechCombatState combatState)
+	/// <summary>
+	/// 需要按 participants 判定"持有者是否参与本次回合开始"的能力(额外回合只带单个玩家重入回合开始 Hook 时)
+	/// 覆盖此方法;默认转发到不带参与者的版本,不改变其它能力的既有语义。
+	/// </summary>
+	public virtual Task AfterSideTurnStartForParticipants(CombatSide side, IReadOnlyList<Creature> participants, HextechCombatState combatState)
 	{
 		return AfterSideTurnStart(side, combatState);
+	}
+
+	public sealed override Task AfterSideTurnStart(CombatSide side, IReadOnlyList<Creature> participants, HextechCombatState combatState)
+	{
+		return AfterSideTurnStartForParticipants(side, participants, combatState);
 	}
 
 	public virtual Task BeforeTurnEnd(PlayerChoiceContext choiceContext, CombatSide side)

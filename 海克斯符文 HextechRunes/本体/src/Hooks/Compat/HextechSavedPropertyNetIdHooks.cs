@@ -76,7 +76,14 @@ internal static class HextechSavedPropertyNetIdHooks
 				nameToNetId[canonical[i]] = i;
 			}
 
-			SetNetIdBitSize(HextechSavedPropertyNetIdCanonicalizer.ComputeNetIdBitSize(canonical.Count));
+			int bitSize = HextechSavedPropertyNetIdCanonicalizer.ComputeNetIdBitSize(canonical.Count);
+			if (!TrySetNetIdBitSize(bitSize))
+			{
+				// 两张表已按规范布局重建(条目数不变,旧位宽仍能容纳),但位宽没有按公式写入:不宣称成功。
+				Log.Error($"[{ModInfo.Id}][MultiplayerCompat] SavedProperty net-id maps canonicalized but NetIdBitSize could not be written (expected {bitSize}, actual {SavedPropertiesTypeCache.NetIdBitSize}); canonicalization NOT marked complete.");
+				return;
+			}
+
 			_canonicalized = true;
 			HextechLog.Info($"[{ModInfo.Id}][MultiplayerCompat] Canonicalized SavedProperty net-id map: vanilla={vanillaNames.Count} total={canonical.Count} bitSize={SavedPropertiesTypeCache.NetIdBitSize}.");
 
@@ -118,16 +125,16 @@ internal static class HextechSavedPropertyNetIdHooks
 		return names;
 	}
 
-	private static void SetNetIdBitSize(int bitSize)
+	private static bool TrySetNetIdBitSize(int bitSize)
 	{
 		FieldInfo? backing = TryGetField(typeof(SavedPropertiesTypeCache), "<NetIdBitSize>k__BackingField", StaticNonPublic);
 		if (backing == null)
 		{
-			Log.Warn($"[{ModInfo.Id}][MultiplayerCompat] SavedPropertiesTypeCache NetIdBitSize backing field not found; net-id bit size left unchanged.");
-			return;
+			return false;
 		}
 
 		backing.SetValue(null, bitSize);
+		return SavedPropertiesTypeCache.NetIdBitSize == bitSize;
 	}
 
 	[HextechPatch("compat.saved-property-net-id", "SavedProperty net-id 规范化")]

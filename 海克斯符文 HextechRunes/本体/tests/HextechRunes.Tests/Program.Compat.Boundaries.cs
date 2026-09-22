@@ -4,7 +4,9 @@ using System.Text.Json;
 using HarmonyLib;
 using HextechRunes;
 using HextechRunes.Loader;
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Powers;
 using MegaCrit.Sts2.Core.Models;
@@ -36,6 +38,17 @@ internal static partial class Program
 		HextechNeurosurgePower power = CreateMutableTestModel<HextechNeurosurgePower>();
 		Equal(PowerType.Buff, power.Type, "hextech Neurosurge is a buff, so Artifact and debuff-triggered effects ignore it");
 		Equal(PowerStackType.Counter, power.StackType, "stacks like the vanilla power");
+
+		// 与原版同一守卫:只有持有者参与本次回合开始才施加灾厄(额外回合只带单个玩家重入)。
+		Creature owner = first.Creature, teammate = second.Creature;
+		Expect(HextechNeurosurgePower.ShouldApplyDoom(owner, CombatSide.Player, [owner, teammate], 3), "owner participates: apply");
+		Expect(!HextechNeurosurgePower.ShouldApplyDoom(owner, CombatSide.Player, [teammate], 3), "teammate's extra turn: owner's power stays silent");
+		Expect(!HextechNeurosurgePower.ShouldApplyDoom(owner, CombatSide.Player, [], 3), "empty participants: silent");
+		Expect(!HextechNeurosurgePower.ShouldApplyDoom(owner, CombatSide.Enemy, [owner], 3), "enemy side turn: silent");
+		Expect(!HextechNeurosurgePower.ShouldApplyDoom(owner, CombatSide.Player, [owner], 0), "no stacks: silent");
+		Expect(
+			typeof(HextechNeurosurgePower).GetMethod(nameof(HextechPowerBase.AfterSideTurnStartForParticipants))!.DeclaringType == typeof(HextechNeurosurgePower),
+			"the power overrides the participant-aware entry, not the participant-less one");
 
 		// 不再有任何补丁碰原版 NeurosurgePower:规范模型上读 Type 必须走纯原版路径(图书馆等第三方会遍历规范 Power)。
 		Expect(
@@ -78,6 +91,51 @@ internal static partial class Program
 				Directory.Delete(root, recursive: true);
 			}
 		}
+	}
+
+	// 伤害命令作用域:Prefix 在调用方上下文入栈,Postfix 必须在同步返回前把调用方恢复;
+	// 而原方法内部(在 Postfix 之前捕获了上下文的 await 续体)仍然看得到自己的命令 ID。
+	private static void DamageCommandScopeRestoresCallerContextAndKeepsTaskContext()
+	{
+		MethodInfo prefix = HextechPatcher.FindPatchMethod(typeof(HextechCombatHooks), "DamageCommandPatch", "Prefix")
+			?? throw new InvalidOperationException("damage command prefix missing");
+		MethodInfo postfix = HextechPatcher.FindPatchMethod(typeof(HextechCombatHooks), "DamageCommandPatch", "Postfix")
+			?? throw new InvalidOperationException("damage command postfix missing");
+		Equal(0L, HextechCombatHooks.CurrentActualDamageCommandId, "clean caller context before the command");
+
+		object?[] prefixArgs = [null];
+		prefix.Invoke(null, prefixArgs);
+		long commandId = (long)prefixArgs[0]!;
+		Equal(commandId, HextechCombatHooks.CurrentActualDamageCommandId, "prefix pushes the id for the original method's synchronous part");
+
+		// 模拟原方法内部在 Postfix 之前捕获上下文的续体:await 之后仍应看到自己的 ID。
+		TaskCompletionSource<IEnumerable<DamageResult>> original = new();
+		static async Task<long> ProbeAfterAwait(Task pending) { await pending; return HextechCombatHooks.CurrentActualDamageCommandId; }
+		Task<long> insideProbe = ProbeAfterAwait(original.Task);
+
+		object?[] postfixArgs = [commandId, original.Task];
+		postfix.Invoke(null, postfixArgs);
+		Task<IEnumerable<DamageResult>> wrapped = (Task<IEnumerable<DamageResult>>)postfixArgs[1]!;
+		Equal(0L, HextechCombatHooks.CurrentActualDamageCommandId, "postfix restores the caller context before the task is returned");
+		Expect(!wrapped.IsCompleted, "wrapper waits for the original task");
+
+		original.SetResult([]);
+		wrapped.GetAwaiter().GetResult();
+		Equal(commandId, insideProbe.GetAwaiter().GetResult(), "continuations captured inside the command still see their own id");
+		Equal(0L, HextechCombatHooks.CurrentActualDamageCommandId, "caller context stays clean after completion");
+
+		// 嵌套:内层命令结束后外层 ID 仍在。
+		object?[] outer = [null];
+		prefix.Invoke(null, outer);
+		object?[] inner = [null];
+		prefix.Invoke(null, inner);
+		Equal((long)inner[0]!, HextechCombatHooks.CurrentActualDamageCommandId, "inner id on top");
+		object?[] innerPost = [inner[0], Task.FromResult<IEnumerable<DamageResult>>([])];
+		postfix.Invoke(null, innerPost);
+		Equal((long)outer[0]!, HextechCombatHooks.CurrentActualDamageCommandId, "outer id restored after the inner command returns");
+		object?[] outerPost = [outer[0], Task.FromResult<IEnumerable<DamageResult>>([])];
+		postfix.Invoke(null, outerPost);
+		Equal(0L, HextechCombatHooks.CurrentActualDamageCommandId, "clean after the outer command returns");
 	}
 
 	private static void WaxRelicRewardSaveMarkerIsOwnedAndLegacyCompatible()

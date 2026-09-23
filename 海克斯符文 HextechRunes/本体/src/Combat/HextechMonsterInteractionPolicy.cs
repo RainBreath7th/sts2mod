@@ -134,6 +134,13 @@ internal static class HextechMonsterInteractionPolicy
 			await CreatureCmd.TriggerAnim(power.Owner, "BlockEnd", 0.15f);
 		}
 
+		// 记下"被本模组剥过机制类增益"的怪物:原版动画机条件可能无空判硬取该 power,
+		// 动画触发安全护栏只对这些怪物吞 NRE,其它来源的空引用照常抛出。
+		if (power.Owner != null)
+		{
+			HextechAnimTriggerSafetyHooks.MarkBuffStripped(power.Owner);
+		}
+
 		await PowerCmd.Remove(power);
 	}
 }

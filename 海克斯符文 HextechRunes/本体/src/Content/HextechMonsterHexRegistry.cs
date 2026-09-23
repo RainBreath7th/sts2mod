@@ -147,7 +147,9 @@ internal static class HextechMonsterHexRegistry
 		Monster<SomethingForNothingRune>(MonsterHexKind.SomethingForNothing, HextechRarityTier.Prismatic),
 		Monster<CorruptedBranchRune>(MonsterHexKind.CorruptedBranch, HextechRarityTier.Prismatic),
 		Monster<MoreTheMerrierRune>(MonsterHexKind.MoreTheMerrier, HextechRarityTier.Gold),
-		Monster<EnlightenmentRune>(MonsterHexKind.Enlightenment, HextechRarityTier.Gold)
+		Monster<EnlightenmentRune>(MonsterHexKind.Enlightenment, HextechRarityTier.Gold),
+		Monster<CorruptHeartHex>(MonsterHexKind.CorruptHeart, HextechRarityTier.Prismatic),
+		Monster<BadTasteRune>(MonsterHexKind.BadTaste, HextechRarityTier.Silver)
 	];
 
 	private static MonsterHexRegistration Monster<TRelic>(

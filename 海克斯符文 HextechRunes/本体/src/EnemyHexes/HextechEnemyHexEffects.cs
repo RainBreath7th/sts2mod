@@ -141,7 +141,9 @@ internal static class HextechEnemyHexEffects
 		new SomethingForNothingEnemyHex(),
 		new CorruptedBranchEnemyHex(),
 		new MoreTheMerrierEnemyHex(),
-		new EnlightenmentEnemyHex()
+		new EnlightenmentEnemyHex(),
+		new CorruptHeartEnemyHex(),
+		new BadTasteEnemyHex()
 	]);
 
 	internal static IEnumerable<HextechEnemyHexEffect> GetActive(HextechMayhemModifier modifier)

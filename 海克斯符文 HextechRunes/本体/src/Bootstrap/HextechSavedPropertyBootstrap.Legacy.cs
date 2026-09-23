@@ -9,14 +9,16 @@ internal static partial class HextechSavedPropertyBootstrap
 {
 	private const string RegistrationFreezePointName = "SavedProperty net-id 规范化";
 
+	// 窗口以"冻结点(ExecuteEssential 后缀)是否已过"为准,与规范化本身成功与否无关:
+	// 冻结点之后再注入都会让两端 net-id 布局分叉,规范化失败时更不能放行。
 	private static bool IsRegistrationWindowClosed()
 	{
-		return HextechSavedPropertyNetIdHooks.IsCanonicalized;
+		return HextechSavedPropertyNetIdHooks.IsRegistrationFrozen;
 	}
 
 	private static void InjectModelTypeCore(Type type)
 	{
-		if (HextechSavedPropertyNetIdHooks.IsCanonicalized)
+		if (HextechSavedPropertyNetIdHooks.IsRegistrationFrozen)
 		{
 			return;
 		}
@@ -58,6 +60,10 @@ internal static partial class HextechSavedPropertyBootstrap
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechChemtechDragonSoulPower));
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechCloudDragonSoulPower));
 		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechVitalSparkPower));
+		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechHangPower));
+		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(HextechNeurosurgePower));
+		// 已退出注册表但仍保留类型的锻造器:旧存档里的实例仍会带 SavedStackCount 往返,载体必须继续注入。
+		SavedPropertiesTypeCache.InjectTypeIntoCache(typeof(SilverPlatingForge));
 		WarnOnUninjectedSavedPropertyCarriers();
 		EnsureSavedPropertyNetIdBitSize();
 	}

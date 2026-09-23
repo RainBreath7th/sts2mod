@@ -14,12 +14,7 @@ namespace HextechRunes;
 internal static partial class HextechRuneConfigMenuHooks
 {
 	private static Control CreateSelectionPage(
-		int[] pendingPlayerHexCounts,
-		int[] pendingEnemyHexCounts,
-		int[] pendingPlayerRuneRerollLimit,
-		int[] pendingMonsterHexRerollLimit,
-		int[] pendingGoldenRerollChancePercent,
-		int[] pendingChaosRuneChancePercent,
+		PendingConfig pending,
 		List<NumericValueBinding> numericBindings,
 		bool compactLayout)
 	{
@@ -27,33 +22,26 @@ internal static partial class HextechRuneConfigMenuHooks
 		page.AddChild(CreateActCountSection(
 			L("HEXTECH_PLAYER_COUNT_TITLE"),
 			L("HEXTECH_PLAYER_COUNT_DESCRIPTION"),
-			pendingPlayerHexCounts,
+			pending.PlayerHexCounts,
 			HextechRuneConfiguration.ClampPlayerHexCount,
 			numericBindings,
 			compactLayout));
 		page.AddChild(CreateActCountSection(
 			L("HEXTECH_ENEMY_COUNT_TITLE"),
 			L("HEXTECH_ENEMY_COUNT_DESCRIPTION"),
-			pendingEnemyHexCounts,
+			pending.EnemyHexCounts,
 			HextechRuneConfiguration.ClampEnemyHexCount,
 			numericBindings,
 			compactLayout));
-		page.AddChild(CreateRerollLimitSection(
-			pendingPlayerRuneRerollLimit,
-			pendingMonsterHexRerollLimit,
-			numericBindings,
-			compactLayout));
-		page.AddChild(CreateGoldenRerollChanceSection(
-			pendingGoldenRerollChancePercent,
-			numericBindings,
-			compactLayout));
+		page.AddChild(CreateRerollLimitSection(pending, numericBindings, compactLayout));
+		page.AddChild(CreateGoldenRerollChanceSection(pending, numericBindings, compactLayout));
 		if (HextechRuneGeneration.ChaosAvailable)
-			page.AddChild(CreateChaosRuneChanceSection(pendingChaosRuneChancePercent, numericBindings, compactLayout));
+			page.AddChild(CreateChaosRuneChanceSection(pending, numericBindings, compactLayout));
 		return page;
 	}
 
 	private static Control CreateGoldenRerollChanceSection(
-		int[] goldenRerollChancePercent,
+		PendingConfig pending,
 		List<NumericValueBinding> numericBindings,
 		bool compactLayout)
 	{
@@ -77,17 +65,17 @@ internal static partial class HextechRuneConfigMenuHooks
 		};
 		row.AddChild(CreateNumericStepper(
 			L("HEXTECH_GOLDEN_REROLL_CHANCE_VALUE_LABEL"),
-			() => goldenRerollChancePercent[0],
-			value => goldenRerollChancePercent[0] = HextechRuneConfiguration.ClampGoldenRerollChancePercent(value),
+			() => pending.GoldenRerollChancePercent,
+			value => pending.GoldenRerollChancePercent = HextechRuneConfiguration.ClampGoldenRerollChancePercent(value),
 			numericBindings,
 			compactLayout,
-			getDisplayText: () => $"{goldenRerollChancePercent[0]}%"));
+			getDisplayText: () => $"{pending.GoldenRerollChancePercent}%"));
 		section.AddChild(row);
 		return card;
 	}
 
 	private static Control CreateChaosRuneChanceSection(
-		int[] chaosRuneChancePercent,
+		PendingConfig pending,
 		List<NumericValueBinding> numericBindings,
 		bool compactLayout)
 	{
@@ -111,11 +99,11 @@ internal static partial class HextechRuneConfigMenuHooks
 		};
 		row.AddChild(CreateNumericStepper(
 			L("HEXTECH_CHAOS_RUNE_CHANCE_VALUE_LABEL"),
-			() => chaosRuneChancePercent[0],
-			value => chaosRuneChancePercent[0] = HextechRuneConfiguration.ClampGoldenRerollChancePercent(value),
+			() => pending.ChaosRuneChancePercent,
+			value => pending.ChaosRuneChancePercent = HextechRuneConfiguration.ClampGoldenRerollChancePercent(value),
 			numericBindings,
 			compactLayout,
-			getDisplayText: () => $"{chaosRuneChancePercent[0]}%"));
+			getDisplayText: () => $"{pending.ChaosRuneChancePercent}%"));
 		section.AddChild(row);
 		return card;
 	}
@@ -159,8 +147,7 @@ internal static partial class HextechRuneConfigMenuHooks
 	}
 
 	private static Control CreateRerollLimitSection(
-		int[] pendingPlayerRuneRerollLimit,
-		int[] pendingMonsterHexRerollLimit,
+		PendingConfig pending,
 		List<NumericValueBinding> numericBindings,
 		bool compactLayout)
 	{
@@ -179,14 +166,14 @@ internal static partial class HextechRuneConfigMenuHooks
 		section.AddChild(row);
 		row.AddChild(CreateRerollLimitStepper(
 			L("HEXTECH_PLAYER_REROLL_LIMIT_LABEL"),
-			() => pendingPlayerRuneRerollLimit[0],
-			value => pendingPlayerRuneRerollLimit[0] = HextechRuneConfiguration.ClampRerollLimit(value),
+			() => pending.PlayerRuneRerollLimit,
+			value => pending.PlayerRuneRerollLimit = HextechRuneConfiguration.ClampRerollLimit(value),
 			numericBindings,
 			compactLayout));
 		row.AddChild(CreateRerollLimitStepper(
 			L("HEXTECH_MONSTER_REROLL_LIMIT_LABEL"),
-			() => pendingMonsterHexRerollLimit[0],
-			value => pendingMonsterHexRerollLimit[0] = HextechRuneConfiguration.ClampRerollLimit(value),
+			() => pending.MonsterHexRerollLimit,
+			value => pending.MonsterHexRerollLimit = HextechRuneConfiguration.ClampRerollLimit(value),
 			numericBindings,
 			compactLayout));
 		return card;
@@ -337,70 +324,60 @@ internal static partial class HextechRuneConfigMenuHooks
 	}
 
 	private static Control CreateDetailsPage(
-		int[][] pendingRuneWeightsByAct,
-		int[] pendingForgeWeights,
-		bool[] pendingPreventConsecutiveSilverRunes,
-		int[] pendingForgePrice,
-		bool[] pendingShowHiddenRelicsToggle,
-		bool[] pendingShowUpdateNotice,
-		bool[] pendingCollapseEnemyHexes,
-		bool[] pendingRandomForgeDirectGrant,
-		bool[] pendingModEnabled,
+		PendingConfig pending,
 		List<NumericValueBinding> numericBindings,
 		List<BooleanValueBinding> booleanBindings,
 		Action?[] shareActions,
 		bool compactLayout)
 	{
 		VBoxContainer page = CreatePageContainer(compactLayout);
-		page.AddChild(CreateMiscUiSection(pendingShowHiddenRelicsToggle, pendingShowUpdateNotice, pendingCollapseEnemyHexes, pendingRandomForgeDirectGrant, pendingModEnabled, booleanBindings, compactLayout));
+		page.AddChild(CreateMiscUiSection(pending, booleanBindings, compactLayout));
 		page.AddChild(CreateShareSection(shareActions, compactLayout));
-		page.AddChild(CreatePriceSection(pendingForgePrice, numericBindings, compactLayout));
+		page.AddChild(CreatePriceSection(pending, numericBindings, compactLayout));
 		page.AddChild(CreateWeightMatrixSection(
-			pendingRuneWeightsByAct,
-			pendingForgeWeights,
-			pendingPreventConsecutiveSilverRunes,
+			pending,
 			numericBindings,
 			booleanBindings,
 			compactLayout));
 		return page;
 	}
 
-	private static Control CreateMiscUiSection(bool[] pendingShowHiddenRelicsToggle, bool[] pendingShowUpdateNotice, bool[] pendingCollapseEnemyHexes, bool[] pendingRandomForgeDirectGrant, bool[] pendingModEnabled, List<BooleanValueBinding> booleanBindings, bool compactLayout)
+	private static Control CreateMiscUiSection(PendingConfig pending, List<BooleanValueBinding> booleanBindings, bool compactLayout)
 	{
 		VBoxContainer section = CreateCardSection(L("HEXTECH_MISC_UI_TITLE"), null, compactLayout, out PanelContainer card);
 		section.AddChild(CreateBooleanOption(
 			L("HEXTECH_MOD_ENABLED_TOGGLE_TITLE"),
 			L("HEXTECH_MOD_ENABLED_TOGGLE_DESCRIPTION"),
-			() => pendingModEnabled[0],
-			value => pendingModEnabled[0] = value,
+			() => pending.ModEnabled,
+			value => pending.ModEnabled = value,
 			booleanBindings,
 			compactLayout));
 		section.AddChild(CreateBooleanOption(
 			L("HEXTECH_SHOW_UPDATE_NOTICE_TOGGLE_TITLE"),
 			L("HEXTECH_SHOW_UPDATE_NOTICE_TOGGLE_DESCRIPTION"),
-			() => pendingShowUpdateNotice[0],
-			value => pendingShowUpdateNotice[0] = value,
+			() => pending.ShowUpdateNotice,
+			value => pending.ShowUpdateNotice = value,
 			booleanBindings,
 			compactLayout));
 		section.AddChild(CreateBooleanOption(
 			L("HEXTECH_COLLAPSE_ENEMY_HEXES_TOGGLE_TITLE"),
 			L("HEXTECH_COLLAPSE_ENEMY_HEXES_TOGGLE_DESCRIPTION"),
-			() => pendingCollapseEnemyHexes[0],
-			value => pendingCollapseEnemyHexes[0] = value,
+			() => pending.CollapseEnemyHexes,
+			value => pending.CollapseEnemyHexes = value,
 			booleanBindings,
 			compactLayout));
 		section.AddChild(CreateBooleanOption(
 			L("HEXTECH_SHOW_HIDDEN_RELICS_TOGGLE_TITLE"),
 			L("HEXTECH_SHOW_HIDDEN_RELICS_TOGGLE_DESCRIPTION"),
-			() => pendingShowHiddenRelicsToggle[0],
-			value => pendingShowHiddenRelicsToggle[0] = value,
+			() => pending.ShowHiddenRelicsToggle,
+			value => pending.ShowHiddenRelicsToggle = value,
 			booleanBindings,
 			compactLayout));
 		section.AddChild(CreateBooleanOption(
 			L("HEXTECH_RANDOM_FORGE_TOGGLE_TITLE"),
 			L("HEXTECH_RANDOM_FORGE_TOGGLE_DESCRIPTION"),
-			() => pendingRandomForgeDirectGrant[0],
-			value => pendingRandomForgeDirectGrant[0] = value,
+			() => pending.RandomForgeDirectGrant,
+			value => pending.RandomForgeDirectGrant = value,
 			booleanBindings,
 			compactLayout));
 		return card;
@@ -527,7 +504,7 @@ internal static partial class HextechRuneConfigMenuHooks
 		return row;
 	}
 
-	private static Control CreatePriceSection(int[] price, List<NumericValueBinding> numericBindings, bool compactLayout)
+	private static Control CreatePriceSection(PendingConfig pending, List<NumericValueBinding> numericBindings, bool compactLayout)
 	{
 		VBoxContainer section = CreateCardSection(L("HEXTECH_FORGE_PRICE_TITLE"), null, compactLayout, out PanelContainer card);
 		HBoxContainer row = new()
@@ -537,8 +514,8 @@ internal static partial class HextechRuneConfigMenuHooks
 		};
 		row.AddChild(CreateNumericStepper(
 			L("HEXTECH_FORGE_PRICE_LABEL"),
-			() => price[0],
-			value => price[0] = HextechRuneConfiguration.ClampRandomForgeShopPrice(value),
+			() => pending.ForgePrice,
+			value => pending.ForgePrice = HextechRuneConfiguration.ClampRandomForgeShopPrice(value),
 			numericBindings,
 			compactLayout,
 			step: 10));
@@ -547,9 +524,7 @@ internal static partial class HextechRuneConfigMenuHooks
 	}
 
 	private static Control CreateWeightMatrixSection(
-		int[][] runeWeightsByAct,
-		int[] forgeWeights,
-		bool[] preventConsecutiveSilverRunes,
+		PendingConfig pending,
 		List<NumericValueBinding> numericBindings,
 		List<BooleanValueBinding> booleanBindings,
 		bool compactLayout)
@@ -575,15 +550,15 @@ internal static partial class HextechRuneConfigMenuHooks
 		grid.AddChild(CreateRarityColumnHeader(L("HEXTECH_RARITY_GOLD"), HextechRarityTier.Gold, compactLayout));
 		grid.AddChild(CreateRarityColumnHeader(L("HEXTECH_RARITY_PRISMATIC"), HextechRarityTier.Prismatic, compactLayout));
 
-		AddWeightMatrixRow(grid, L("HEXTECH_ENEMY_COUNT_ACT1"), runeWeightsByAct[0], numericBindings, compactLayout);
-		AddWeightMatrixRow(grid, L("HEXTECH_ENEMY_COUNT_ACT2"), runeWeightsByAct[1], numericBindings, compactLayout);
-		AddWeightMatrixRow(grid, L("HEXTECH_ENEMY_COUNT_ACT3"), runeWeightsByAct[2], numericBindings, compactLayout);
-		AddWeightMatrixRow(grid, L("HEXTECH_RARITY_WEIGHTS_ROW_FORGE"), forgeWeights, numericBindings, compactLayout);
+		AddWeightMatrixRow(grid, L("HEXTECH_ENEMY_COUNT_ACT1"), pending.RuneWeightsByAct[0], numericBindings, compactLayout);
+		AddWeightMatrixRow(grid, L("HEXTECH_ENEMY_COUNT_ACT2"), pending.RuneWeightsByAct[1], numericBindings, compactLayout);
+		AddWeightMatrixRow(grid, L("HEXTECH_ENEMY_COUNT_ACT3"), pending.RuneWeightsByAct[2], numericBindings, compactLayout);
+		AddWeightMatrixRow(grid, L("HEXTECH_RARITY_WEIGHTS_ROW_FORGE"), pending.ForgeWeights, numericBindings, compactLayout);
 		section.AddChild(CreateBooleanOption(
 			L("HEXTECH_PREVENT_CONSECUTIVE_SILVER_TOGGLE_TITLE"),
 			L("HEXTECH_PREVENT_CONSECUTIVE_SILVER_TOGGLE_DESCRIPTION"),
-			() => preventConsecutiveSilverRunes[0],
-			value => preventConsecutiveSilverRunes[0] = value,
+			() => pending.PreventConsecutiveSilverRunes,
+			value => pending.PreventConsecutiveSilverRunes = value,
 			booleanBindings,
 			compactLayout));
 		return card;

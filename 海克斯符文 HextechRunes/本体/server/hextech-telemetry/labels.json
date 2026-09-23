@@ -306,7 +306,7 @@
     "COMPACT_UPGRADE_RUNE": "升级：压缩",
     "HOTFIX_UPGRADE_RUNE": "升级：热修复",
     "WHIRLWIND_UPGRADE_RUNE": "升级：旋风斩",
-    "JUGGERNAUT_UPGRADE_RUNE": "升级：势不可挡",
+    "JUGGERNAUT_UPGRADE_RUNE": "升级：势不可当",
     "TYRANNY_UPGRADE_RUNE": "升级：暴政",
     "REANIMATE_UPGRADE_RUNE": "升级：死者苏生",
     "HIDDEN_GEM_UPGRADE_RUNE": "升级：未掘宝石",
@@ -485,7 +485,22 @@
     "HEXTECH_RING_OF_THE_DRAKE_PLUS": "长蛇戒指+",
     "HEXTECH_DIVINE_DESTINY_PLUS": "天命所归+",
     "HEXTECH_PHYLACTERY_UNBOUND_PLUS": "无界命匣+",
-    "HEXTECH_INFUSED_CORE_PLUS": "注能核心+"
+    "HEXTECH_INFUSED_CORE_PLUS": "注能核心+",
+    "BULLET_TIME_UPGRADE_RUNE": "升级：子弹时间",
+    "PARTICLE_WALL_UPGRADE_RUNE": "升级：粒子墙",
+    "NIGHTMARE_UPGRADE_RUNE": "升级：夜魇",
+    "LOOP_UPGRADE_RUNE": "升级：循环",
+    "RAGE_UPGRADE_RUNE": "升级：狂怒",
+    "REFLECT_UPGRADE_RUNE": "升级：倒映",
+    "FLAK_CANNON_UPGRADE_RUNE": "升级：散射炮",
+    "HANG_UPGRADE_RUNE": "升级：吊杀",
+    "CLAW_UPGRADE_RUNE": "升级：爪击",
+    "INFERNO_UPGRADE_RUNE": "升级：狱火",
+    "FLAME_BARRIER_UPGRADE_RUNE": "升级：火焰屏障",
+    "REBOOT_UPGRADE_RUNE": "升级：重启",
+    "SMOKESTACK_UPGRADE_RUNE": "升级：烟囱",
+    "ROYALTIES_UPGRADE_RUNE": "升级：王国资产",
+    "VAKUU_MOCKERY_RUNE": "瓦库的嘲弄"
   },
   "monsterHexes": {
     "Slap": "扇巴掌",
@@ -632,7 +647,9 @@
     "SomethingForNothing": "无本万利",
     "CorruptedBranch": "腐化树枝",
     "MoreTheMerrier": "多多益善",
-    "Enlightenment": "开悟"
+    "Enlightenment": "开悟",
+    "CorruptHeart": "升级：腐化之心",
+    "BadTaste": "恶趣味"
   },
   "characters": {
     "IRONCLAD": "战士",

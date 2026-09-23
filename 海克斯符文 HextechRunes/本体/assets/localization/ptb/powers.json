@@ -24,8 +24,8 @@
   "HEXTECH_DRAGON_SOUL_POWER.description": "Ganha Energia extra igual a este valor a cada turno.",
   "HEXTECH_DRAGON_SOUL_POWER.smartDescription": "Ganha [blue]{Amount}[/blue] de Energia extra a cada turno.",
   "HEXTECH_MOUNTAIN_DRAGON_SOUL_POWER.title": "Alma do Dragão da Montanha",
-  "HEXTECH_MOUNTAIN_DRAGON_SOUL_POWER.description": "No início do seu turno, ganha [gold]Placas de Armadura[/gold] igual a este valor.",
-  "HEXTECH_MOUNTAIN_DRAGON_SOUL_POWER.smartDescription": "No início do turno desta criatura, ganha [blue]{Amount}[/blue] [gold]Placas de Armadura[/gold].",
+  "HEXTECH_MOUNTAIN_DRAGON_SOUL_POWER.description": "No início do seu turno, ganha [gold]Blindagem[/gold] igual a este valor.",
+  "HEXTECH_MOUNTAIN_DRAGON_SOUL_POWER.smartDescription": "No início do turno desta criatura, ganha [blue]{Amount}[/blue] [gold]Blindagem[/gold].",
   "HEXTECH_CHEMTECH_DRAGON_SOUL_POWER.title": "Alma do Dragão Quimtec",
   "HEXTECH_CHEMTECH_DRAGON_SOUL_POWER.description": "No início do seu turno, obtém Poções aleatórias iguais a este valor.",
   "HEXTECH_CHEMTECH_DRAGON_SOUL_POWER.smartDescription": "No início do turno desta criatura, obtém [blue]{Amount}[/blue] Poção(ões) aleatória(s).",
@@ -36,5 +36,11 @@
   "HEXTECH_RUNE_DEMON_FORM_PREVIEW.description": "No início do seu turno, ganha [blue]1[/blue] de [gold]Força[/gold].",
   "HEXTECH_GALVANIC_POWER.title": "Galvanização",
   "HEXTECH_GALVANIC_POWER.description": "Poderes recebem [gold]Galvanização[/gold].",
-  "HEXTECH_GALVANIC_POWER.smartDescription": "Poderes recebem [gold]{AfflictionTitle}[/gold]."
+  "HEXTECH_GALVANIC_POWER.smartDescription": "Poderes recebem [gold]{AfflictionTitle}[/gold].",
+  "HEXTECH_HANG_POWER.title": "Enforcar",
+  "HEXTECH_HANG_POWER.description": "Todo dano recebido é multiplicado pelo número de acúmulos.",
+  "HEXTECH_HANG_POWER.smartDescription": "Todo dano recebido é multiplicado por [blue]{Amount}[/blue].",
+  "HEXTECH_NEUROSURGE_POWER.title": "Sobrecarga Neural",
+  "HEXTECH_NEUROSURGE_POWER.description": "No início do seu turno, aplica [gold]Ruína[/gold] igual à quantidade deste poder a TODOS os inimigos.",
+  "HEXTECH_NEUROSURGE_POWER.smartDescription": "No início do seu turno, aplica [blue]{Amount}[/blue] de [gold]Ruína[/gold] a TODOS os inimigos."
 }

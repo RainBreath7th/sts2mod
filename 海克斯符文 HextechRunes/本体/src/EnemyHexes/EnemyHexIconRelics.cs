@@ -185,3 +185,9 @@ public sealed class HauntedShipHex : HextechRelicBase
 {
 	public override bool IsAvailableForPlayer(Player player) => false;
 }
+
+/// <summary>升级：腐化之心</summary>
+public sealed class CorruptHeartHex : HextechRelicBase
+{
+	public override bool IsAvailableForPlayer(Player player) => false;
+}

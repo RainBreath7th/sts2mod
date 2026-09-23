@@ -16,7 +16,9 @@ internal static partial class HextechRunLifecycleHooks
 
 		try
 		{
+			// 只为启用了海克斯的跑局补历史:这是自家遭遇改写造成的缺口,普通跑局与第三方历史不碰。
 			if (runManager.DebugOnlyGetState() is not RunState runState
+				|| !HextechMayhemModifier.IsEnabledForRun(runState)
 				|| runState.CurrentRoom is not CombatRoom combatRoom
 				|| runState.CurrentMapPointHistoryEntry is not MapPointHistoryEntry mapPointHistory)
 			{

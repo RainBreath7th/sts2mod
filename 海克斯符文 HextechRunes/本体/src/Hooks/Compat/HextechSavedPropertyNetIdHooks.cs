@@ -20,27 +20,34 @@ internal static class HextechSavedPropertyNetIdHooks
 	private const BindingFlags StaticNonPublic = BindingFlags.NonPublic | BindingFlags.Static;
 
 	private static bool _installed;
+	private static bool _registrationFrozen;
 	private static bool _canonicalized;
 
-	/// <summary>规范化是否已发生。此后再注入 SavedProperty 载体会绕过规范排序(见 HextechSavedPropertyBootstrap.InjectModelType 的告警)。</summary>
+	/// <summary>
+	/// 冻结点(ExecuteEssential 后缀)是否已过。此后再注入 SavedProperty 载体会绕过规范排序
+	/// (见 HextechSavedPropertyBootstrap.InjectModelType 的告警)。与规范化成功与否无关。
+	/// </summary>
+	internal static bool IsRegistrationFrozen => _registrationFrozen;
+
+	/// <summary>规范化是否真正完成(两张表已按规范布局重建、位宽已写入)。失败时保持 false,只用于日志与诊断。</summary>
 	internal static bool IsCanonicalized => _canonicalized;
 
 
 	private static void CanonicalizeNetIdMapPostfix()
 	{
-		if (_canonicalized)
+		if (_registrationFrozen)
 		{
 			return;
 		}
 
-		_canonicalized = true;
+		_registrationFrozen = true;
 
 		try
 		{
 			IReadOnlySet<string>? vanillaNames = BuildVanillaPropertyNameSet();
 			if (vanillaNames == null || vanillaNames.Count == 0)
 			{
-				Log.Warn($"[{ModInfo.Id}][MultiplayerCompat] Could not determine vanilla SavedProperty names; skipping net-id canonicalization.");
+				Log.Error($"[{ModInfo.Id}][MultiplayerCompat] Could not determine vanilla SavedProperty names; net-id canonicalization NOT applied (multiplayer with other SavedProperty mods may desync).");
 				return;
 			}
 
@@ -49,14 +56,14 @@ internal static class HextechSavedPropertyNetIdHooks
 			if (netIdToNameField?.GetValue(null) is not List<string> netIdToName
 				|| nameToNetIdField?.GetValue(null) is not Dictionary<string, int> nameToNetId)
 			{
-				Log.Warn($"[{ModInfo.Id}][MultiplayerCompat] SavedPropertiesTypeCache maps unavailable; skipping net-id canonicalization.");
+				Log.Error($"[{ModInfo.Id}][MultiplayerCompat] SavedPropertiesTypeCache maps unavailable; net-id canonicalization NOT applied.");
 				return;
 			}
 
 			List<string>? canonical = HextechSavedPropertyNetIdCanonicalizer.Canonicalize(netIdToName, vanillaNames);
 			if (canonical == null || canonical.Count != netIdToName.Count)
 			{
-				Log.Warn($"[{ModInfo.Id}][MultiplayerCompat] Net-id canonicalization produced an invalid result (mapCount={netIdToName.Count}); leaving the map unchanged.");
+				Log.Error($"[{ModInfo.Id}][MultiplayerCompat] Net-id canonicalization produced an invalid result (mapCount={netIdToName.Count}); map left unchanged, canonicalization NOT applied.");
 				return;
 			}
 
@@ -69,7 +76,15 @@ internal static class HextechSavedPropertyNetIdHooks
 				nameToNetId[canonical[i]] = i;
 			}
 
-			SetNetIdBitSize(HextechSavedPropertyNetIdCanonicalizer.ComputeNetIdBitSize(canonical.Count));
+			int bitSize = HextechSavedPropertyNetIdCanonicalizer.ComputeNetIdBitSize(canonical.Count);
+			if (!TrySetNetIdBitSize(bitSize))
+			{
+				// 两张表已按规范布局重建(条目数不变,旧位宽仍能容纳),但位宽没有按公式写入:不宣称成功。
+				Log.Error($"[{ModInfo.Id}][MultiplayerCompat] SavedProperty net-id maps canonicalized but NetIdBitSize could not be written (expected {bitSize}, actual {SavedPropertiesTypeCache.NetIdBitSize}); canonicalization NOT marked complete.");
+				return;
+			}
+
+			_canonicalized = true;
 			HextechLog.Info($"[{ModInfo.Id}][MultiplayerCompat] Canonicalized SavedProperty net-id map: vanilla={vanillaNames.Count} total={canonical.Count} bitSize={SavedPropertiesTypeCache.NetIdBitSize}.");
 
 			// 规范化后终检:此刻拓展包/二创包的延迟注册均已完成,扫描所有引用本模组的程序集,
@@ -78,7 +93,7 @@ internal static class HextechSavedPropertyNetIdHooks
 		}
 		catch (Exception ex)
 		{
-			Log.Warn($"[{ModInfo.Id}][MultiplayerCompat] SavedProperty net-id canonicalization failed: {ex.GetType().Name}: {ex.Message}");
+			Log.Error($"[{ModInfo.Id}][MultiplayerCompat] SavedProperty net-id canonicalization failed (registration window is frozen, map may be unchanged): {ex.GetType().Name}: {ex.Message}");
 		}
 	}
 
@@ -110,16 +125,16 @@ internal static class HextechSavedPropertyNetIdHooks
 		return names;
 	}
 
-	private static void SetNetIdBitSize(int bitSize)
+	private static bool TrySetNetIdBitSize(int bitSize)
 	{
 		FieldInfo? backing = TryGetField(typeof(SavedPropertiesTypeCache), "<NetIdBitSize>k__BackingField", StaticNonPublic);
 		if (backing == null)
 		{
-			Log.Warn($"[{ModInfo.Id}][MultiplayerCompat] SavedPropertiesTypeCache NetIdBitSize backing field not found; net-id bit size left unchanged.");
-			return;
+			return false;
 		}
 
 		backing.SetValue(null, bitSize);
+		return SavedPropertiesTypeCache.NetIdBitSize == bitSize;
 	}
 
 	[HextechPatch("compat.saved-property-net-id", "SavedProperty net-id 规范化")]

@@ -51,5 +51,8 @@
   "FEEL_THE_BURN_CARD.flavor": "ดับไฟของพวกมัน แล้วจุดไฟของคุณ",
   "OK_BOOMERANG_CARD.title": "บูมเมอแรง OK",
   "OK_BOOMERANG_CARD.description": "สร้างความเสียหาย {Damage:diff()} แก่ศัตรูทุกตัว [blue]{Hits}[/blue] ครั้ง\nนำการ์ดใบนี้กลับเข้ามือของคุณ",
-  "OK_BOOMERANG_CARD.flavor": "มันบินไปเหมือนเรื่องตลก และบินกลับมาเหมือนเจ้าหนี้"
+  "OK_BOOMERANG_CARD.flavor": "มันบินไปเหมือนเรื่องตลก และบินกลับมาเหมือนเจ้าหนี้",
+  "QUANTUM_COMPUTING_CARD.title": "ควอนตัมคอมพิวติง",
+  "QUANTUM_COMPUTING_CARD.description": "สร้างความเสียหายใส่ศัตรูทั้งหมดเท่ากับ {DamagePercent:diff()}% ของ HP สูงสุดของพวกมัน จากนั้นฟื้นฟู {HealPercent:diff()}% ของความเสียหายที่สร้าง",
+  "QUANTUM_COMPUTING_CARD.flavor": "ก่อนคำตอบจะปรากฏ HP ศัตรูก็ทลายไปแล้ว"
 }

@@ -5,8 +5,6 @@ namespace HextechRunes;
 
 internal static class HextechEncounterCompatibilityHooks
 {
-	private const string EntomancerCastSfx = "event:/sfx/enemy/enemy_attacks/entomancer/entomancer_cast";
-
 	internal static bool ShouldRunOriginalEntomancerSpitMove(bool hasPersonalHive)
 	{
 #if STS2_107_1
@@ -17,6 +15,8 @@ internal static class HextechEncounterCompatibilityHooks
 	}
 
 #if STS2_107_1
+	private const string EntomancerCastSfx = "event:/sfx/enemy/enemy_attacks/entomancer/entomancer_cast";
+
 	internal static MethodInfo? TryResolveEntomancerSpitMove(Type entomancerType, bool warnIfMissing)
 	{
 		return TryGetMethod(
@@ -29,9 +29,16 @@ internal static class HextechEncounterCompatibilityHooks
 
 	private static async Task EntomancerSpitMoveWithoutPersonalHive(Entomancer entomancer)
 	{
-		SfxCmd.Play(EntomancerCastSfx);
-		await CreatureCmd.TriggerAnim(entomancer.Creature, "Cast", 0.5f);
 		await PowerCmd.Apply<StrengthPower>(entomancer.Creature, 2m, entomancer.Creature, null);
+		try
+		{
+			SfxCmd.Play(EntomancerCastSfx);
+			await CreatureCmd.TriggerAnim(entomancer.Creature, "Cast", 0.5f);
+		}
+		catch (Exception ex)
+		{
+			Log.Warn($"[{ModInfo.Id}][Entomancer] Cast visual failed: {ex.Message}");
+		}
 	}
 
 	// 0.107.1 的昆虫法师在没有私人蜂巢时 SpitMove 会空引用;0.108 起原版已修复。

@@ -2,10 +2,14 @@ namespace HextechRunes;
 
 public sealed class HandOfBaronRune : HextechRelicBase
 {
+	private const decimal DamageMultiplierValue = 1.2m;
+	private const decimal DamageBonusPercentValue = (DamageMultiplierValue - 1m) * 100m;
+
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
-		new DynamicVar("DamageMultiplier", 1.2m),
-		new DynamicVar("Shrink", 2m)
+		new DynamicVar("DamageMultiplier", DamageMultiplierValue),
+		new DynamicVar("Shrink", 2m),
+		new DynamicVar("DamageBonusPercent", DamageBonusPercentValue)
 	];
 
 	public override decimal ModifyDamageMultiplicativeCompat(Creature? target, decimal amount, ValueProp props, Creature? dealer, CardModel? cardSource)

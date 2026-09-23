@@ -82,8 +82,8 @@ internal static partial class HextechPlayerRuneHooks
 			return;
 		}
 
-		_ = TaskHelper.RunSafely(InvokePrivateRelicVisuals(nunchaku, NunchakuDoActivateVisualsMethod, nameof(Nunchaku)));
 		await PlayerCmd.GainEnergy(nunchaku.DynamicVars.Energy.BaseValue, nunchaku.Owner);
+		_ = TaskHelper.RunSafely(InvokePrivateRelicVisuals(nunchaku, NunchakuDoActivateVisualsMethod, nameof(Nunchaku)));
 	}
 
 
@@ -96,8 +96,8 @@ internal static partial class HextechPlayerRuneHooks
 			return;
 		}
 
-		_ = TaskHelper.RunSafely(InvokePrivateRelicVisuals(kunai, KunaiDoActivateVisualsMethod, nameof(Kunai)));
 		await PowerCmd.Apply<DexterityPower>(kunai.Owner.Creature, kunai.DynamicVars.Dexterity.BaseValue, kunai.Owner.Creature, null);
+		_ = TaskHelper.RunSafely(InvokePrivateRelicVisuals(kunai, KunaiDoActivateVisualsMethod, nameof(Kunai)));
 	}
 
 
@@ -110,8 +110,8 @@ internal static partial class HextechPlayerRuneHooks
 			return;
 		}
 
-		_ = TaskHelper.RunSafely(InvokePrivateRelicVisuals(shuriken, ShurikenDoActivateVisualsMethod, nameof(Shuriken)));
 		await PowerCmd.Apply<StrengthPower>(shuriken.Owner.Creature, shuriken.DynamicVars.Strength.BaseValue, shuriken.Owner.Creature, null);
+		_ = TaskHelper.RunSafely(InvokePrivateRelicVisuals(shuriken, ShurikenDoActivateVisualsMethod, nameof(Shuriken)));
 	}
 
 
@@ -124,8 +124,8 @@ internal static partial class HextechPlayerRuneHooks
 			return;
 		}
 
-		_ = TaskHelper.RunSafely(InvokePrivateRelicVisuals(ornamentalFan, OrnamentalFanDoActivateVisualsMethod, nameof(OrnamentalFan)));
 		await CreatureCmd.GainBlock(ornamentalFan.Owner.Creature, ornamentalFan.DynamicVars.Block, null);
+		_ = TaskHelper.RunSafely(InvokePrivateRelicVisuals(ornamentalFan, OrnamentalFanDoActivateVisualsMethod, nameof(OrnamentalFan)));
 	}
 
 
@@ -166,22 +166,28 @@ internal static partial class HextechPlayerRuneHooks
 		PenNibAttackToDoubleProperty?.SetValue(penNib, card);
 	}
 
-	internal static Task InvokePrivateRelicVisuals(RelicModel relic, MethodInfo? method, string relicName)
+	internal static async Task InvokePrivateRelicVisuals(RelicModel relic, MethodInfo? method, string relicName)
 	{
 		if (method == null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		try
 		{
-			return method.Invoke(relic, null) as Task ?? Task.CompletedTask;
+			await (method.Invoke(relic, null) as Task ?? Task.CompletedTask);
 		}
 		catch (Exception ex)
 		{
 			Log.Warn($"[{ModInfo.Id}][IllusoryWeapon] Failed to run {relicName} activation visuals: {ex.GetType().Name}: {ex.Message}");
-			relic.Flash();
-			return Task.CompletedTask;
+			try
+			{
+				relic.Flash();
+			}
+			catch (Exception flashException)
+			{
+				Log.Warn($"[{ModInfo.Id}][IllusoryWeapon] Fallback flash failed for {relicName}: {flashException.Message}");
+			}
 		}
 	}
 

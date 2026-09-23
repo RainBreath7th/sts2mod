@@ -24,7 +24,8 @@ public sealed class DiceManiacRune : HextechRelicBase, IHextechSharedCombatVicto
 	protected override IEnumerable<DynamicVar> CanonicalVars =>
 	[
 		new DynamicVar("DropChance", BaseDropChance),
-		new DynamicVar("ForgeMultiplier", 2m)
+		new DynamicVar("ForgeMultiplier", 2m),
+		new DynamicVar("DropChanceStep", DropChanceStep)
 	];
 
 	public override Task AfterCombatVictory(CombatRoom room)

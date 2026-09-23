@@ -65,12 +65,20 @@ public static class LoaderBootstrap
 		}
 
 		HostVersionSnapshot host = ResolveHostVersion();
+		if (host.Numeric == null)
+		{
+			Log.Warn(
+				"[HextechRunes.Loader] Host version is unknown; " +
+				"using the newest bundled variant.");
+		}
+
 		VariantCandidate? variant = PickVariant(loaderDirectory, libRoot, host.Numeric);
 		if (variant == null)
 		{
+			// 变体全部无效,或已知宿主没有不高于它的有效变体(对应变体缺失/哈希不符/宿主早于最低支持版本):显式停止。
 			Log.Error(
-				$"[HextechRunes.Loader] No valid variant under {libRoot} " +
-				$"for host {host.ReleaseLabel ?? host.Numeric?.ToString() ?? "unknown"}.");
+				$"[HextechRunes.Loader] No valid variant under {libRoot} compatible with host " +
+				$"{host.ReleaseLabel ?? host.Numeric?.ToString() ?? "unknown"}; refusing to load a newer variant.");
 			return;
 		}
 
@@ -339,21 +347,29 @@ public static class LoaderBootstrap
 			LoadVariantManifest(loaderDirectory, libRoot)
 				.OrderBy(candidate => candidate.Version)
 				.ToList();
-		if (variants.Count == 0)
+		return SelectVariant(variants, host);
+	}
+
+	/// <summary>
+	/// 纯选择规则(不写日志,可单测):宿主未知时用最新变体;宿主已知时取不高于宿主的最新变体,
+	/// 没有就返回 null 让调用方停止加载。回退到更新的变体只会把"局部文件不可用"
+	/// 扩大成"错误版本程序集进入模型注册与补丁系统",所以不再兜底。
+	/// </summary>
+	private static VariantCandidate? SelectVariant(
+		IReadOnlyList<VariantCandidate> sortedVariants,
+		Version? host)
+	{
+		if (sortedVariants.Count == 0)
 		{
 			return null;
 		}
 
 		if (host == null)
 		{
-			Log.Warn(
-				"[HextechRunes.Loader] Host version is unknown; " +
-				"using the newest bundled variant.");
-			return variants[^1];
+			return sortedVariants[^1];
 		}
 
-		return variants.LastOrDefault(candidate => candidate.Version <= host)
-			?? variants[^1];
+		return sortedVariants.LastOrDefault(candidate => candidate.Version <= host);
 	}
 
 	private static List<VariantCandidate> LoadVariantManifest(

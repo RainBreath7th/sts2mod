@@ -2,6 +2,9 @@ namespace HextechRunes;
 
 public sealed class GiantSlayerRune : HextechRelicBase
 {
+	private const decimal DamagePerStepDisplayPercentValue = DamagePerStepPercent * 100m;
+	private const decimal MaxBonusDisplayPercentValue = MaximumBonusPercent * 100m;
+
 	internal const int EnemyMaxHpPerPercent = 8;
 	internal const decimal DamagePerStepPercent = 0.01m;
 	internal const decimal MaximumBonusPercent = 0.5m;
@@ -12,7 +15,9 @@ public sealed class GiantSlayerRune : HextechRelicBase
 		new DynamicVar("EnemyMaxHpPerPercent", EnemyMaxHpPerPercent),
 		new DynamicVar("DamagePerStepPercent", DamagePerStepPercent),
 		new DynamicVar("MaxBonusPercent", MaximumBonusPercent),
-		new DynamicVar("Scale", 0.65m)
+		new DynamicVar("Scale", 0.65m),
+		new DynamicVar("DamagePerStepDisplayPercent", DamagePerStepDisplayPercentValue),
+		new DynamicVar("MaxBonusDisplayPercent", MaxBonusDisplayPercentValue)
 	];
 
 	internal float BodyScaleDelta => (float)DynamicVars["Scale"].BaseValue - 1f;

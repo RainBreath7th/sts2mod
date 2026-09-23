@@ -18,9 +18,94 @@ import zipfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import hextech_dev as dev
 import package_release as packaging
+import sync_content_txt as content
+import validate_hextech_content as validation
 
 
 class DeveloperToolTests(unittest.TestCase):
+    def test_localization_guards_cover_plain_names_missing_languages_and_formatting(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / "src/Runes").mkdir(parents=True)
+            snapshot = root / "titles.json"
+            snapshot.write_text(json.dumps({"cards": {}, "powers": {"STRENGTH_POWER": "力量"},
+                "other_official_terms": {}}, ensure_ascii=False))
+            text = {"SLAP_RUNE.description": "获得[blue]{Amount}[/blue]点[gold]力量[/gold]。"}
+            for language in ("zhs", "eng", "esp", "spa", "jpn", "kor", "ptb", "rus", "tha"):
+                directory = root / "localization" / language
+                directory.mkdir(parents=True)
+                (directory / "relics.json").write_text(json.dumps(text, ensure_ascii=False))
+            with patch.object(validation, "SRC", root / "src"), \
+                 patch.object(validation, "LOCALIZATION", root / "localization"), \
+                 patch.object(validation, "OFFICIAL_ZHS_TITLES", snapshot):
+                errors = []
+                validation.validate_official_name_references(errors)
+                validation.validate_localization_format_parity(errors)
+                self.assertEqual(errors, [])
+                zhs = root / "localization/zhs/relics.json"
+                zhs.write_text(zhs.read_text().replace("力量", "力靓"))
+                validation.validate_official_name_references(errors)
+                self.assertTrue(any("力靓" in error for error in errors))
+                (root / "localization/tha/relics.json").unlink()
+                (root / "localization/tha").rmdir()
+                errors = []
+                validation.validate_localization_format_parity(errors)
+                self.assertTrue(any("directory missing: tha" in error for error in errors))
+            self.assertEqual(validation.localization_format("{Cards:plural:card|cards}")[0], {"Cards"})
+            self.assertTrue(validation.localization_format("[blue][gold]x[/blue][/gold]")[2])
+
+    def test_content_txt_resolves_model_variables_without_crossing_class_boundaries(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / "Cards.cs").write_text('''
+class FirstCard : CardModel
+{
+    const string Name = "Hits";
+    const int BaseHits = 3;
+    protected override IEnumerable<DynamicVar> CanonicalVars =>
+    [new CardsVar(2), new EnergyVar(1), new PowerVar<BufferPower>(1m), new ForgeVar("ForgeAmount", 3),
+     new DynamicVar(Name, BaseHits * 2)];
+    string Description = "{ ignored brace }";
+}
+class SecondCard : CardModel
+{
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(99)];
+}
+''', encoding="utf-8")
+            models = content.class_sources((root,))
+            values = content.canonical_values(models["firstcard"])
+            rendered = content.Truth.render_placeholders("FirstCard",
+                "抽[blue]{Cards}[/blue]张，获得{Energy:energyIcons()}、{BufferPower}缓冲，{Hits:diff()}次。", values)
+            self.assertEqual(rendered, "抽2张，获得1点能量、1缓冲，6次。")
+            self.assertEqual(values["ForgeAmount"], "3")
+            self.assertEqual(content.canonical_values(models["secondcard"])["Cards"], "99")
+            with self.assertRaisesRegex(ValueError, "TXT 无法解析"):
+                content.Truth.render_placeholders("FirstCard", "{Unknown}", values)
+            integer_division = content.canonical_values('''
+                const int Threshold = 7 / 2;
+                protected override IEnumerable<DynamicVar> CanonicalVars =>
+                [new DynamicVar("Threshold", Threshold)];
+            ''')
+            with self.assertRaisesRegex(ValueError, "TXT 无法解析"):
+                content.Truth.render_placeholders("IntegerDivisionCard", "{Threshold}", integer_division)
+
+    def test_content_txt_strips_rich_text_and_preserves_literal_chinese_brackets(self):
+        self.assertEqual(content.strip_markup(
+            '[gold]金币[/gold][color=#fff]10[/color]<br/>[font_size=20]点[/font_size]\n[说明]'),
+            "金币10点[说明]")
+
+    def test_content_summary_keeps_manual_text_until_anchor_is_accepted(self):
+        sections = {name: [] for name in (*content.TAG_SECTION_ORDER, "怪物", "属性锻造器", "卡牌", "事件遗物")}
+        section = content.TAG_SECTION_ORDER[0]
+        sections[section] = [{"rarity": "白银", "title": "示例", "disabled": False,
+                              "desc": "解析后的新说明", "suffix": ""}]
+        original = section + "\n白银：示例：保留手写说明\n"
+        with patch.object(content, "summary_truth", return_value=sections):
+            kept = content.sync_summary(None, original, [], False, set())
+            accepted = content.sync_summary(None, original, [], False, {f"{section}:白银:示例"})
+        self.assertIn("白银：示例：保留手写说明", kept)
+        self.assertIn("白银：示例：解析后的新说明", accepted)
+
     def test_localization_copy_preserves_unrelated_values_and_formatting(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)

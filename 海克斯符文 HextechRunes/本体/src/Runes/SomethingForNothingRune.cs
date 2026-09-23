@@ -74,7 +74,14 @@ public sealed class SomethingForNothingRune : HextechRelicBase
 		int currentCost = cardPlay.Card.EnergyCost.GetWithModifiers(CostModifiers.Local);
 		int reducedCost = ReduceCost(currentCost, DynamicVars.Energy.IntValue);
 		cardPlay.Card.EnergyCost.SetThisCombat(reducedCost, reduceOnly: true);
-		cardPlay.Card.InvokeEnergyCostChanged();
+		try
+		{
+			cardPlay.Card.InvokeEnergyCostChanged();
+		}
+		catch (Exception ex)
+		{
+			Log.Warn($"[{ModInfo.Id}][SomethingForNothing] Cost visual refresh failed: {ex.Message}");
+		}
 		Flash();
 		return Task.CompletedTask;
 	}

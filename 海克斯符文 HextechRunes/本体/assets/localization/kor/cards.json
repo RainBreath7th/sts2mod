@@ -51,5 +51,8 @@
   "FEEL_THE_BURN_CARD.flavor": "그들의 불을 꺼뜨린 뒤, 당신의 불을 지펴라.",
   "OK_BOOMERANG_CARD.title": "부메랑 투척",
   "OK_BOOMERANG_CARD.description": "모든 적에게 {Damage:diff()}의 피해를 [blue]{Hits}[/blue]번 줍니다.\n이 카드를 다시 손으로 가져옵니다.",
-  "OK_BOOMERANG_CARD.flavor": "농담처럼 날아가서, 빚쟁이처럼 돌아온다."
+  "OK_BOOMERANG_CARD.flavor": "농담처럼 날아가서, 빚쟁이처럼 돌아온다.",
+  "QUANTUM_COMPUTING_CARD.title": "양자 컴퓨팅",
+  "QUANTUM_COMPUTING_CARD.description": "모든 적에게 적의 최대 체력의 {DamagePercent:diff()}%만큼 피해를 주고, 준 피해량의 {HealPercent:diff()}%만큼 체력을 회복합니다.",
+  "QUANTUM_COMPUTING_CARD.flavor": "답이 나타나기도 전에 적의 체력은 이미 붕괴되었습니다."
 }

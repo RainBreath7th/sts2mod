@@ -13,8 +13,15 @@ public sealed class HextechBlackBloodPlus : OrobasPlusRelicBase
 	{
 		if (!Owner.Creature.IsDead)
 		{
-			Flash();
 			await CreatureCmd.Heal(Owner.Creature, DynamicVars.Heal.BaseValue);
+			try
+			{
+				Flash();
+			}
+			catch (Exception ex)
+			{
+				Log.Warn($"[{ModInfo.Id}][BlackBloodPlus] Flash failed: {ex.Message}");
+			}
 		}
 	}
 }

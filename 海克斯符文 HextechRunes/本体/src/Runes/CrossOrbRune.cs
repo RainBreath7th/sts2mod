@@ -10,7 +10,8 @@ public sealed class CrossOrbRune : HextechRelicBase
 		new DynamicVar("CommonReductionPercent", 50m)
 	];
 
-	public override bool TryModifyCardRewardOptionsLate(
+	// 先确定奖励牌，再由 Late 阶段的华美发束等遗物附魔，避免换牌丢掉一次性奖励效果。
+	public override bool TryModifyCardRewardOptions(
 		Player player,
 		List<CardCreationResult> cardRewardOptions,
 		CardCreationOptions creationOptions)

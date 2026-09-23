@@ -9,6 +9,7 @@ public sealed class CollectorRune : HextechRelicBase
 	private const string CountPerExecuteVar = "CountPerExecute";
 
 	private readonly HashSet<Creature> _creditedExecutions = new(ReferenceEqualityComparer.Instance);
+	// 仅保留旧存档尚未领取的战后奖励；新的触发直接发放金币。
 	private int _countThisCombat;
 	private bool _executing;
 
@@ -23,7 +24,7 @@ public sealed class CollectorRune : HextechRelicBase
 		}
 	}
 
-	public override bool ShowCounter => CombatManager.Instance?.IsInProgress == true && !IsCanonical;
+	public override bool ShowCounter => CombatManager.Instance?.IsInProgress == true && !IsCanonical && _countThisCombat > 0;
 
 	public override int DisplayAmount => !IsCanonical ? _countThisCombat : 0;
 
@@ -53,7 +54,7 @@ public sealed class CollectorRune : HextechRelicBase
 
 		if (result.WasTargetKilled)
 		{
-			RecordExecution(target, IsCreditableDeath(target));
+			await RecordExecution(target, IsCreditableDeath(target));
 			return;
 		}
 
@@ -70,7 +71,7 @@ public sealed class CollectorRune : HextechRelicBase
 		try
 		{
 			await CreatureCmd.Kill(target);
-			RecordExecution(target, creditable);
+			await RecordExecution(target, creditable);
 		}
 		finally
 		{
@@ -104,7 +105,7 @@ public sealed class CollectorRune : HextechRelicBase
 		return Task.CompletedTask;
 	}
 
-	internal void RecordExecution(Creature target, bool? isCreditableDeath = null)
+	internal async Task RecordExecution(Creature target, bool? isCreditableDeath = null)
 	{
 		if (Owner == null
 			|| target.Side == Owner.Creature.Side
@@ -114,8 +115,7 @@ public sealed class CollectorRune : HextechRelicBase
 			return;
 		}
 
-		_countThisCombat += DynamicVars[CountPerExecuteVar].IntValue;
-		InvokeDisplayAmountChanged();
+		await PlayerCmd.GainGold(DynamicVars[CountPerExecuteVar].IntValue, Owner);
 		Flash();
 	}
 

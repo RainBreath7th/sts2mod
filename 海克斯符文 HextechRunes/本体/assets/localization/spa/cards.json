@@ -51,5 +51,8 @@
   "FEEL_THE_BURN_CARD.flavor": "Apaga su fuego y luego enciende el tuyo.",
   "OK_BOOMERANG_CARD.title": "Bumerán OK",
   "OK_BOOMERANG_CARD.description": "Inflige {Damage:diff()} de daño a TODOS los enemigos [blue]{Hits}[/blue] veces.\nDevuelve esta carta a tu mano.",
-  "OK_BOOMERANG_CARD.flavor": "Se va como una broma y vuelve como un cobrador."
+  "OK_BOOMERANG_CARD.flavor": "Se va como una broma y vuelve como un cobrador.",
+  "QUANTUM_COMPUTING_CARD.title": "Computación cuántica",
+  "QUANTUM_COMPUTING_CARD.description": "Inflige daño a todos los enemigos igual a {DamagePercent:diff()}% de sus PV máximos, luego sana {HealPercent:diff()}% del daño infligido.",
+  "QUANTUM_COMPUTING_CARD.flavor": "Antes de que aparezca la respuesta, el PV del enemigo ya se ha derrumbado."
 }

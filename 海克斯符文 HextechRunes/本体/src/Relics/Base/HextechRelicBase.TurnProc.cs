@@ -4,6 +4,45 @@ namespace HextechRunes;
 
 public abstract partial class HextechRelicBase
 {
+	// 原版这三个非虚方法直接同步调用本机 UI 订阅者。闪光会加载场景和图标，
+	// 计数刷新会访问节点；只隔离这些表现回调，不包裹调用方的状态修改或命令链。
+	// 保留成功路径的事件时机，避免为数百个内容改写异步结算顺序。
+	public new void Flash()
+	{
+		try
+		{
+			base.Flash();
+		}
+		catch (Exception ex)
+		{
+			Log.Warn($"[{ModInfo.Id}][RelicVisual] Flash failed for {GetType().Name}: {ex.Message}");
+		}
+	}
+
+	public new void Flash(IEnumerable<Creature> targets)
+	{
+		try
+		{
+			base.Flash(targets);
+		}
+		catch (Exception ex)
+		{
+			Log.Warn($"[{ModInfo.Id}][RelicVisual] Target flash failed for {GetType().Name}: {ex.Message}");
+		}
+	}
+
+	protected new void InvokeDisplayAmountChanged()
+	{
+		try
+		{
+			base.InvokeDisplayAmountChanged();
+		}
+		catch (Exception ex)
+		{
+			Log.Warn($"[{ModInfo.Id}][RelicVisual] Counter refresh failed for {GetType().Name}: {ex.Message}");
+		}
+	}
+
 	private HextechCombatState? _turnScopedCombatState;
 	private int _turnScopedRoundNumber = -1;
 
@@ -170,7 +209,14 @@ public abstract partial class HextechRelicBase
 
 	protected void FlashDeferred(IEnumerable<Creature>? targets = null)
 	{
-		Creature[] targetArray = targets?.ToArray() ?? Array.Empty<Creature>();
-		Callable.From(() => Flash(targetArray)).CallDeferred();
+		try
+		{
+			Creature[] targetArray = targets?.ToArray() ?? Array.Empty<Creature>();
+			Callable.From(() => Flash(targetArray)).CallDeferred();
+		}
+		catch (Exception ex)
+		{
+			Log.Warn($"[{ModInfo.Id}][RelicVisual] Deferred flash failed for {GetType().Name}: {ex.Message}");
+		}
 	}
 }

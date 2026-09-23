@@ -31,7 +31,7 @@ public sealed class NetherSoulRune : HextechRelicBase
 				if (CombatManager.Instance.IsOverOrEnding || Owner.Creature.IsDead
 					|| Owner.Creature.CombatState == null) break;
 				if (card.Owner != Owner || card.Pile?.Type != PileType.Exhaust
-					|| !card.Keywords.Contains(CardKeyword.Ethereal)) continue;
+					|| !IsPlayableEtherealCard(card)) continue;
 
 				Creature? target = card.TargetType == TargetType.AnyEnemy
 					? Owner.Creature.CombatState.HittableEnemies
@@ -48,6 +48,10 @@ public sealed class NetherSoulRune : HextechRelicBase
 	}
 
 	internal static CardModel[] SnapshotEtherealCards(Player owner, IEnumerable<CardModel> cards) =>
-		cards.Where(card => card.Owner == owner && card.Keywords.Contains(CardKeyword.Ethereal))
+		cards.Where(card => card.Owner == owner && IsPlayableEtherealCard(card))
 			.Distinct().ToArray();
+
+	// 状态牌与诅咒牌即使带虚无也不打出：虚空、晕眩这类牌被消耗后不该在回合结束时再被“打出”一遍。
+	internal static bool IsPlayableEtherealCard(CardModel card) =>
+		card.Keywords.Contains(CardKeyword.Ethereal) && card.Type is not (CardType.Status or CardType.Curse);
 }

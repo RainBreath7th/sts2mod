@@ -4,6 +4,31 @@ namespace HextechRunes;
 // Compat 虚方法(见各基类内的同名段落)。
 public abstract class HextechPowerBase : PowerModel
 {
+	// 自有 Power 的本地 UI 事件不能截断后续共享命令；不拦截原版或第三方 Power。
+	protected new void Flash()
+	{
+		try
+		{
+			base.Flash();
+		}
+		catch (Exception ex)
+		{
+			Log.Warn($"[{ModInfo.Id}][PowerVisual] Flash failed for {GetType().Name}: {ex.Message}");
+		}
+	}
+
+	protected new void InvokeDisplayAmountChanged()
+	{
+		try
+		{
+			base.InvokeDisplayAmountChanged();
+		}
+		catch (Exception ex)
+		{
+			Log.Warn($"[{ModInfo.Id}][PowerVisual] Counter refresh failed for {GetType().Name}: {ex.Message}");
+		}
+	}
+
 	public virtual decimal ModifyDamageMultiplicativeCompat(Creature? target, decimal amount, ValueProp props, Creature? dealer, CardModel? cardSource)
 	{
 		return 1m;
@@ -36,9 +61,18 @@ public abstract class HextechPowerBase : PowerModel
 		return Task.CompletedTask;
 	}
 
-	public sealed override Task AfterSideTurnStart(CombatSide side, IReadOnlyList<Creature> participants, HextechCombatState combatState)
+	/// <summary>
+	/// 需要按 participants 判定"持有者是否参与本次回合开始"的能力(额外回合只带单个玩家重入回合开始 Hook 时)
+	/// 覆盖此方法;默认转发到不带参与者的版本,不改变其它能力的既有语义。
+	/// </summary>
+	public virtual Task AfterSideTurnStartForParticipants(CombatSide side, IReadOnlyList<Creature> participants, HextechCombatState combatState)
 	{
 		return AfterSideTurnStart(side, combatState);
+	}
+
+	public sealed override Task AfterSideTurnStart(CombatSide side, IReadOnlyList<Creature> participants, HextechCombatState combatState)
+	{
+		return AfterSideTurnStartForParticipants(side, participants, combatState);
 	}
 
 	public virtual Task BeforeTurnEnd(PlayerChoiceContext choiceContext, CombatSide side)

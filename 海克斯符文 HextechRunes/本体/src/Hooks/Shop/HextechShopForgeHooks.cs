@@ -386,6 +386,8 @@ internal static class HextechShopForgeHooks
 		[HarmonyPostfix]
 		private static void Postfix(Player player, MerchantInventory __result)
 		{
+			// 新商店意味着旧的卡牌移除节点已销毁,按 InstanceId 记的原坐标一并作废,避免跨商店只增不减。
+			CardRemovalOriginalPositions.Clear();
 			InstallRandomForgeEntry(__result, player);
 		}
 	}

@@ -7,7 +7,19 @@ internal static class CardTransformUpgradeHelper
 {
 	public static bool CanTransformToRandomCard(CardModel card)
 	{
-		if (!card.IsTransformable || card.Pile?.Type != PileType.Hand)
+		return card.Pile?.Type == PileType.Hand && HasRandomTransformationOptions(card);
+	}
+
+	/// <summary>战斗内任意常规牌堆（抽牌堆、手牌、弃牌堆）里可被随机变化的牌。</summary>
+	public static bool CanTransformToRandomCardInCombatPiles(CardModel card)
+	{
+		return card.Pile?.Type is PileType.Draw or PileType.Hand or PileType.Discard
+			&& HasRandomTransformationOptions(card);
+	}
+
+	private static bool HasRandomTransformationOptions(CardModel card)
+	{
+		if (!card.IsTransformable)
 		{
 			return false;
 		}

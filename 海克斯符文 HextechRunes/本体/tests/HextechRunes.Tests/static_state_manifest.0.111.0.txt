@@ -54,8 +54,6 @@ HextechRunes.HextechModelBootstrap._installed : Boolean
 HextechRunes.HextechMultiplayerDiagnostics._cachedNetworkSignature : String
 HextechRunes.HextechMultiplayerScalingCompat._warnedClientExtraScaling : Boolean
 HextechRunes.HextechMultiplayerScalingCompat._warnedHostOnlyScaling : Boolean
-HextechRunes.HextechNearDeathFeastVisual._glowTexture : Texture2D
-HextechRunes.HextechNearDeathFeastVisual._ringTexture : Texture2D
 HextechRunes.HextechPlayerRuneHooks.KunaiAttacksPlayedThisTurnProperty : PropertyInfo
 HextechRunes.HextechPlayerRuneHooks.KunaiDoActivateVisualsMethod : MethodInfo
 HextechRunes.HextechPlayerRuneHooks.NunchakuDoActivateVisualsMethod : MethodInfo

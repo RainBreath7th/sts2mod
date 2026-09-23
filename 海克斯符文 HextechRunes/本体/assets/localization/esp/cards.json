@@ -1,9 +1,9 @@
 {
   "TRICK_MAGIC_CARD.title": "Magia trucada",
-  "TRICK_MAGIC_CARD.description": "Roba cartas [blue]{Cards}[/blue]. Ganancia [blue]{BufferPower}[/blue] [gold]Amortiguador[/gold]. El siguiente ataque que juegues se repite [blue]{Replays}[/blue] veces.",
+  "TRICK_MAGIC_CARD.description": "Roba cartas [blue]{Cards}[/blue]. Ganancia [blue]{BufferPower}[/blue] [gold]Búfer[/gold]. El siguiente ataque que juegues se repite [blue]{Replays}[/blue] veces.",
   "TRICK_MAGIC_CARD.flavor": "El público ve cintas. El enemigo ve la factura.",
   "BLADE_WALTZ_CARD.title": "Vals de cuchillas",
-  "BLADE_WALTZ_CARD.description": "Inflige {Damage:diff()} de daño a enemigos aleatorios [blue]{Hits}[/blue] veces. Ganancia [blue]{IntangiblePower}[/blue] [gold]Intangible[/gold].",
+  "BLADE_WALTZ_CARD.description": "Inflige {Damage:diff()} de daño a enemigos aleatorios [blue]{Hits}[/blue] veces. Ganancia [blue]{IntangiblePower}[/blue] [gold]Intangibilidad[/gold].",
   "BLADE_WALTZ_CARD.flavor": "Girar, cortar, inclinar.",
   "CATALYST_CARD.title": "catalizador",
   "CATALYST_CARD.description": "Establece el veneno de un enemigo en [blue]{PoisonMultiplier}[/blue] veces su cantidad actual.",
@@ -18,7 +18,7 @@
   "HEXTECH_DRAGON_SOUL_CARD.description": "Gana [blue]{Energy}[/blue] energía extra cada turno.",
   "HEXTECH_DRAGON_SOUL_CARD.flavor": "El rayo en la bobina nunca duerme.",
   "MOUNTAIN_DRAGON_SOUL_CARD.title": "Alma de dragón de montaña",
-  "MOUNTAIN_DRAGON_SOUL_CARD.description": "Al comienzo de tu turno, gana [blue]{PlatingPower}[/blue] [gold]Blindaje[/gold].",
+  "MOUNTAIN_DRAGON_SOUL_CARD.description": "Al comienzo de tu turno, gana [blue]{PlatingPower}[/blue] [gold]Revestimiento[/gold].",
   "MOUNTAIN_DRAGON_SOUL_CARD.flavor": "La montaña no retrocede.",
   "CHEMTECH_DRAGON_SOUL_CARD.title": "Alma de dragón químicotecnológico",
   "CHEMTECH_DRAGON_SOUL_CARD.description": "Al comienzo de tu turno, obtén [blue]{PotionCount}[/blue] poción aleatoria.",
@@ -51,5 +51,8 @@
   "FEEL_THE_BURN_CARD.flavor": "Apaga su fuego y luego enciende el tuyo.",
   "OK_BOOMERANG_CARD.title": "Bumerán OK",
   "OK_BOOMERANG_CARD.description": "Inflige {Damage:diff()} de daño a TODOS los enemigos [blue]{Hits}[/blue] veces.\nDevuelve esta carta a tu mano.",
-  "OK_BOOMERANG_CARD.flavor": "Se va como una broma y vuelve como un cobrador."
+  "OK_BOOMERANG_CARD.flavor": "Se va como una broma y vuelve como un cobrador.",
+  "QUANTUM_COMPUTING_CARD.title": "Computación cuántica",
+  "QUANTUM_COMPUTING_CARD.description": "Inflige daño a todos los enemigos igual a {DamagePercent:diff()}% de sus PV máximos, luego sana {HealPercent:diff()}% del daño infligido.",
+  "QUANTUM_COMPUTING_CARD.flavor": "Antes de que aparezca la respuesta, el PV del enemigo ya se ha derrumbado."
 }

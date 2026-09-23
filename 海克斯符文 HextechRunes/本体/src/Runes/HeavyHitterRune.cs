@@ -17,6 +17,6 @@ public sealed class HeavyHitterRune : HextechRelicBase
 			return 1m;
 		}
 
-		return 1m + Math.Min(30m, Math.Floor(source.MaxHp / 6m)) / 100m;
+		return 1m + Math.Floor(source.MaxHp / 6m) / 100m;
 	}
 }

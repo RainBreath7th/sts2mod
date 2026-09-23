@@ -1,18 +1,14 @@
-using System.Collections;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Godot;
 using HarmonyLib;
-using HextechRunes;
 using FormVfxKind = HextechRunes.HextechFormVfxSafetyHooks.FormVfxKind;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
-using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.GameActions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
@@ -21,11 +17,9 @@ using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
-using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
-using System.Text.Json;
 
 namespace HextechRunes.Tests;
 
@@ -85,229 +79,6 @@ internal static partial class Program
 		Equal(expected, HextechAssets.TryGetCustomRelicIconPath(new HungryHex()), "hungry texture");
 		Equal(expected, HextechAssets.TryGetCustomRelicIconPath(new InspectHex()), "inspect texture");
 		Equal(expected, HextechAssets.TryGetCustomRelicIconPath(new GripHex()), "grip texture");
-	}
-
-	private static void SearingAttackRuneGrantsUpgradedCard()
-	{
-		Expect(typeof(HextechOwnerPoolTokenCard).IsAbstract, "owner-pool token card base should stay abstract");
-		Expect(
-			!HextechCustomModelRegistry.CustomCardTypes.Contains(typeof(HextechOwnerPoolTokenCard)),
-			"owner-pool token card base must not enter the concrete model registry");
-		Equal(
-			HextechCustomModelRegistry.CustomCardTypes.Count,
-			HextechCustomModelRegistry.CustomCardTypes.Count(
-				static type => typeof(HextechOwnerPoolTokenCard).IsAssignableFrom(type) && !type.IsAbstract),
-			"all registered custom cards should use the owner-pool token card contract");
-
-		SearingAttackCard card = CreateMutableTestModel<SearingAttackCard>();
-
-		SearingAttackRune.UpgradeGrantedCard(card);
-
-		Equal(1, card.CurrentUpgradeLevel, "granted Searing Attack upgrade level");
-		Equal(16m, card.DynamicVars.Damage.BaseValue, "granted Searing Attack damage");
-	}
-
-	private static void CardUpgradePickupAndAvailabilityRules()
-	{
-		BloodlettingUpgradeRune singleForm = new();
-		Expect(singleForm.GrantsCardOnPickup, "ordinary card upgrade runes should grant their target card");
-		Expect(singleForm.HasUponPickupEffect, "ordinary card upgrade runes should advertise their pickup effect");
-		Expect(singleForm.MeetsCardAvailabilityRequirement([]), "ordinary card upgrade runes should not require the target card");
-
-		BashUpgradeRune bash = new();
-		NeutralizeUpgradeRune neutralize = new();
-		FallingStarUpgradeRune fallingStar = new();
-		UnleashUpgradeRune unleash = new();
-		DualcastUpgradeRune dualcast = new();
-		RelicModel[] dualFormRunes = [ bash, neutralize, fallingStar, unleash, dualcast ];
-		foreach (RelicModel rune in dualFormRunes)
-		{
-			Expect(!rune.HasUponPickupEffect, $"{rune.GetType().Name} should not grant a card on pickup");
-			Expect(
-				rune is IHextechSelectionFooterProvider footerProvider
-				&& footerProvider.GetSelectionFooterText() == null,
-				$"{rune.GetType().Name} should not show a pickup footer");
-		}
-
-		Expect(!bash.MeetsCardAvailabilityRequirement([]), "Bash upgrade should require Bash or Break");
-		Expect(bash.MeetsCardAvailabilityRequirement([new Bash()]), "Bash upgrade should accept Bash");
-		Expect(bash.MeetsCardAvailabilityRequirement([new Break()]), "Bash upgrade should accept Break");
-		Expect(!neutralize.MeetsCardAvailabilityRequirement([]), "Neutralize upgrade should require Neutralize or Suppress");
-		Expect(neutralize.MeetsCardAvailabilityRequirement([new Neutralize()]), "Neutralize upgrade should accept Neutralize");
-		Expect(neutralize.MeetsCardAvailabilityRequirement([new Suppress()]), "Neutralize upgrade should accept Suppress");
-		Expect(!fallingStar.MeetsCardAvailabilityRequirement([]), "Falling Star upgrade should require Falling Star or Meteor Shower");
-		Expect(fallingStar.MeetsCardAvailabilityRequirement([new FallingStar()]), "Falling Star upgrade should accept Falling Star");
-		Expect(fallingStar.MeetsCardAvailabilityRequirement([new MeteorShower()]), "Falling Star upgrade should accept Meteor Shower");
-		Expect(!unleash.MeetsCardAvailabilityRequirement([]), "Unleash upgrade should require Unleash or Protector");
-		Expect(unleash.MeetsCardAvailabilityRequirement([new Unleash()]), "Unleash upgrade should accept Unleash");
-		Expect(unleash.MeetsCardAvailabilityRequirement([new Protector()]), "Unleash upgrade should accept Protector");
-		Expect(!dualcast.MeetsCardAvailabilityRequirement([]), "Dualcast upgrade should require Dualcast or Quadcast");
-		Expect(dualcast.MeetsCardAvailabilityRequirement([new Dualcast()]), "Dualcast upgrade should accept Dualcast");
-		Expect(dualcast.MeetsCardAvailabilityRequirement([new Quadcast()]), "Dualcast upgrade should accept Quadcast");
-
-		Expect((object)new StrikeUpgradeRune() is not IHextechSelectionFooterProvider, "Strike upgrade should not show a pickup footer");
-		Expect((object)new DefendUpgradeRune() is not IHextechSelectionFooterProvider, "Defend upgrade should not show a pickup footer");
-		Expect(!StrikeUpgradeRune.HasBasicStrike([]), "Strike upgrade should require a basic Strike");
-		Expect(StrikeUpgradeRune.HasBasicStrike([new StrikeIronclad()]), "Strike upgrade should accept a basic Strike");
-		Expect(!DefendUpgradeRune.HasBasicDefend([]), "Defend upgrade should require a basic Defend");
-		Expect(DefendUpgradeRune.HasBasicDefend([new DefendIronclad()]), "Defend upgrade should accept a basic Defend");
-	}
-
-	private static void BashUpgradeStrengthMatchesVulnerableApplied()
-	{
-		Bash bash = CreateMutableTestModel<Bash>();
-		Equal(2m, BashUpgradeRune.CalculateStrengthGain(bash), "base Bash vulnerable and Strength");
-		CardCmd.Upgrade(bash);
-		Equal(3m, BashUpgradeRune.CalculateStrengthGain(bash), "upgraded Bash vulnerable and Strength");
-
-		Break breakCard = CreateMutableTestModel<Break>();
-		Equal(5m, BashUpgradeRune.CalculateStrengthGain(breakCard), "base Break vulnerable and Strength");
-		CardCmd.Upgrade(breakCard);
-		Equal(7m, BashUpgradeRune.CalculateStrengthGain(breakCard), "upgraded Break vulnerable and Strength");
-
-		Equal(0m, BashUpgradeRune.CalculateStrengthGain(new StrikeIronclad()), "unrelated card Strength");
-	}
-
-	private static void StarterUpgradeCapsTerminateExternalUpgradeToMaxLoops()
-	{
-		Equal(999, HextechStarterUpgradeHooks.UpgradeLevelCap, "starter multi-upgrade cap");
-		Equal(
-			999,
-			HextechStarterUpgradeHooks.ResolveOwnedMaxUpgradeLevel(0),
-			"owned basic cards with the matching rune use the +999 cap");
-		Equal(
-			1001,
-			HextechStarterUpgradeHooks.ResolveOwnedMaxUpgradeLevel(1001),
-			"owned legacy over-cap cards remain loadable but cannot grow further");
-		Equal(
-			1,
-			HextechStarterUpgradeHooks.ResolveUnownedMaxUpgradeLevel(0, isDeserializing: false),
-			"new unowned cards keep the vanilla cap");
-		Equal(
-			1,
-			HextechStarterUpgradeHooks.ResolveUnownedMaxUpgradeLevel(998, isDeserializing: false),
-			"ordinary unowned cards do not inherit the rune cap");
-		Equal(
-			1001,
-			HextechStarterUpgradeHooks.ResolveUnownedMaxUpgradeLevel(1000, isDeserializing: true),
-			"legacy over-cap saves can replay the next upgrade level");
-
-		int simulatedUpgradeLevel = 0;
-		int upgradeCount = 0;
-		while (simulatedUpgradeLevel < HextechStarterUpgradeHooks.ResolveUnownedMaxUpgradeLevel(
-			simulatedUpgradeLevel,
-			isDeserializing: false))
-		{
-			simulatedUpgradeLevel++;
-			upgradeCount++;
-			Expect(upgradeCount <= 1, "UpgradeAllCards-style loop must terminate at the vanilla cap");
-		}
-
-		Equal(1, simulatedUpgradeLevel, "UpgradeAllCards-style loop final level");
-		Equal(1, upgradeCount, "UpgradeAllCards-style loop iteration count");
-
-		SearingAttackCard searingAttack = CreateMutableTestModel<SearingAttackCard>();
-		Equal(999, searingAttack.MaxUpgradeLevel, "Searing Attack cap");
-	}
-
-	private static void CreativeAiUpgradeRuneUpgradesGeneratedPowerCards()
-	{
-		CreativeAi card = CreateMutableTestModel<CreativeAi>();
-
-		Expect(CreativeAiUpgradeRune.UpgradeGeneratedCard(card), "Creative AI should generate an upgraded Power card");
-		Equal(1, card.CurrentUpgradeLevel, "Creative AI generated card upgrade level");
-		Expect(!CreativeAiUpgradeRune.UpgradeGeneratedCard(card), "an already upgraded generated card should not be upgraded twice");
-
-		ExpectCombatGenerationFilters(
-			GetAsyncStateMachineMoveNext(typeof(BlankCheckRune).GetMethod(nameof(BlankCheckRune.AfterPlayerTurnStart))!),
-			nameof(BlankCheckRune));
-		ExpectCombatGenerationFilters(
-			GetAsyncStateMachineMoveNext(typeof(MindOverMatterRune).GetMethod(nameof(MindOverMatterRune.BeforeHandDraw))!),
-			nameof(MindOverMatterRune));
-		ExpectCombatGenerationFilters(
-			GetAsyncStateMachineMoveNext(typeof(SingularityAIRune).GetMethod(nameof(SingularityAIRune.BeforeHandDraw))!),
-			nameof(SingularityAIRune));
-		ExpectCombatGenerationFilters(
-			typeof(CorruptedBranchRune).GetMethod("CreateRandomCombatCard", BindingFlags.Instance | BindingFlags.NonPublic)!,
-			nameof(CorruptedBranchRune));
-		ExpectCombatGenerationFilters(
-			typeof(ColorDiscoveryRune).GetMethod("GetOtherCharacterCards", BindingFlags.NonPublic | BindingFlags.Static)!,
-			nameof(ColorDiscoveryRune));
-	}
-
-	private static void SubroutineUpgradeCombatMoveGateResetsAcrossCombats()
-	{
-		SubroutineUpgradeRune rune = new();
-
-		Expect(rune.TryConsumeCombatStartMove(), "first combat-start move should be consumed");
-		Expect(!rune.TryConsumeCombatStartMove(), "same combat should reject a second move");
-
-		rune.BeforeCombatStart().GetAwaiter().GetResult();
-		Expect(rune.TryConsumeCombatStartMove(), "combat start should reset the move gate");
-
-		rune.AfterCombatEnd(null!).GetAwaiter().GetResult();
-		Expect(rune.TryConsumeCombatStartMove(), "combat end should clear the move gate");
-	}
-
-	private static void FortuneForgeRewardScalesByStacks()
-	{
-		FortuneForge forge = CreateMutableTestModel<FortuneForge>();
-		Equal(100, forge.ExtraGoldRewardAmount, "single-stack Fortune Forge reward");
-
-		forge.SavedStackCount = 2;
-		Equal(200, forge.ExtraGoldRewardAmount, "two-stack Fortune Forge reward");
-	}
-
-	private static void InitialForgeGrantRunesPersistPendingTransaction()
-	{
-		Type[] initialForgeRunes =
-		[
-			typeof(StatsRune),
-			typeof(StatsOnStatsRune),
-			typeof(StatsOnStatsOnStatsRune),
-			typeof(HailToTheKingRune)
-		];
-		foreach (Type type in initialForgeRunes)
-		{
-			Expect(
-				type.IsSubclassOf(typeof(InitialForgeGrantRune)),
-				$"{type.Name} should use the resumable initial forge transaction");
-		}
-
-		StatsOnStatsRune rune = new();
-		Expect(!rune.SavedInitialForgeGrantPending, "initial forge transaction should default to completed");
-		rune.SavedInitialForgeGrantPending = true;
-		Expect(rune.SavedInitialForgeGrantPending, "pending initial forge transaction should be saveable");
-
-		MethodInfo method = typeof(HextechForgeGrantHelper).GetMethod(
-			"TryObtainRandomForges",
-			BindingFlags.Static | BindingFlags.NonPublic)
-			?? throw new MissingMethodException(nameof(HextechForgeGrantHelper), "TryObtainRandomForges");
-		Equal(typeof(Task<bool>), method.ReturnType, "initial forge transaction completion result");
-	}
-
-	private static void InitialForgeGrantLoadRecoveryPrecedesActRecovery()
-	{
-		MethodInfo recovery = typeof(HextechRunLifecycleHooks).GetMethod(
-			"ResumePendingSelectionTransactionsAfterLoad",
-			BindingFlags.Static | BindingFlags.NonPublic)
-			?? throw new MissingMethodException(nameof(HextechRunLifecycleHooks), "ResumePendingSelectionTransactionsAfterLoad");
-		MethodInfo moveNext = GetAsyncStateMachineMoveNext(recovery);
-		MethodInfo[] calls = PatchProcessor.GetOriginalInstructions(moveNext)
-			.Select(static instruction => instruction.operand)
-			.OfType<MethodInfo>()
-			.ToArray();
-		int forgeRecoveryIndex = Array.FindIndex(
-			calls,
-			static method => method.Name == "ResumePendingInitialForgeGrantsAfterLoad");
-		int actRecoveryIndex = Array.FindIndex(
-			calls,
-			static method => method.Name == "ResumePendingActSelectionAfterLoad");
-
-		Expect(forgeRecoveryIndex >= 0, "load continuation should resume pending initial forge grants");
-		Expect(
-			actRecoveryIndex > forgeRecoveryIndex,
-			"load continuation should finish pending initial forge grants before resuming act selection");
 	}
 
 	private static void HappyAccidentUsesAllCombatPilesAtTurnStart()
@@ -413,47 +184,6 @@ internal static partial class Program
 			"Something for Nothing should reset its paid-card trigger each turn");
 	}
 
-	private static void MagicMissileUsesThreeThreePercentHits()
-	{
-		Equal(3, MagicMissileRune.MissileCount, "Magic Missile hit count");
-		Equal(3m, MagicMissileRune.MaxHpDamagePercent, "Magic Missile max-HP damage percent");
-		Equal(0.055f, HextechCombatVfx.MagicMissileLaunchIntervalSeconds, "Magic Missile launch interval");
-		Equal(0.28f, HextechCombatVfx.MagicMissileBaseFlightSeconds, "Magic Missile base flight duration");
-		Equal(0.025f, HextechCombatVfx.MagicMissileFlightStepSeconds, "Magic Missile flight duration step");
-		MethodInfo? afterCardPlayed = typeof(MagicMissileRune).GetMethod(
-			nameof(MagicMissileRune.AfterCardPlayed),
-			BindingFlags.Instance | BindingFlags.Public);
-		Equal<AsyncStateMachineAttribute?>(
-			null,
-			afterCardPlayed?.GetCustomAttribute<AsyncStateMachineAttribute>(),
-			"Magic Missile should not hold the card-play hook open while projectiles resolve");
-		Equal(1, MagicMissileRune.CalculateMissileDamage(1), "Magic Missile should deal at least one damage");
-		Equal(3, MagicMissileRune.CalculateMissileDamage(100), "Magic Missile should deal three percent of 100 max HP");
-		Equal(5, MagicMissileRune.CalculateMissileDamage(199), "Magic Missile should round max-HP damage down");
-	}
-
-	private static void TwinFlamesUsesThreeEnergyScaledHits()
-	{
-		Equal(3, TwinFlamesRune.MissileCount, "Twin Flames hit count");
-		Equal(0m, TwinFlamesRune.ResolveMissileDamage(-1m), "Twin Flames should not create negative damage");
-		Equal(0m, TwinFlamesRune.ResolveMissileDamage(0m), "zero-cost Skills should resolve to zero missile damage");
-		Equal(3m, TwinFlamesRune.ResolveMissileDamage(3m), "Twin Flames damage should equal the played Skill's Energy cost");
-		Expect(!TwinFlamesRune.ShouldLaunchMissiles(0m), "zero-cost Skills should not launch Twin Flames missiles");
-		Expect(TwinFlamesRune.ShouldLaunchMissiles(1m), "positive-cost Skills should launch Twin Flames missiles");
-		MethodInfo? afterCardPlayed = typeof(TwinFlamesRune).GetMethod(
-			nameof(TwinFlamesRune.AfterCardPlayed),
-			BindingFlags.Instance | BindingFlags.Public);
-		Equal<AsyncStateMachineAttribute?>(
-			null,
-			afterCardPlayed?.GetCustomAttribute<AsyncStateMachineAttribute>(),
-			"Twin Flames should not hold the card-play hook open while projectiles resolve");
-		Expect(
-			typeof(HextechCombatVfx).GetMethod(
-				"PlayTwinFlamesMissile",
-				BindingFlags.Static | BindingFlags.NonPublic) != null,
-			"Twin Flames should expose its blue-yellow projectile VFX path");
-	}
-
 	private static void EchoAddsItsCopyWithoutRecursingThroughGenerationHooks()
 	{
 		MethodInfo hook = typeof(EchoRune).GetMethod(
@@ -470,131 +200,6 @@ internal static partial class Program
 		Expect(
 			calls.All(static method => method.DeclaringType != typeof(HextechCardGeneration)),
 			"Echo copies must not recursively enter the generated-card hook chain");
-	}
-
-	private static void TwinFlamesKeepsMultiplayerDamageInsideCardAction()
-	{
-		MethodInfo afterCardPlayed = typeof(TwinFlamesRune).GetMethod(
-			nameof(TwinFlamesRune.AfterCardPlayed),
-			BindingFlags.Instance | BindingFlags.Public)
-			?? throw new MissingMethodException(nameof(TwinFlamesRune), nameof(TwinFlamesRune.AfterCardPlayed));
-		MethodInfo[] calls = PatchProcessor.GetOriginalInstructions(afterCardPlayed)
-			.Select(static instruction => instruction.operand)
-			.OfType<MethodInfo>()
-			.ToArray();
-		Expect(
-			calls.Any(static method => method.DeclaringType == typeof(HextechPlayerContextHelper) && method.Name == nameof(HextechPlayerContextHelper.IsNetworkMultiplayerRun)),
-			"Twin Flames should use its multiplayer lockstep path in network runs");
-		Expect(
-			calls.Any(static method => method.Name == "ResolveVolleyDamageInLockstepAsync"),
-			"Twin Flames multiplayer damage should be returned to the current card action");
-	}
-
-	private static void ProjectileRunesKeepMultiplayerDamageInsideCardAction()
-	{
-		foreach (Type runeType in new[] { typeof(MagicMissileRune), typeof(TwinFlamesRune), typeof(LightEmUpRune) })
-		{
-			MethodInfo afterCardPlayed = runeType.GetMethod(
-				nameof(HextechRelicBase.AfterCardPlayed),
-				BindingFlags.Instance | BindingFlags.Public)
-				?? throw new MissingMethodException(runeType.Name, nameof(HextechRelicBase.AfterCardPlayed));
-			MethodInfo[] calls = PatchProcessor.GetOriginalInstructions(afterCardPlayed)
-				.Select(static instruction => instruction.operand)
-				.OfType<MethodInfo>()
-				.ToArray();
-			Expect(
-				calls.Any(static method => method.DeclaringType == typeof(HextechPlayerContextHelper) && method.Name == nameof(HextechPlayerContextHelper.IsNetworkMultiplayerRun)),
-				$"{runeType.Name} should select a multiplayer lockstep path");
-			Expect(
-				calls.Any(static method => method.Name == "ResolveVolleyDamageInLockstepAsync"),
-				$"{runeType.Name} should return its multiplayer damage task to the card action");
-		}
-	}
-
-	private static void LightEmUpUsesSixEnergyScaledTwinFlameMissiles()
-	{
-		Equal(4, LightEmUpRune.AttacksPerVolley, "Light Em Up attacks per volley");
-		Equal(6, LightEmUpRune.MissileCount, "Light Em Up missile count");
-		Equal(0m, LightEmUpRune.ResolveMissileDamage(-1m), "Light Em Up should not create negative damage");
-		Equal(3m, LightEmUpRune.ResolveMissileDamage(3m), "Light Em Up damage should equal the triggering Attack's Energy cost");
-
-		int progress = 0;
-		for (int attackIndex = 0; attackIndex < 3; attackIndex++)
-		{
-			progress = LightEmUpRune.AdvanceAttackProgress(progress, 1m, out bool launchedEarly);
-			Expect(!launchedEarly, "Light Em Up should not launch before the fourth Attack");
-		}
-
-		progress = LightEmUpRune.AdvanceAttackProgress(progress, 0m, out bool launchedAtZeroCostThreshold);
-		Equal(4, progress, "zero-cost fourth Attack should hold Light Em Up at full progress");
-		Expect(!launchedAtZeroCostThreshold, "zero-cost fourth Attack should not launch Light Em Up missiles");
-		progress = LightEmUpRune.AdvanceAttackProgress(progress, 0m, out bool launchedWhileStored);
-		Equal(4, progress, "additional zero-cost Attacks should preserve stored Light Em Up progress");
-		Expect(!launchedWhileStored, "stored Light Em Up progress should wait for a positive-cost Attack");
-		progress = LightEmUpRune.AdvanceAttackProgress(progress, 2m, out bool launchedAfterStoredProgress);
-		Equal(0, progress, "Light Em Up should reset after launching its stored volley");
-		Expect(launchedAfterStoredProgress, "positive-cost Attack should release stored Light Em Up missiles");
-
-		MethodInfo? afterCardPlayed = typeof(LightEmUpRune).GetMethod(
-			nameof(LightEmUpRune.AfterCardPlayed),
-			BindingFlags.Instance | BindingFlags.Public);
-		Equal<AsyncStateMachineAttribute?>(
-			null,
-			afterCardPlayed?.GetCustomAttribute<AsyncStateMachineAttribute>(),
-			"Light Em Up should not hold the card-play hook open while projectiles resolve");
-		Expect(
-			typeof(LightEmUpRune).GetMethod(
-				nameof(LightEmUpRune.ModifyCardPlayCount),
-				BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly) == null,
-			"Light Em Up should no longer replay the fourth Attack");
-		Expect(
-			typeof(HextechCombatVfx).GetMethod(
-				"PlayTwinFlamesMissile",
-				BindingFlags.Static | BindingFlags.NonPublic) != null,
-			"Light Em Up should reuse the blue-yellow Twin Flames projectile VFX path");
-	}
-
-	private static void PiercingThreadSplitsOneDamageEventBeforeBlock()
-	{
-		Equal(50m, PiercingThreadRune.PiercingPercent, "Piercing Thread percentage");
-		Equal(0, PiercingThreadRune.CalculatePiercingDamage(-1m), "negative damage should not pierce");
-		Equal(0, PiercingThreadRune.CalculatePiercingDamage(1m), "one damage should round its piercing half down");
-		Equal(2, PiercingThreadRune.CalculatePiercingDamage(5m), "odd piercing damage should round down");
-		Equal(5, PiercingThreadRune.CalculatePiercingDamage(10m), "even piercing damage should split evenly");
-		Equal(3m, PiercingThreadRune.CalculateBlockableDamage(5m), "the non-piercing remainder should still hit Block");
-		Equal(5m, PiercingThreadRune.CalculateBlockableDamage(10m), "half of even damage should remain blockable");
-		Equal(5m, 10m - Math.Min(100m, PiercingThreadRune.CalculateBlockableDamage(10m)), "full Block should still take five piercing damage");
-		Equal(7m, 11m - Math.Min(4m, PiercingThreadRune.CalculateBlockableDamage(11m)), "piercing damage and block overflow should remain one damage result");
-
-		PlayerRuneRegistration registration = HextechPlayerRuneRegistry.Registrations.Single(
-			registration => registration.Type == typeof(PiercingThreadRune));
-		Equal(HextechRarityTier.Gold, registration.Rarity, "Piercing Thread rarity");
-		Equal("OUTPUT", registration.TagKey, "Piercing Thread tag");
-		Expect(
-			HextechPatcher.FindPatchMethod(typeof(HextechCombatHooks), "DamageBlockPatch", "Prefix") != null,
-			"Piercing Thread should alter the blockable amount at the original block-consumption boundary");
-	}
-
-	private static void DualcastUpgradeReturnsBothCastCardsToHand()
-	{
-		Expect(
-			DualcastUpgradeRune.IsSupportedCard(CreateMutableTestModel<Dualcast>()),
-			"Dualcast Upgrade should return Dualcast to hand");
-		Expect(
-			DualcastUpgradeRune.IsSupportedCard(CreateMutableTestModel<Quadcast>()),
-			"Dualcast Upgrade should return Quadcast to hand");
-		Expect(
-			!DualcastUpgradeRune.IsSupportedCard(CreateMutableTestModel<Zap>()),
-			"Dualcast Upgrade should ignore unrelated cards");
-		Expect(
-			DualcastUpgradeRune.CanReturnFromResultPile(PileType.Discard),
-			"normal result piles should be redirected to hand");
-		Expect(
-			!DualcastUpgradeRune.CanReturnFromResultPile(PileType.None),
-			"temporary copies with no result pile should still disappear");
-		DualcastUpgradeRune rune = new();
-		Expect(!rune.GrantsCardOnPickup, "Dualcast Upgrade should not grant a card when obtained");
-		Expect(!rune.HasUponPickupEffect, "Dualcast Upgrade should not advertise a pickup effect");
 	}
 
 	private static void DeathWarrantTriggersPoisonEveryEightDraws()
@@ -628,29 +233,6 @@ internal static partial class Program
 			"Death Warrant should use the Poison turn-start path shared by both supported game versions");
 	}
 
-	private static void MadScientistOrbLayoutOnlyTweensFirstTen()
-	{
-		Equal(10, HextechPlayerRuneHooks.ResolveTweenedOrbCount(true, 11, 11), "the eleventh Mad Scientist orb should skip layout tweening");
-		Equal(10, HextechPlayerRuneHooks.ResolveTweenedOrbCount(true, 40, 40), "Mad Scientist tween work should stay capped as slots grow");
-		Equal(7, HextechPlayerRuneHooks.ResolveTweenedOrbCount(true, 40, 7), "the first ten visible slots should keep their normal tween");
-		Equal(11, HextechPlayerRuneHooks.ResolveTweenedOrbCount(false, 11, 11), "non-Mad Scientist large layouts should keep existing tween behavior");
-
-		MethodInfo layout = typeof(HextechPlayerRuneHooks).GetMethod(
-			"OrbTweenLayoutPrefixCore",
-			BindingFlags.Static | BindingFlags.NonPublic)
-			?? throw new MissingMethodException(nameof(HextechPlayerRuneHooks), "OrbTweenLayoutPrefixCore");
-		MethodInfo[] calls = PatchProcessor.GetOriginalInstructions(layout)
-			.Select(static instruction => instruction.operand)
-			.OfType<MethodInfo>()
-			.ToArray();
-		Expect(
-			calls.Any(static method => method.DeclaringType == typeof(Engine) && method.Name == nameof(Engine.GetProcessFrames)),
-			"Mad Scientist orb layout should coalesce duplicate work within one process frame");
-		Expect(
-			calls.Any(static method => method.Name == "set_Position"),
-			"overflow orbs should move directly to their unchanged layout target");
-	}
-
 	private static void MyriadSwordsUsesShuffleTriggerInsteadOfTurnEnd()
 	{
 		MethodInfo[] declaredMethods = typeof(MyriadSwordsRune).GetMethods(
@@ -673,48 +255,6 @@ internal static partial class Program
 		Expect(
 			calls.Any(static method => method.DeclaringType == typeof(CardPileCmd) && method.Name == nameof(CardPileCmd.Add)),
 			"Myriad Swords should explicitly move a lethal autoplay card out of the Play pile");
-	}
-
-	private static void SovereignBladeVfxSyncUsesVanillaForgeScale()
-	{
-		Expect(Math.Abs(0.9f - HextechSovereignBladeVfxSync.GetNormalScaleForDamage(0)) < 0.0001f, "zero-damage blade scale");
-		Expect(Math.Abs(0.955f - HextechSovereignBladeVfxSync.GetNormalScaleForDamage(10)) < 0.0001f, "base blade scale");
-		Expect(Math.Abs(2f - HextechSovereignBladeVfxSync.GetNormalScaleForDamage(200)) < 0.0001f, "fully scaled blade");
-		Expect(Math.Abs(2f - HextechSovereignBladeVfxSync.GetNormalScaleForDamage(999)) < 0.0001f, "blade scale cap");
-	}
-
-	private static void SlowCookVfxUsesDedicatedPressureCookerTextures()
-	{
-		string[] slowCookPaths =
-		[
-			HextechAssets.SlowCookHeatGlowPath,
-			HextechAssets.SlowCookAoeGradientPath,
-			HextechAssets.SlowCookAoeGradientSubtlePath,
-			HextechAssets.SlowCookAoeEdgePath,
-			HextechAssets.SlowCookAoePolarPath,
-			HextechAssets.SlowCookEdgeAccentPath,
-			HextechAssets.SlowCookGroundRingPath,
-			HextechAssets.SlowCookFlameNoisePath,
-			HextechAssets.SlowCookInnerFirePath,
-			HextechAssets.SlowCookInnerFireBPath,
-			HextechAssets.SlowCookFlarePath
-		];
-
-		Expect(
-			slowCookPaths.All(static path => path.StartsWith("res://HextechRunes/images/effects/slow_cook/", StringComparison.Ordinal)),
-			"Slow Cook VFX should load only its dedicated Pressure Cooker textures");
-		Expect(
-			slowCookPaths.All(static path => path != HextechAssets.MikaelsBlessingAoeRunePath),
-			"Slow Cook VFX must not reuse Mikael's Blessing texture");
-		Equal(slowCookPaths.Length, slowCookPaths.Distinct(StringComparer.Ordinal).Count(), "Slow Cook VFX texture paths");
-		Equal(800f, SlowCookAuraVisual.ResolveWidth(160f), "Slow Cook aura width for a normal player hitbox");
-		Equal(800f, SlowCookAuraVisual.ResolveWidth(500f), "Slow Cook aura width should not be reduced by hitbox scaling");
-		Expect(
-			SlowCookAuraVisual.FlowShaderCode.Contains("anchored_gradient", StringComparison.Ordinal),
-			"Slow Cook aura should retain a stationary coverage sample while its texture details move");
-		Expect(
-			SlowCookAuraVisual.FlowShaderCode.Contains("intensity = min(intensity, 0.90)", StringComparison.Ordinal),
-			"Slow Cook aura should cap per-layer brightness spikes");
 	}
 
 	private static void CoefficientRunesStackAdditivelyWithinTheirOwnSector()
@@ -826,89 +366,6 @@ internal static partial class Program
 		Equal(0, failedPassiveEffectCount, "failed passive must not append nightmare damage");
 	}
 
-	private static void DiceManiacForgeRarityModifierKeepsDefaultWeightsWithoutRune()
-	{
-		HextechForgeRarityWeights weights = HextechForgeGrantHelper.ApplyDiceManiacForgeRarityModifier(
-			new HextechForgeRarityWeights(65, 25, 10),
-			hasDiceManiac: false);
-
-		Equal(65, weights.Silver, "silver weight");
-		Equal(25, weights.Gold, "gold weight");
-		Equal(10, weights.Prismatic, "prismatic weight");
-		Equal(100, weights.Total, "total weight");
-	}
-
-	/// <summary>袖珍锻炉的药水槽总数封顶 16:原版 SerializablePotion 的 SlotIndex 只有 4 bit,超出会在联机同步里截断丢药水。</summary>
-	private static void PocketForgeKeepsPotionSlotsWithinFourBitSlotIndex()
-	{
-		Equal(16, PocketForge.MaxSerializablePotionSlots, "potion slot cap must match the 4-bit SlotIndex wire format");
-		Equal(2, PocketForge.ClampSlotIncrease(3, 2), "normal stacks add the full two slots");
-		Equal(1, PocketForge.ClampSlotIncrease(15, 2), "the last stack only adds what fits");
-		Equal(0, PocketForge.ClampSlotIncrease(16, 2), "no slots are added at the cap");
-		Equal(0, PocketForge.ClampSlotIncrease(22, 2), "over-cap saves never grow further");
-		Equal(0, PocketForge.ClampSlotIncrease(3, -5), "negative requests are ignored");
-	}
-
-	/// <summary>掷骰狂人 50%±10、红包 25%±5 的药水式动态掉率:掉落降档、未掉升档、始终夹在 0~100 内,默认偏移就是基础值。</summary>
-	private static void ForgeDropChanceAdjustsLikePotionOdds()
-	{
-		Equal(50, HextechDynamicDropChance.CurrentChance(0, DiceManiacRune.BaseDropChance), "Dice Maniac starts at its base drop chance");
-		int offset = HextechDynamicDropChance.NextOffset(0, DiceManiacRune.BaseDropChance, DiceManiacRune.DropChanceStep, dropped: true);
-		Equal(40, HextechDynamicDropChance.CurrentChance(offset, DiceManiacRune.BaseDropChance), "a drop lowers Dice Maniac by ten");
-		offset = HextechDynamicDropChance.NextOffset(offset, DiceManiacRune.BaseDropChance, DiceManiacRune.DropChanceStep, dropped: false);
-		offset = HextechDynamicDropChance.NextOffset(offset, DiceManiacRune.BaseDropChance, DiceManiacRune.DropChanceStep, dropped: false);
-		Equal(60, HextechDynamicDropChance.CurrentChance(offset, DiceManiacRune.BaseDropChance), "two misses raise Dice Maniac by twenty");
-		for (int i = 0; i < 20; i++)
-		{
-			offset = HextechDynamicDropChance.NextOffset(offset, DiceManiacRune.BaseDropChance, DiceManiacRune.DropChanceStep, dropped: false);
-		}
-		Equal(100, HextechDynamicDropChance.CurrentChance(offset, DiceManiacRune.BaseDropChance), "drop chance is capped at one hundred");
-		for (int i = 0; i < 40; i++)
-		{
-			offset = HextechDynamicDropChance.NextOffset(offset, DiceManiacRune.BaseDropChance, DiceManiacRune.DropChanceStep, dropped: true);
-		}
-		Equal(0, HextechDynamicDropChance.CurrentChance(offset, DiceManiacRune.BaseDropChance), "drop chance is floored at zero");
-
-		Equal(25, HextechDynamicDropChance.CurrentChance(0, RedEnvelopeRune.BaseForgeChance), "Red Envelope forge side starts at twenty-five");
-		int envelope = HextechDynamicDropChance.NextOffset(0, RedEnvelopeRune.BaseForgeChance, RedEnvelopeRune.ForgeChanceStep, dropped: true);
-		Equal(20, HextechDynamicDropChance.CurrentChance(envelope, RedEnvelopeRune.BaseForgeChance), "a forge drop lowers Red Envelope by five");
-		envelope = HextechDynamicDropChance.NextOffset(envelope, RedEnvelopeRune.BaseForgeChance, RedEnvelopeRune.ForgeChanceStep, dropped: false);
-		Equal(25, HextechDynamicDropChance.CurrentChance(envelope, RedEnvelopeRune.BaseForgeChance), "a gold result raises Red Envelope by five");
-		Equal(-25, HextechDynamicDropChance.ClampOffset(-999, RedEnvelopeRune.BaseForgeChance), "saved offsets are clamped on load");
-	}
-
-	private static void DiceManiacForgeRarityModifierDoublesGoldAndPrismaticWeights()
-	{
-		HextechForgeRarityWeights defaultWeights = HextechForgeGrantHelper.ApplyDiceManiacForgeRarityModifier(
-			new HextechForgeRarityWeights(65, 25, 10),
-			hasDiceManiac: true);
-		Equal(65, defaultWeights.Silver, "default silver weight");
-		Equal(50, defaultWeights.Gold, "default gold weight");
-		Equal(20, defaultWeights.Prismatic, "default prismatic weight");
-		Equal(135, defaultWeights.Total, "default total weight");
-
-		HextechForgeRarityWeights customWeights = HextechForgeGrantHelper.ApplyDiceManiacForgeRarityModifier(
-			new HextechForgeRarityWeights(10, 20, 30),
-			hasDiceManiac: true);
-		Equal(10, customWeights.Silver, "custom silver weight");
-		Equal(40, customWeights.Gold, "custom gold weight");
-		Equal(60, customWeights.Prismatic, "custom prismatic weight");
-		Equal(110, customWeights.Total, "custom total weight");
-	}
-
-	private static void RandomForgeShopRelicUpdatesDisplayedPrice()
-	{
-		RandomForgeShopRelic relic = new();
-
-		Equal(HextechRuneConfiguration.GetDefaultRandomForgeShopPrice(), relic.DynamicVars["Price"].IntValue, "default displayed forge price");
-		relic.SetDisplayedPrice(777);
-		Equal(777, relic.DynamicVars["Price"].IntValue, "updated displayed forge price");
-		relic.SetDisplayedPrice(99999);
-		Equal(9999, relic.DynamicVars["Price"].IntValue, "displayed forge price clamps to config maximum");
-		relic.SetDisplayedPrice(-12);
-		Equal(0, relic.DynamicVars["Price"].IntValue, "displayed forge price clamps to config minimum");
-	}
-
 	private static void WatchOutGrapefruitFoodPoolHonorsCharacterAndUniqueRelics()
 	{
 		IReadOnlyList<Type> commonPool = WatchOutGrapefruitRune.BuildFoodRelicCandidates(
@@ -963,33 +420,6 @@ internal static partial class Program
 		Expect(HextechColorlessCardHelper.IsColorlessCard(UninitializedCard<MinionSacrifice>()), "minion sacrifice should count as colorless");
 	}
 
-	private static void PactsEndUpgradeDamageScalesWithExhaustPile()
-	{
-		Equal(0m, PactsEndUpgradeRune.CalculateBonusDamage(0, 6m), "empty exhaust pile bonus");
-		Equal(30m, PactsEndUpgradeRune.CalculateBonusDamage(5, 6m), "five-card exhaust pile bonus");
-		Equal(0m, PactsEndUpgradeRune.CalculateBonusDamage(-1, 6m), "negative exhaust count clamps");
-	}
-
-	private static void BrandUpgradeDamageScalesWithPermanentPlayCount()
-	{
-		Equal(3, BrandUpgradeRune.DamagePercentPerBrand, "Brand damage percent per play");
-		Equal(1m, BrandUpgradeRune.CalculateDamageMultiplier(0, BrandUpgradeRune.DamagePercentPerBrand), "zero brand plays");
-		Equal(1.03m, BrandUpgradeRune.CalculateDamageMultiplier(1, BrandUpgradeRune.DamagePercentPerBrand), "one brand play");
-		Equal(1.30m, BrandUpgradeRune.CalculateDamageMultiplier(10, BrandUpgradeRune.DamagePercentPerBrand), "ten brand plays");
-	}
-
-	private static void BigHammerForgeBonusAvoidsHammerTimeDoubleScaling()
-	{
-		Equal(15m, BigHammerRune.CalculateForgeAmount(10m, 50m, sourceAlreadyIncludesBonus: false), "direct forge bonus");
-		Equal(15m, BigHammerRune.CalculateForgeAmount(15m, 50m, sourceAlreadyIncludesBonus: true), "hammer time propagated forge");
-	}
-
-	private static void HundredRefinementsRequiresTwoBodyForges()
-	{
-		var rune = new HundredRefinementsRune();
-		Equal(2, rune.DynamicVars["BodyForges"].IntValue, "Hundred Refinements body forge requirement");
-	}
-
 	private static void HastyScribbleDrawsToFullHandAtTurnStart()
 	{
 		Equal(CardPile.MaxCardsInHand, HastyScribbleRune.CalculateCardsToDraw(0), "empty hand draw");
@@ -1011,44 +441,6 @@ internal static partial class Program
 		Expect(SpinToWinRune.IsConvertiblePower(new SummonNextTurnPower()), "next-turn summon should convert");
 		Expect(SpinToWinRune.IsConvertiblePower(new StarNextTurnPower()), "next-turn stars should convert");
 		Expect(!SpinToWinRune.IsConvertiblePower(new StrengthPower()), "unrelated powers should remain unchanged");
-	}
-
-	private static void NewCardUpgradeRunesUseExpectedTriggerRules()
-	{
-		Equal(0, ThornmailRune.CalculateThorns(19m), "Thornmail should floor partial Max HP steps");
-		Equal(1, ThornmailRune.CalculateThorns(20m), "Thornmail should grant one Thorns per twenty Max HP");
-		Equal(4, ThornmailRune.CalculateThorns(99m), "Thornmail should have no legacy bonus cap");
-		Expect(CorrosiveWaveUpgradeRune.ShouldExhaust(new CorrosiveWave(), PileType.Discard), "Corrosive Wave should move to the Exhaust pile after play");
-		Expect(!CorrosiveWaveUpgradeRune.ShouldExhaust(new CorrosiveWave(), PileType.None), "ephemeral Corrosive Wave copies should keep the None result pile");
-		Expect(!CorrosiveWaveUpgradeRune.ShouldExhaust(new StrikeIronclad(), PileType.Discard), "Corrosive Wave upgrade should not exhaust other cards");
-		Expect(StormUpgradeRune.ShouldTrigger(CardType.Power, hasUpgradeRune: false), "vanilla Storm should still trigger for Power cards");
-		Expect(!StormUpgradeRune.ShouldTrigger(CardType.Attack, hasUpgradeRune: false), "vanilla Storm should ignore Attacks");
-		Expect(StormUpgradeRune.ShouldTrigger(CardType.Attack, hasUpgradeRune: true), "upgraded Storm should trigger for Attacks");
-		Expect(StormUpgradeRune.ShouldTrigger(CardType.Skill, hasUpgradeRune: true), "upgraded Storm should trigger for Skills");
-		Expect(ReanimateUpgradeRune.ShouldCountDeath(wasRemovalPrevented: false), "Reanimate should count Minion and Small Hand deaths like Melancholy");
-		Expect(!ReanimateUpgradeRune.ShouldCountDeath(wasRemovalPrevented: true), "Reanimate should ignore a death that was prevented");
-		Equal(7, BodySlamUpgradeRune.CalculateFisticuffsBlock(7, 0), "Body Slam should count total damage like Fisticuffs");
-		Equal(10, BodySlamUpgradeRune.CalculateFisticuffsBlock(7, 3), "Body Slam should add overkill damage like Fisticuffs");
-		Equal(7, WroughtInWarUpgradeRune.CalculateFisticuffsBlock(7, 0), "Wrought in War should count total damage like Fisticuffs");
-		Equal(10, WroughtInWarUpgradeRune.CalculateFisticuffsBlock(7, 3), "Wrought in War should add overkill damage like Fisticuffs");
-		Expect(DecisionsDecisionsUpgradeRune.CanSelectCard(isUnplayable: false), "Decisions should allow playable cards of any type");
-		Expect(!DecisionsDecisionsUpgradeRune.CanSelectCard(isUnplayable: true), "Decisions should still reject Unplayable cards");
-		Equal(3, DecisionsDecisionsUpgradeRune.AddRequestedPlayCount(1, 3), "Decisions should resolve all three plays inside one card-play wrapper");
-		Equal(4, DecisionsDecisionsUpgradeRune.AddRequestedPlayCount(2, 3), "Decisions replay count should combine additively with another replay");
-	}
-
-	private static void HiddenGemUpgradeMovesNewReplayTargetToHand()
-	{
-		StrikeIronclad target = CreateMutableTestModel<StrikeIronclad>();
-		Expect(
-			HiddenGemUpgradeRune.IsEligibleReplayTarget(target),
-			"Hidden Gem should accept a playable card without Replay");
-
-		target.BaseReplayCount = 1;
-		Expect(
-			!HiddenGemUpgradeRune.IsEligibleReplayTarget(target),
-			"Hidden Gem should retain the vanilla restriction against cards that already have Replay");
-		Equal(PileType.Hand, HiddenGemUpgradeRune.ReplayTargetPile, "Hidden Gem upgraded replay target pile");
 	}
 
 	private static void PlayerSustainRunesUseExpectedMaxHpRules()
@@ -1089,139 +481,6 @@ internal static partial class Program
 			"Collector should not retain its old damage multiplier");
 	}
 
-	private static void FormVfxSafetySkipsMissingHolder()
-	{
-		Expect(
-			!HextechFormVfxSafetyHooks.ShouldRunOriginal(hasFormVfxHolder: false),
-			"form VFX should be skipped when a custom character has no holder");
-		Expect(
-			HextechFormVfxSafetyHooks.ShouldRunOriginal(hasFormVfxHolder: true),
-			"form VFX should retain vanilla behavior when the holder exists");
-	}
-
-	private static void SymphonyOfWarPreservesDemonAndSerpentFormVfx()
-	{
-		Expect(
-			HextechFormVfxSafetyHooks.ShouldPreserveExistingForSymphony(
-				hasSymphonyOfWar: true,
-				FormVfxKind.Demon,
-				FormVfxKind.Serpent),
-			"Symphony of War should preserve Serpent Form VFX when Demon Form is added");
-		Expect(
-			HextechFormVfxSafetyHooks.ShouldPreserveExistingForSymphony(
-				hasSymphonyOfWar: true,
-				FormVfxKind.Serpent,
-				FormVfxKind.Demon),
-			"Symphony of War should preserve Demon Form VFX when Serpent Form is added");
-		Expect(
-			HextechFormVfxSafetyHooks.ShouldPreserveExistingForSymphony(
-				hasSymphonyOfWar: true,
-				FormVfxKind.Other,
-				FormVfxKind.Demon),
-			"later non-Symphony forms should not erase Demon Form VFX");
-		Expect(
-			HextechFormVfxSafetyHooks.ShouldPreserveExistingForSymphony(
-				hasSymphonyOfWar: true,
-				FormVfxKind.Other,
-				FormVfxKind.Serpent),
-			"later non-Symphony forms should not erase Serpent Form VFX");
-		Expect(
-			!HextechFormVfxSafetyHooks.ShouldPreserveExistingForSymphony(
-				hasSymphonyOfWar: true,
-				FormVfxKind.Other,
-				FormVfxKind.Other),
-			"non-Symphony forms should retain vanilla last-form-wins behavior");
-		Expect(
-			!HextechFormVfxSafetyHooks.ShouldPreserveExistingForSymphony(
-				hasSymphonyOfWar: false,
-				FormVfxKind.Demon,
-				FormVfxKind.Serpent),
-			"players without Symphony of War should keep vanilla replacement behavior");
-		Expect(
-			!HextechFormVfxSafetyHooks.ShouldPreserveExistingForSymphony(
-				hasSymphonyOfWar: true,
-				FormVfxKind.Demon,
-				FormVfxKind.Demon),
-			"reapplying a form should replace its stale same-type VFX");
-	}
-
-	/// <summary>
-	/// 批处理不再拦截任何 Hook.* 分发点:它只管一组并行飞行动画(替代逐张内置动画)和进场偏移。
-	/// 出牌事件由代表牌走原版 CardCmd.AutoPlay 如实发出。
-	/// </summary>
-	private static void FormAutoPlayBatchOnlySuppressesDuplicateFlyVfx()
-	{
-		DemonForm firstCard = new();
-		DemonForm secondCard = new();
-		DemonForm outsideCard = new();
-		HextechFormAutoPlayBatchState batch = new([firstCard, secondCard]);
-
-		using (batch.BeginPowerCardFlyVfxPreview([firstCard, secondCard]))
-		{
-			Expect(batch.ShouldPlayPowerCardFlyVfx(firstCard), "form batch should show the first card in its group VFX");
-			Expect(batch.ShouldPlayPowerCardFlyVfx(secondCard), "form batch should show later cards in its group VFX");
-		}
-		Expect(!batch.ShouldPlayPowerCardFlyVfx(firstCard), "form batch should suppress the first card's built-in duplicate VFX");
-		Expect(!batch.ShouldPlayPowerCardFlyVfx(secondCard), "form batch should suppress later cards' built-in duplicate VFX");
-		Expect(batch.ShouldPlayPowerCardFlyVfx(outsideCard), "form batch should not suppress VFX for non-batch cards");
-
-		string[] hookTargets = BuildPatchManifest()
-			.Where(line => line.StartsWith("combat.form-auto-play", StringComparison.Ordinal))
-			.Where(line => line.Contains("MegaCrit.Sts2.Core.Hooks.Hook.", StringComparison.Ordinal))
-			.ToArray();
-		Expect(hookTargets.Length == 0, "form batch must not patch any Hook.* dispatcher: " + string.Join("; ", hookTargets));
-	}
-
-	private static void FormAutoPlayBatchOffsetsCardsBeforeTheyEnterPlay()
-	{
-		DemonForm firstCard = new();
-		DemonForm middleCard = new();
-		DemonForm lastCard = new();
-		DemonForm outsideCard = new();
-		HextechFormAutoPlayBatchState batch = new([firstCard, middleCard, lastCard]);
-
-		Expect(batch.TryGetHorizontalOffset(firstCard, out float firstOffset), "first form should have an entry offset");
-		Expect(batch.TryGetHorizontalOffset(middleCard, out float middleOffset), "middle form should have an entry offset");
-		Expect(batch.TryGetHorizontalOffset(lastCard, out float lastOffset), "last form should have an entry offset");
-		Equal(-190f, firstOffset, "first form should enter left of center");
-		Equal(0f, middleOffset, "middle form should enter at center");
-		Equal(190f, lastOffset, "last form should enter right of center");
-		Expect(!batch.TryGetHorizontalOffset(outsideCard, out _), "non-batch cards should keep the vanilla play target");
-	}
-
-	/// <summary>
-	/// 代表牌走原版结算自己的数值 × 出牌次数;次要牌的贡献 = Σ(数值 × 各自出牌次数),0 次不贡献。
-	/// 代表牌优先选流电牌,保证整批只触发一次电击。
-	/// </summary>
-	private static void FormAutoPlaySecondaryContributionSumsAmountTimesPlayCount()
-	{
-		decimal total = HextechFormAutoPlayHooks.SumSecondaryContribution([(2m, 1), (2m, 2), (3m, 0)]);
-		Equal(6m, total, "secondary contribution should weight each card by its own play count and skip zero plays");
-		Equal(0m, HextechFormAutoPlayHooks.SumSecondaryContribution([]), "no secondaries means no extra power");
-
-		// 规范模型不能读 DynamicVars;这里只验证代表牌的选择规则。
-		DemonForm first = new();
-		DemonForm second = new();
-		Expect(
-			ReferenceEquals(HextechFormAutoPlayHooks.SelectPrimary([first, second]), first),
-			"without galvanized the first form is the representative");
-		Equal(1m, HextechFormAutoPlayHooks.GetFormAmount(new ReaperForm()), "reaper form contributes one stack per play without touching dynamic vars");
-	}
-
-	private static void FormAutoPlayBatchCombinesOnlyEffectNeutralEnchantments()
-	{
-		Expect(HextechFormAutoPlayHooks.IsCombinedEffectSafeEnchantment(null), "unenchanted forms should combine");
-		Expect(
-			HextechFormAutoPlayHooks.IsCombinedEffectSafeEnchantment(new MegaCrit.Sts2.Core.Models.Enchantments.Clone()),
-			"forms enchanted only with Clone should combine");
-		Expect(
-			!HextechFormAutoPlayHooks.IsCombinedEffectSafeEnchantment(new MegaCrit.Sts2.Core.Models.Enchantments.Sharp()),
-			"forms with effect-changing enchantments should keep the per-card path");
-		Expect(
-			!HextechFormAutoPlayHooks.IsCombinedEffectSafeEnchantment(new UniversalSpiral()),
-			"forms with replay enchantments should keep the per-card path");
-	}
-
 	private static void DrawYourSwordReplacesOrbEvokeWithTwoFocus()
 	{
 		var rune = new DrawYourSwordRune();
@@ -1255,5 +514,262 @@ internal static partial class Program
 		Equal(1, removal.Count, "porcupine temporary thorns removal count");
 		Equal(101u, removal[0].CombatId, "porcupine temporary thorns removal target");
 		Equal(2, removal[0].Thorns, "porcupine temporary thorns removal amount");
+	}
+
+	private static void BloodPactRequiresHpLossFromEnemyAttack()
+	{
+		Expect(BloodPactRune.ShouldGainStrength(CombatSide.Enemy, 1, ValueProp.Move), "enemy attack HP loss grants Strength");
+		Expect(!BloodPactRune.ShouldGainStrength(CombatSide.Enemy, 0, ValueProp.Move), "fully blocked attacks do not grant Strength");
+		Expect(!BloodPactRune.ShouldGainStrength(CombatSide.Player, 3, ValueProp.Move), "self or allied damage does not grant Strength");
+		Expect(!BloodPactRune.ShouldGainStrength(null, 3, ValueProp.Unpowered), "HP costs and sourceless damage do not grant Strength");
+		Expect(!BloodPactRune.ShouldGainStrength(CombatSide.Enemy, 3, ValueProp.Unpowered), "enemy non-attack damage does not grant Strength");
+	}
+
+	private static void ThreeNewRunesHaveRequestedPoolsAndRarities()
+	{
+		(Type Type, HextechRarityTier Rarity, PlayerRuneCharacterPool? Pool)[] expected =
+		[
+			(typeof(ScapegoatRune), HextechRarityTier.Gold, null),
+			(typeof(BloodDebtRune), HextechRarityTier.Silver, PlayerRuneCharacterPool.Ironclad),
+			(typeof(NetherSoulRune), HextechRarityTier.Gold, PlayerRuneCharacterPool.Necrobinder)
+		];
+		foreach (var entry in expected)
+		{
+			var actual = HextechPlayerRuneRegistry.Registrations.Single(row => row.Type == entry.Type);
+			Equal(entry.Rarity, actual.Rarity, entry.Type.Name + " rarity");
+			Equal(entry.Pool, actual.CharacterPool, entry.Type.Name + " character pool");
+			Equal(PlayerRuneFlags.None, actual.Flags, entry.Type.Name + " enabled");
+		}
+	}
+
+	private static void ScapegoatIncludesNegativeAttributesButLeavesBuffs()
+	{
+		T Power<T>(int amount) where T : PowerModel, new()
+		{
+			var power = CreateMutableTestModel<T>();
+			typeof(PowerModel).GetField("_amount", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(power, amount);
+			return power;
+		}
+		var strength = Power<StrengthPower>(-5);
+		var dexterity = Power<DexterityPower>(-3);
+		var weak = Power<WeakPower>(2);
+		weak.SkipNextDurationTick = true;
+		var buff = Power<StrengthPower>(4);
+		var hex = Power<HexPower>(1);
+		var ringing = Power<RingingPower>(1);
+		var confused = Power<ConfusedPower>(1);
+		var galvanic = Power<HextechGalvanicPower>(2);
+		List<PowerModel> powers = [strength, hex, buff, weak, ringing, dexterity, confused, galvanic];
+		var snapshot = ScapegoatRune.SnapshotDebuffs(powers);
+		Expect(snapshot.SequenceEqual(new PowerModel[] { strength, hex, weak, ringing, dexterity, confused, galvanic }),
+			"cleanse includes player-only debuffs in native order, but leaves buffs");
+		foreach (var playerOnly in new PowerModel[] { hex, ringing, confused, galvanic, buff })
+		{
+			Expect(ScapegoatRune.CreateEnemyTransfer(playerOnly) == null,
+				playerOnly.GetType().Name + " must never reach enemy application");
+		}
+		var transfers = snapshot.Select(ScapegoatRune.CreateEnemyTransfer).OfType<PowerModel>().ToArray();
+		Expect(transfers.Select(p => p.GetType()).SequenceEqual(new[] { typeof(StrengthPower), typeof(WeakPower), typeof(DexterityPower) }),
+			"unsafe effects cannot interrupt transfer of the remaining ordinary debuffs");
+		Expect(transfers.Select(p => p.Amount).SequenceEqual(new[] { -5, 2, -3 }), "preserve negative attributes and stacks");
+		Expect(!ReferenceEquals(weak, transfers[1]) && !transfers[1].SkipNextDurationTick && weak.SkipNextDurationTick,
+			"enemy receives an independent copy without the player's duration exemption");
+		powers.Clear();
+		Equal(7, snapshot.Length, "removal cannot mutate the cleanse snapshot");
+	}
+
+	private static void BloodDebtAccumulatesPerCardAndExpiresAfterCombat()
+	{
+		var owner = CreateOrdinalTestPlayer(1);
+		var rune = CreateMutableTestModel<BloodDebtRune>();
+		rune.Owner = owner;
+		var first = CreateMutableTestModel<StrikeIronclad>();
+		var second = CreateMutableTestModel<StrikeIronclad>();
+		var skill = CreateMutableTestModel<DefendIronclad>();
+		var foreign = CreateMutableTestModel<StrikeIronclad>();
+		first.Owner = second.Owner = skill.Owner = owner;
+		foreign.Owner = CreateOrdinalTestPlayer(2);
+		rune.GrowAttacks([first, skill, foreign], 7);
+		rune.GrowAttacks([first, second], 3);
+		decimal Bonus(CardModel card, ValueProp props = ValueProp.Move) =>
+			rune.ModifyDamageAdditiveCompat(null, 6m, props, null, card);
+		Equal(10m, Bonus(first), "loss events accumulate on the same instance even outside the hand");
+		Equal(3m, Bonus(second), "same-name cards only gain while present in hand");
+		Equal(0m, Bonus(skill), "skills do not grow");
+		Equal(0m, Bonus(foreign), "other players' cards do not grow");
+		Equal(0m, Bonus(first, ValueProp.Unpowered), "incidental damage is not an extra attack hit");
+		rune.GrowAttacks([first], 0);
+		rune.GrowAttacks([first], -5);
+		Equal(10m, Bonus(first), "healing and zero loss grant no growth");
+		rune.AfterCombatEnd(null!).GetAwaiter().GetResult();
+		Equal(0m, Bonus(first), "combat end clears bonuses");
+		rune.GrowAttacks([first], 4);
+		rune.BeforeCombatStart().GetAwaiter().GetResult();
+		Equal(0m, Bonus(first), "combat start also clears stale references");
+	}
+
+	private static void NetherSoulSnapshotsCurrentEtherealKeywordsOnce()
+	{
+		var owner = CreateOrdinalTestPlayer(1);
+		typeof(MegaCrit.Sts2.Core.Entities.Players.Player).GetField("<Creature>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)!
+			.SetValue(owner, RuntimeHelpers.GetUninitializedObject(typeof(Creature)));
+		typeof(MegaCrit.Sts2.Core.Entities.Players.Player).GetField("<Deck>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)!
+			.SetValue(owner, new CardPile(PileType.Deck));
+		var addedEthereal = CreateMutableTestModel<StrikeIronclad>();
+		var ordinary = CreateMutableTestModel<StrikeIronclad>();
+		var foreign = CreateMutableTestModel<StrikeIronclad>();
+		addedEthereal.Owner = ordinary.Owner = owner;
+		foreign.Owner = CreateOrdinalTestPlayer(2);
+		addedEthereal.AddKeyword(CardKeyword.Ethereal);
+		foreign.AddKeyword(CardKeyword.Ethereal);
+		var etherealStatus = CreateMutableTestModel<MegaCrit.Sts2.Core.Models.Cards.Void>();
+		var etherealCurse = CreateMutableTestModel<MegaCrit.Sts2.Core.Models.Cards.Injury>();
+		etherealStatus.Owner = etherealCurse.Owner = owner;
+		etherealCurse.AddKeyword(CardKeyword.Ethereal);
+		Expect(etherealStatus.Keywords.Contains(CardKeyword.Ethereal), "Void is natively ethereal");
+		List<CardModel> exhausted = [addedEthereal, ordinary, foreign, addedEthereal, etherealStatus, etherealCurse];
+		var snapshot = NetherSoulRune.SnapshotEtherealCards(owner, exhausted);
+		Equal(1, snapshot.Length, "added keywords count; ordinary, foreign, status and curse cards do not; each instance only once");
+		Expect(ReferenceEquals(addedEthereal, snapshot[0]), "play actual exhausted card rather than a copy");
+		exhausted.Clear();
+		Equal(1, snapshot.Length, "playing and exhausting cards cannot enlarge the batch");
+	}
+
+	private static void ThreeNewRuneHooksUseNativeCommandsAndStableTargets()
+	{
+		MethodInfo[] Calls(Type type, string method) => PatchProcessor.GetOriginalInstructions(
+			GetAsyncStateMachineMoveNext(type.GetMethod(method)!)).Select(i => i.operand).OfType<MethodInfo>().ToArray();
+		var transfer = Calls(typeof(ScapegoatRune), nameof(ScapegoatRune.AfterPlayerTurnStart));
+		Expect(transfer.Any(m => m.Name == "ConsumeCombatProcOrdinal"), "transfer uses synchronized proc ordinal");
+		Expect(transfer.Any(m => m.DeclaringType == typeof(HextechRuneTargeting)), "transfer chooses one stable random enemy");
+		Expect(transfer.Any(m => m.DeclaringType == typeof(MegaCrit.Sts2.Core.Commands.PowerCmd) && m.Name == "Apply"), "transfer keeps native application and artifact handling");
+		var replay = Calls(typeof(NetherSoulRune), nameof(NetherSoulRune.AfterSideTurnEndLate));
+		Expect(replay.Any(m => m.DeclaringType == typeof(HextechAutoPlayHelper)), "exhausted cards use native autoplay");
+		Expect(!replay.Any(m => m.Name == "CanPlay"), "zero energy must not block autoplay");
+		Expect(replay.Any(m => m.Name == "Contains" && m.IsGenericMethod && m.GetGenericArguments().Contains(typeof(Creature))), "only the owner's turn including extra-turn participation");
+	}
+
+	private static void FiveNewRunesHaveRequestedPoolsAndRarities()
+	{
+		(Type Type, HextechRarityTier Rarity, PlayerRuneCharacterPool? Pool)[] expected =
+		[
+			(typeof(RallyingCallRune), HextechRarityTier.Gold, null),
+			(typeof(EndlessRotationRune), HextechRarityTier.Prismatic, null),
+			(typeof(VenomousBladeRune), HextechRarityTier.Prismatic, PlayerRuneCharacterPool.Silent),
+			(typeof(MyriadManifestationsRune), HextechRarityTier.Prismatic, PlayerRuneCharacterPool.Defect),
+			(typeof(KingdomArmyRune), HextechRarityTier.Prismatic, PlayerRuneCharacterPool.Regent)
+		];
+		foreach (var entry in expected)
+		{
+			PlayerRuneRegistration actual = HextechPlayerRuneRegistry.Registrations.Single(row => row.Type == entry.Type);
+			Equal(entry.Rarity, actual.Rarity, entry.Type.Name + " rarity");
+			Equal(entry.Pool, actual.CharacterPool, entry.Type.Name + " pool");
+			Equal(PlayerRuneFlags.None, actual.Flags, entry.Type.Name + " enabled in normal selections");
+		}
+	}
+
+	private static void RallyingCallSnapshotsSameModelCardsWithoutSourceOrOtherPlayers()
+	{
+		Player owner = CreateOrdinalTestPlayer(1);
+		StrikeIronclad source = CreateMutableTestModel<StrikeIronclad>();
+		StrikeIronclad first = CreateMutableTestModel<StrikeIronclad>();
+		StrikeIronclad upgraded = CreateMutableTestModel<StrikeIronclad>();
+		StrikeIronclad foreign = CreateMutableTestModel<StrikeIronclad>();
+		DefendIronclad other = CreateMutableTestModel<DefendIronclad>();
+		MegaCrit.Sts2.Core.Commands.CardCmd.Upgrade(upgraded);
+		source.Owner = first.Owner = upgraded.Owner = other.Owner = owner;
+		foreign.Owner = CreateOrdinalTestPlayer(2);
+		List<CardModel> candidates = [source, first, other, upgraded, foreign, first];
+		CardModel[] result = RallyingCallRune.SnapshotMatches(source, candidates);
+		candidates.Clear();
+		Equal(2, result.Length, "only two distinct owned copies, even when one is upgraded");
+		Expect(ReferenceEquals(first, result[0]) && ReferenceEquals(upgraded, result[1]), "snapshot keeps pile order");
+		Expect(!result.Contains(source), "returned source is not its own matching card");
+		RallyingCallRune rune = CreateMutableTestModel<RallyingCallRune>();
+		typeof(RallyingCallRune).GetField("_playingMatches", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(rune, true);
+		Expect(rune.AfterCardPlayed(null!, CreateCardPlay(first)).IsCompletedSuccessfully, "an active matching batch cannot recursively start another batch");
+	}
+
+	private static void EndlessRotationFreesBothCostsUntilTurnEnd()
+	{
+		MeteorShower card = CreateMutableTestModel<MeteorShower>();
+		Player owner = CreateOrdinalTestPlayer(1);
+		Creature creature = (Creature)RuntimeHelpers.GetUninitializedObject(typeof(Creature));
+		typeof(Player).GetField("<Creature>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(owner, creature);
+		typeof(Creature).GetField("<Side>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(creature, CombatSide.Player);
+		EndlessRotationRune rune = CreateMutableTestModel<EndlessRotationRune>();
+		rune.Owner = owner;
+		card.Owner = owner;
+		card.EnergyCost.SetThisCombat(2);
+		card.SetStarCostThisCombat(3);
+		rune.MakeFreeForTurn(card);
+		Equal(0, card.EnergyCost.GetWithModifiers(CostModifiers.Local), "energy is free");
+		Equal(0, card.CurrentStarCost, "stars are free");
+		card.EnergyCost.AfterCardPlayedCleanup();
+		Equal(0, card.EnergyCost.GetWithModifiers(CostModifiers.Local), "playing and returning the card does not clear free energy");
+		var costs = (List<TemporaryCardCost>)typeof(CardModel).GetField("_temporaryStarCosts", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(card)!;
+		costs.RemoveAll(cost => cost.ClearsWhenCardIsPlayed);
+		Expect(rune.TryModifyStarCost(card, card.CurrentStarCost, out decimal freeStars), "star-cost hook retains free play after native post-play cleanup");
+		Equal(0m, freeStars, "stars stay free when played again");
+		rune.MakeFreeForTurn(card);
+		card.EndOfTurnCleanup();
+		rune.AfterSideTurnEndLate(null!, CombatSide.Player, [creature]).GetAwaiter().GetResult();
+		Equal(2, card.EnergyCost.GetWithModifiers(CostModifiers.Local), "original combat energy cost returns next turn");
+		Equal(3, card.CurrentStarCost, "original combat star cost returns next turn");
+		Expect(!rune.TryModifyStarCost(card, 3m, out decimal restoredStars) && restoredStars == 3m, "star-cost hook also expires at turn end");
+	}
+
+	private static void MyriadManifestationsCountsTypesRatherThanSlots()
+	{
+		Equal(0, MyriadManifestationsRune.CountOrbTypes([]), "empty queue has no extra rounds");
+		Equal(1, MyriadManifestationsRune.CountOrbTypes([new LightningOrb(), new LightningOrb(), new LightningOrb()]), "three lightning count as one type");
+		Equal(2, MyriadManifestationsRune.CountOrbTypes([new LightningOrb(), new FrostOrb(), new LightningOrb()]), "lightning plus frost grant two extra rounds");
+		Equal(4, MyriadManifestationsRune.CountOrbTypes([new LightningOrb(), new FrostOrb(), new DarkOrb(), new PlasmaOrb()]), "plasma counts as a different orb type");
+	}
+
+	private static void VenomousBladeReadsEachTargetPoisonWithoutExtraDamageEvents()
+	{
+		Player owner = CreateOrdinalTestPlayer(1);
+		Creature dealer = (Creature)RuntimeHelpers.GetUninitializedObject(typeof(Creature));
+		typeof(Player).GetField("<Creature>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(owner, dealer);
+		VenomousBladeRune rune = CreateMutableTestModel<VenomousBladeRune>();
+		rune.Owner = owner;
+		Shiv shiv = UninitializedCard<Shiv>();
+		typeof(AbstractModel).GetField("<IsMutable>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(shiv, true);
+		shiv.Owner = owner;
+		Creature enemy = (Creature)RuntimeHelpers.GetUninitializedObject(typeof(Creature));
+		typeof(Creature).GetField("<Side>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(enemy, CombatSide.Enemy);
+		// Power 构造器初始化 Godot 颜色资源；CLI 只需携带层数的内存模型。
+		PoisonPower poison = (PoisonPower)RuntimeHelpers.GetUninitializedObject(typeof(PoisonPower));
+		typeof(AbstractModel).GetField("<IsMutable>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(poison, true);
+		typeof(PowerModel).GetField("_amount", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(poison, 17);
+		typeof(Creature).GetField("_powers", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(enemy, new List<PowerModel> { poison });
+		Equal(17m, rune.ModifyDamageAdditiveCompat(enemy, 4m, ValueProp.Move, dealer, shiv), "add target poison to each shiv hit");
+		typeof(PowerModel).GetField("_amount", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(poison, 31);
+		Equal(31m, rune.ModifyDamageAdditiveCompat(enemy, 4m, ValueProp.Move, dealer, shiv), "later hits read current poison");
+		Equal(0m, rune.ModifyDamageAdditiveCompat(enemy, 4m, ValueProp.Unpowered, dealer, shiv), "do not amplify incidental unpowered damage");
+		Equal(0m, rune.ModifyDamageAdditiveCompat(null, 4m, ValueProp.Move, dealer, shiv), "untargeted preview does not invent poison");
+		StrikeIronclad strike = CreateMutableTestModel<StrikeIronclad>();
+		strike.Owner = owner;
+		Equal(0m, rune.ModifyDamageAdditiveCompat(enemy, 4m, ValueProp.Move, dealer, strike), "ordinary attacks do not get poison damage");
+	}
+
+	private static void FiveNewRuneHooksKeepNativeExecutionAndSynchronizedRandom()
+	{
+		MethodInfo[] Calls(Type type, string method) => PatchProcessor.GetOriginalInstructions(
+			GetAsyncStateMachineMoveNext(type.GetMethod(method)!)).Select(i => i.operand).OfType<MethodInfo>().ToArray();
+		MethodInfo[] rally = Calls(typeof(RallyingCallRune), nameof(RallyingCallRune.AfterCardPlayed));
+		Expect(rally.Any(m => m.Name == nameof(HextechAutoPlayHelper.AutoPlayOrMoveToResultPile)), "same-name cards use actual autoplay");
+		Expect(!rally.Any(m => m.Name == "CanPlay"), "autoplay does not require remaining energy");
+		MethodInfo[] orbs = Calls(typeof(MyriadManifestationsRune), nameof(MyriadManifestationsRune.BeforeSideTurnEndEarly));
+		Expect(orbs.Any(m => m.DeclaringType == typeof(HextechOrbPassiveCompat) && m.Name == "TriggerPassive"), "extra passives use the version-matched native entry");
+		MethodInfo entry = typeof(HextechOrbPassiveCompat).GetMethod("TriggerPassive", BindingFlags.Static | BindingFlags.NonPublic)!;
+		MethodInfo[] passive = PatchProcessor.GetOriginalInstructions(entry.GetCustomAttribute<AsyncStateMachineAttribute>() == null ? entry : GetAsyncStateMachineMoveNext(entry)).Select(i => i.operand).OfType<MethodInfo>().ToArray();
+		Expect(passive.Any(m => m.DeclaringType == typeof(OrbModel) && m.Name == "TriggerPassive"
+			|| m.DeclaringType == typeof(MegaCrit.Sts2.Core.Commands.OrbCmd) && m.Name == "Passive"), "native passive entry preserves trigger modifiers");
+		MethodInfo[] forge = Calls(typeof(KingdomArmyRune), nameof(KingdomArmyRune.AfterForge));
+		Equal(1, forge.Count(m => m.Name == "ConsumeCombatProcOrdinal"), "one synchronized ordinal per forge event");
+		Equal(1, forge.Count(m => m.Name == nameof(HextechStableRandom.CreateMinionCard)), "one minion per forge event");
+		Expect(forge.Any(m => m.Name == nameof(HextechCardGeneration.AddGeneratedCardToCombat)), "generated minions use normal hand and overflow handling");
 	}
 }

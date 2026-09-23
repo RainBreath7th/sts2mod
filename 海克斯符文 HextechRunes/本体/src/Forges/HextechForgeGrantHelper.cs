@@ -189,29 +189,10 @@ internal static class HextechForgeGrantHelper
 		return TryCreateStableRandomForgeChoice(player, "shop-random-forge", purchaseOrdinal, out options);
 	}
 
-	private static bool TryCreateStableRandomForge(Player player, string source, int ordinal, out RelicModel? forge)
-	{
-		HextechRarityTier rarity = RollStableForgeRarity(player, source, ordinal);
-		return TryCreateStableRandomForge(player, rarity, source, ordinal, out forge);
-	}
-
 	private static bool TryCreateStableRandomForgeChoice(Player player, string source, int ordinal, out List<RelicModel> options)
 	{
 		HextechRarityTier rarity = RollStableForgeRarity(player, source, ordinal);
 		return TryCreateStableRandomForgeChoice(player, rarity, source, ordinal, out options);
-	}
-
-	private static bool TryCreateStableRandomForge(
-		Player player,
-		string source,
-		int ordinal,
-		int silverWeight,
-		int goldWeight,
-		int prismaticWeight,
-		out RelicModel? forge)
-	{
-		HextechRarityTier rarity = RollStableForgeRarity(player, source, ordinal, silverWeight, goldWeight, prismaticWeight);
-		return TryCreateStableRandomForge(player, rarity, source, ordinal, out forge);
 	}
 
 	private static bool TryCreateStableRandomForgeChoice(
@@ -225,33 +206,6 @@ internal static class HextechForgeGrantHelper
 	{
 		HextechRarityTier rarity = RollStableForgeRarity(player, source, ordinal, silverWeight, goldWeight, prismaticWeight);
 		return TryCreateStableRandomForgeChoice(player, rarity, source, ordinal, out options);
-	}
-
-	private static bool TryCreateStableRandomForge(Player player, HextechRarityTier rarity, string source, int ordinal, out RelicModel? forge)
-	{
-		List<Type> pool = BuildAvailableForgePool(player, HextechCatalog.GetForgeTypesForRarity(rarity));
-		if (pool.Count == 0)
-		{
-			pool = BuildAvailableForgePool(player, HextechCatalog.GetAllForgeTypes());
-		}
-
-		if (pool.Count == 0)
-		{
-			forge = null;
-			return false;
-		}
-
-		Type forgeType = HextechStableRandom.Pick(
-			pool,
-			(RunState)player.RunState,
-			HextechStableRandom.TypeModelKey,
-			source,
-			HextechStableRandom.PlayerKey(player),
-			ordinal.ToString(),
-			((int)rarity).ToString(),
-			player.Relics.Count.ToString());
-		forge = ModelDb.GetById<RelicModel>(ModelDb.GetId(forgeType)).ToMutable();
-		return true;
 	}
 
 	private static bool TryCreateStableRandomForgeChoice(Player player, HextechRarityTier rarity, string source, int ordinal, out List<RelicModel> options)

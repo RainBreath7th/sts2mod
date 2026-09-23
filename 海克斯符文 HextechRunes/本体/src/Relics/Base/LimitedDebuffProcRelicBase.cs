@@ -6,6 +6,7 @@ public abstract class LimitedDebuffProcRelicBase : HextechRelicBase
 {
 	private int _procsThisTurn;
 
+	// 无上限的子类不再写入这个计数，但属性本身保留：它在 SavedProperty 清单里，删掉会改变保存与联机布局。
 	[SavedProperty(SerializationCondition.SaveIfNotTypeDefault)]
 	public int SavedProcsThisTurn
 	{
@@ -24,9 +25,15 @@ public abstract class LimitedDebuffProcRelicBase : HextechRelicBase
 
 	protected virtual int MaxProcsPerTurn => 3;
 
-	public override bool ShowCounter => CombatManager.Instance?.IsInProgress == true && !IsCanonical;
+	/// <summary>false = 不限每回合次数，也不显示剩余次数。</summary>
+	protected virtual bool HasTurnLimit => true;
 
-	public override int DisplayAmount => !IsCanonical ? Math.Max(0, MaxProcsPerTurn - GetTurnProcCount(GetProcKey(), _procsThisTurn)) : 0;
+	/// <summary>true = 监听持有者自己收到的负面效果（来源不限）；false = 监听持有者给敌人施加的负面效果。</summary>
+	protected virtual bool ListensToOwnerDebuffs => false;
+
+	public override bool ShowCounter => HasTurnLimit && CombatManager.Instance?.IsInProgress == true && !IsCanonical;
+
+	public override int DisplayAmount => HasTurnLimit && !IsCanonical ? Math.Max(0, MaxProcsPerTurn - GetTurnProcCount(GetProcKey(), _procsThisTurn)) : 0;
 
 	public override Task BeforeCombatStart()
 	{
@@ -52,24 +59,37 @@ public abstract class LimitedDebuffProcRelicBase : HextechRelicBase
 
 	public override async Task AfterPowerAmountChanged(PlayerChoiceContext choiceContext, PowerModel power, decimal amount, Creature? applier, CardModel? cardSource)
 	{
-		EnsureTurnScopedStateCurrent(ResetProcs);
-		string procKey = GetProcKey();
-		if (!TryGetOwnedEnemyDebuffTarget(power, amount, applier, out Creature? target)
-			|| HasTurnProcReachedLimit(procKey, _procsThisTurn, MaxProcsPerTurn))
+		if (HasTurnLimit)
+		{
+			EnsureTurnScopedStateCurrent(ResetProcs);
+		}
+
+		Creature? target;
+		bool matched = ListensToOwnerDebuffs
+			? TryGetOwnerReceivedDebuff(power, amount, out target)
+			: TryGetOwnedEnemyDebuffTarget(power, amount, applier, out target);
+		if (!matched)
 		{
 			return;
 		}
 
-		if (!TryConsumeTurnProc(procKey, ref _procsThisTurn, MaxProcsPerTurn))
+		if (HasTurnLimit)
 		{
-			return;
+			string procKey = GetProcKey();
+			if (HasTurnProcReachedLimit(procKey, _procsThisTurn, MaxProcsPerTurn)
+				|| !TryConsumeTurnProc(procKey, ref _procsThisTurn, MaxProcsPerTurn))
+			{
+				return;
+			}
+
+			UpdateDisplay();
 		}
 
-		UpdateDisplay();
 		Flash(target == null ? Array.Empty<Creature>() : [target]);
 		await OnEnemyDebuffApplied(target!);
 	}
 
+	/// <summary>触发回调。监听敌方时 target 是收到负面效果的敌人；监听自身时 target 是持有者。</summary>
 	protected abstract Task OnEnemyDebuffApplied(Creature target);
 
 	private void ResetProcs()
@@ -86,7 +106,7 @@ public abstract class LimitedDebuffProcRelicBase : HextechRelicBase
 
 	private void UpdateDisplay()
 	{
-		Status = GetTurnProcCount(GetProcKey(), _procsThisTurn) == MaxProcsPerTurn - 1 ? RelicStatus.Active : RelicStatus.Normal;
+		Status = HasTurnLimit && GetTurnProcCount(GetProcKey(), _procsThisTurn) == MaxProcsPerTurn - 1 ? RelicStatus.Active : RelicStatus.Normal;
 		InvokeDisplayAmountChanged();
 	}
 

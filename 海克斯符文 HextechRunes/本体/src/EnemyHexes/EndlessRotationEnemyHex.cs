@@ -18,7 +18,14 @@ internal sealed class EndlessRotationEnemyHex : HextechEnemyHexEffect
 			{
 				// 整回合叠加，打出再返回手牌不清除；由原版回合结束清理。
 				card.EnergyCost.AddThisTurn(1);
-				card.InvokeEnergyCostChanged();
+				try
+				{
+					card.InvokeEnergyCostChanged();
+				}
+				catch (Exception ex)
+				{
+					Log.Warn($"[{ModInfo.Id}][EndlessRotation] Cost visual refresh failed: {ex.Message}");
+				}
 			}
 		}
 		return Task.CompletedTask;

@@ -129,15 +129,22 @@ public sealed class HextechDragonSoulPower : PowerModel
 
 	public override PowerStackType StackType => PowerStackType.Counter;
 
-	public override Task AfterEnergyResetLate(Player player)
+	public override async Task AfterEnergyResetLate(Player player)
 	{
 		if (player.Creature != Owner || Amount <= 0m || !Owner.IsAlive)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
-		Flash();
-		return PlayerCmd.GainEnergy(Amount, player);
+		await PlayerCmd.GainEnergy(Amount, player);
+		try
+		{
+			Flash();
+		}
+		catch (Exception ex)
+		{
+			Log.Warn($"[{ModInfo.Id}][DragonSoul] Flash failed: {ex.Message}");
+		}
 	}
 }
 

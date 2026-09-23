@@ -150,13 +150,13 @@ public sealed partial class DoubleVisionRune
 		CopyWaxState(sourceRelic, copy);
 		RelicModel obtained = await RunWithCommandDuplicationSuppressed(
 			() => RelicCmd.Obtain(copy, player));
-		if (LocalContext.IsMe(player))
-		{
-			Flash();
-		}
 		if (syncReward)
 		{
 			TrySyncObtainedRelic(obtained);
+		}
+		if (LocalContext.IsMe(player))
+		{
+			Flash();
 		}
 	}
 

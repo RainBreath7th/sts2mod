@@ -2,7 +2,9 @@ namespace HextechRunes;
 
 public sealed class PiggyBankRune : HextechRelicBase, IHextechSharedCombatVictoryRune
 {
+	// 仅保留旧存档尚未领取的战后奖励；新的触发直接发放金币。
 	private int _counter;
+	private bool _grantingGold;
 
 	[SavedProperty(SerializationCondition.SaveIfNotTypeDefault)]
 	public int SavedCounter
@@ -17,7 +19,7 @@ public sealed class PiggyBankRune : HextechRelicBase, IHextechSharedCombatVictor
 
 	public override bool HasUponPickupEffect => true;
 
-	public override bool ShowCounter => CombatManager.Instance?.IsInProgress == true && !IsCanonical;
+	public override bool ShowCounter => CombatManager.Instance?.IsInProgress == true && !IsCanonical && _counter > 0;
 
 	public override int DisplayAmount => _counter;
 
@@ -29,7 +31,7 @@ public sealed class PiggyBankRune : HextechRelicBase, IHextechSharedCombatVictor
 
 	public override Task AfterObtained()
 	{
-		return Owner == null ? Task.CompletedTask : PlayerCmd.GainGold(DynamicVars.Gold.BaseValue, Owner);
+		return Owner == null ? Task.CompletedTask : GrantGold(DynamicVars.Gold.BaseValue);
 	}
 
 	public override Task BeforeCombatStart()
@@ -46,16 +48,30 @@ public sealed class PiggyBankRune : HextechRelicBase, IHextechSharedCombatVictor
 		Creature? dealer,
 		CardModel? cardSource)
 	{
-		if (Owner == null
+		if (_grantingGold
+			|| Owner == null
 			|| target != Owner.Creature
 			|| result.UnblockedDamage <= 0m)
 		{
 			return Task.CompletedTask;
 		}
 
-		SavedCounter += DynamicVars["CounterGain"].IntValue;
 		Flash();
-		return Task.CompletedTask;
+		return GrantGold(DynamicVars["CounterGain"].IntValue);
+	}
+
+	private async Task GrantGold(decimal amount)
+	{
+		// 鲜血神像会在获得金币时造成伤害；拾取奖励同样必须覆盖这条反馈链。
+		_grantingGold = true;
+		try
+		{
+			await PlayerCmd.GainGold(amount, Owner);
+		}
+		finally
+		{
+			_grantingGold = false;
+		}
 	}
 
 	public override Task AfterCombatVictory(CombatRoom room)

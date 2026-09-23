@@ -5,6 +5,12 @@ public sealed class RedEnvelopeRune : HextechRelicBase, IHextechSharedCombatVict
 	internal const int BaseForgeChance = 25;
 	internal const int ForgeChanceStep = 5;
 
+	protected override IEnumerable<DynamicVar> CanonicalVars =>
+	[
+		new DynamicVar("BaseForgeChance", BaseForgeChance),
+		new DynamicVar("ForgeChanceStep", ForgeChanceStep)
+	];
+
 	// 锻造器那一侧走药水掉落式动态掉率:掉一次降 5%,没掉一次升 5%;剩余概率给金币。只存相对 25% 的偏移。
 	private int _forgeChanceOffset;
 

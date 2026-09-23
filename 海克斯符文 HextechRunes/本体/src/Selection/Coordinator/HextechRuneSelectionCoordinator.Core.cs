@@ -254,16 +254,27 @@ internal static partial class HextechRuneSelectionCoordinator
 		}
 		finally
 		{
-			if (reopenMapAfterSelection
-				&& IsCurrentRun(runState)
-				&& NMapScreen.Instance != null
-				&& !NMapScreen.Instance.IsOpen)
+			// 地图 UI 是表现层,它抛错不能阻断闸门释放;否则本局后续所有进入都会被 IsHandling 挡住。
+			try
 			{
-				HextechLog.Info($"[{ModInfo.Id}][Mayhem] HandleHextechActSelection: reopening map after selection overlay");
-				NMapScreen.Instance.Open();
+				if (reopenMapAfterSelection
+					&& IsCurrentRun(runState)
+					&& NMapScreen.Instance != null
+					&& !NMapScreen.Instance.IsOpen)
+				{
+					HextechLog.Info($"[{ModInfo.Id}][Mayhem] HandleHextechActSelection: reopening map after selection overlay");
+					NMapScreen.Instance.Open();
+				}
+			}
+			catch (Exception ex)
+			{
+				Log.Error($"[{ModInfo.Id}][Mayhem] HandleHextechActSelection: reopening map failed act={actIndex}: {ex}");
+			}
+			finally
+			{
+				ActSelectionGate.ExitIfCurrent(runState);
 			}
 
-			ActSelectionGate.ExitIfCurrent(runState);
 			HextechLog.Info($"[{ModInfo.Id}][Mayhem] HandleHextechActSelection exit: act={actIndex}");
 		}
 	}

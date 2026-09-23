@@ -1,7 +1,7 @@
 {
   "HEXTECH_VITAL_SPARK_POWER.title": "Chispa vital",
-  "HEXTECH_VITAL_SPARK_POWER.description": "Tus Habilidades obtienen [gold]Contaminación[/gold] igual a las acumulaciones de este efecto.",
-  "HEXTECH_VITAL_SPARK_POWER.smartDescription": "Tus Habilidades obtienen [blue]{Amount}[/blue] de [gold]Contaminación[/gold].",
+  "HEXTECH_VITAL_SPARK_POWER.description": "Tus Habilidades obtienen [gold]Impureza[/gold] igual a las acumulaciones de este efecto.",
+  "HEXTECH_VITAL_SPARK_POWER.smartDescription": "Tus Habilidades obtienen [blue]{Amount}[/blue] de [gold]Impureza[/gold].",
   "HEXTECH_BURN_POWER.title": "Quemadura",
   "HEXTECH_BURN_POWER.description": "Inflige daño equivalente a esta cantidad por ciento de PV actual, con un mínimo igual a esta cantidad. Luego la quemadura se reduce en [blue]10%[/blue].",
   "HEXTECH_BURN_POWER.smartDescription": "Inflige daño equivalente a [blue]{Amount}%[/blue] de PV actual, con un mínimo de [blue]{Amount}[/blue]. Luego la quemadura se reduce en [blue]10%[/blue].",
@@ -36,5 +36,11 @@
   "HEXTECH_RUNE_DEMON_FORM_PREVIEW.description": "Al comienzo de tu turno, gana [blue]1[/blue] [gold]Fuerza[/gold].",
   "HEXTECH_GALVANIC_POWER.title": "Galvanismo",
   "HEXTECH_GALVANIC_POWER.description": "Los cartas de Poder obtienen la aflicción [gold]Galvanismo[/gold].",
-  "HEXTECH_GALVANIC_POWER.smartDescription": "Los cartas de Poder obtienen la aflicción [gold]{AfflictionTitle}[/gold]."
+  "HEXTECH_GALVANIC_POWER.smartDescription": "Los cartas de Poder obtienen la aflicción [gold]{AfflictionTitle}[/gold].",
+  "HEXTECH_HANG_POWER.title": "Ahorcar",
+  "HEXTECH_HANG_POWER.description": "Todo el daño recibido se multiplica por las acumulaciones.",
+  "HEXTECH_HANG_POWER.smartDescription": "Todo el daño recibido se multiplica por [blue]{Amount}[/blue].",
+  "HEXTECH_NEUROSURGE_POWER.title": "Sobrecarga neuronal",
+  "HEXTECH_NEUROSURGE_POWER.description": "Al comienzo de tu turno, aplica [gold]Condena[/gold] igual a la cantidad de este poder a TODOS los enemigos.",
+  "HEXTECH_NEUROSURGE_POWER.smartDescription": "Al comienzo de tu turno, aplica [blue]{Amount}[/blue] de [gold]Condena[/gold] a TODOS los enemigos."
 }

@@ -44,7 +44,7 @@ internal static class SponsorCatalog
 	[
 		(typeof(StarlightSparkleRune), HextechRarityTier.Gold, "COMPREHENSIVE"),
 		(typeof(CosplayRune), HextechRarityTier.Prismatic, "COMPREHENSIVE"),
-		(typeof(OtterAndFriendsRune), HextechRarityTier.Prismatic, "COMPREHENSIVE"),
+		(typeof(OtterAndFriendsRune), HextechRarityTier.Prismatic, "MULTIPLAYER"),
 		(typeof(RegretRune), HextechRarityTier.Prismatic, "SURVIVAL"),
 		(typeof(GastritisRune), HextechRarityTier.Prismatic, "OUTPUT"),
 		(typeof(EnchantmentMasterRune), HextechRarityTier.Prismatic, "COMPREHENSIVE"),

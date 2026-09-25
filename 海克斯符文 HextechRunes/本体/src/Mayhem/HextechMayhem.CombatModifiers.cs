@@ -85,27 +85,32 @@ internal sealed partial class HextechMayhemModifier
 	{
 		modifiedCost = originalCost;
 		if (card.Owner?.Creature.Side != CombatSide.Player
-			|| !IllusoryWeaponRune.IsAttackForEffects(card, card.Owner)
-			|| card.Pile?.Type != PileType.Hand
 			|| card.EnergyCost.CostsX
-			|| originalCost <= 0m
 			|| card.Owner.Creature.CombatState?.RunState != RunState)
 		{
 			return false;
 		}
 
-		decimal multiplier = HextechEnemyHexDispatcher.Transform(
+		// 基础费用增量先加:它已按临时定费折算,所以免费打出类的本回合 0 费不会被加回来。
+		int baseIncrease = HextechEnemyHexDispatcher.Transform(
 			this,
-			1m,
-			(effect, context, current) => current * effect.ModifyPlayerAttackEnergyCostMultiplier(context, card, originalCost));
+			0,
+			(effect, context, current) => current + effect.GetBaseEnergyCostIncrease(context, card));
+		decimal cost = originalCost + baseIncrease;
 
-		if (multiplier == 1m)
+		if (IllusoryWeaponRune.IsAttackForEffects(card, card.Owner)
+			&& card.Pile?.Type == PileType.Hand
+			&& originalCost > 0m)
 		{
-			return false;
+			decimal multiplier = HextechEnemyHexDispatcher.Transform(
+				this,
+				1m,
+				(effect, context, current) => current * effect.ModifyPlayerAttackEnergyCostMultiplier(context, card, originalCost));
+			cost *= multiplier;
 		}
 
-		modifiedCost = originalCost * multiplier;
-		return true;
+		modifiedCost = cost;
+		return cost != originalCost;
 	}
 
 	public override bool TryModifyEnergyCostInCombatLate(CardModel card, decimal originalCost, out decimal modifiedCost)

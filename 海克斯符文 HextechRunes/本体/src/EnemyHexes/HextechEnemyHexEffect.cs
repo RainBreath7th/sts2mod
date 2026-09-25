@@ -66,9 +66,26 @@ internal abstract class HextechEnemyHexEffect
 		return true;
 	}
 
+	/// <summary>给该敌人的命中计数 +1,返回这一次是否恰好凑满一个阈值(每满 threshold 次返回一次 true)。</summary>
+	internal static bool ReachesHitThreshold(Dictionary<uint, int> counters, uint combatId, int threshold)
+	{
+		int hits = counters.GetValueOrDefault(combatId, 0) + 1;
+		counters[combatId] = hits;
+		return threshold > 0 && hits % threshold == 0;
+	}
+
 	internal virtual decimal ModifyPlayerAttackEnergyCostMultiplier(HextechEnemyHexContext context, CardModel card, decimal originalCost)
 	{
 		return 1m;
+	}
+
+	/// <summary>
+	/// 视同加在卡牌基础费用上的增量(优先级最低):本回合/直到打出的临时定费会覆盖它,
+	/// 常规阶段排在它之前的遗物/能力减费仍叠加,Late 阶段的定费与下限最后生效。返回的是已折算临时修正后的实际增量。
+	/// </summary>
+	internal virtual int GetBaseEnergyCostIncrease(HextechEnemyHexContext context, CardModel card)
+	{
+		return 0;
 	}
 
 	internal virtual decimal ModifyEnergyCostInCombatLate(HextechEnemyHexContext context, CardModel card, decimal cost)

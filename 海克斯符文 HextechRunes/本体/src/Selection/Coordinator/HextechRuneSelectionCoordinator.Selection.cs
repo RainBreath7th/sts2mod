@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.GameActions;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
 using static HextechRunes.HextechSelectionHelpers;
 
@@ -22,8 +23,7 @@ internal static partial class HextechRuneSelectionCoordinator
 		{
 			MarkRelicsSeen(options);
 			modifier.RecordSeenPlayerRunes(player, options);
-			HashSet<ModelId> seenOptionIds = CreateSeenOptionIds(options, monsterHexRelic, modifier.GetSeenPlayerRuneIds(player));
-			AddMonsterHexIconIds(seenOptionIds, GetEnemyHexesExcludedFromPlayerRerolls(enemyHexOptions));
+			HashSet<ModelId> seenOptionIds = CreateSeenOptionIds(options, modifier.GetSeenPlayerRuneIds(player));
 			HextechGoldenRerollSession goldenReroll = CreateGoldenRerollSession(
 				modifier,
 				player,
@@ -55,8 +55,7 @@ internal static partial class HextechRuneSelectionCoordinator
 		{
 			MarkRelicsSeen(options);
 			modifier.RecordSeenPlayerRunes(player, options);
-			HashSet<ModelId> seenOptionIds = CreateSeenOptionIds(options, monsterHexRelic, modifier.GetSeenPlayerRuneIds(player));
-			AddMonsterHexIconIds(seenOptionIds, GetEnemyHexesExcludedFromPlayerRerolls(enemyHexOptions));
+			HashSet<ModelId> seenOptionIds = CreateSeenOptionIds(options, modifier.GetSeenPlayerRuneIds(player));
 			HextechGoldenRerollSession goldenReroll = CreateGoldenRerollSession(
 				modifier,
 				player,
@@ -146,8 +145,7 @@ internal static partial class HextechRuneSelectionCoordinator
 		{
 			MarkRelicsSeen(selection.Options);
 			modifier.RecordSeenPlayerRunes(selection.Player, selection.Options);
-			HashSet<ModelId> seenOptionIds = CreateSeenOptionIds(selection.Options, monsterHexRelic, modifier.GetSeenPlayerRuneIds(selection.Player));
-			AddMonsterHexIconIds(seenOptionIds, GetEnemyHexesExcludedFromPlayerRerolls(enemyHexOptions));
+			HashSet<ModelId> seenOptionIds = CreateSeenOptionIds(selection.Options, modifier.GetSeenPlayerRuneIds(selection.Player));
 			HextechGoldenRerollSession goldenReroll = CreateGoldenRerollSession(
 				modifier,
 				selection.Player,
@@ -253,7 +251,8 @@ internal static partial class HextechRuneSelectionCoordinator
 		string? titleOverride = null,
 		HextechGoldenRerollSession? goldenRerollSession = null,
 		CancellationToken cancellationToken = default,
-		IReadOnlyList<RelicModel>? selfPickPool = null)
+		IReadOnlyList<RelicModel>? selfPickPool = null,
+		bool continueOnly = false)
 	{
 		await WaitForSingletonAsync(static () => NOverlayStack.Instance, cancellationToken: cancellationToken);
 		HextechRuneSelectionScreen selectionScreen = HextechRuneSelectionScreen.Create(
@@ -264,7 +263,8 @@ internal static partial class HextechRuneSelectionCoordinator
 			playerRuneRerollLimit,
 			titleOverride,
 			goldenRerollSession: goldenRerollSession,
-			selfPickPool: selfPickPool);
+			selfPickPool: selfPickPool,
+			continueOnly: continueOnly);
 		if (NOverlayStack.Instance == null)
 		{
 			throw new InvalidOperationException("NOverlayStack is not available for rune selection.");
@@ -273,6 +273,37 @@ internal static partial class HextechRuneSelectionCoordinator
 		NOverlayStack.Instance.Push(selectionScreen);
 		enemyHexOptions?.ScreenCreated?.Invoke(selectionScreen);
 		return selectionScreen;
+	}
+
+	/// <summary>
+	/// 本稀有度已无任何可选海克斯(未见的和见过没选的都抽完、其余全部拥有/互斥/禁用):只给说明和"继续"按钮。
+	/// 纯本机界面,不抽取、不同步、不发放;联机时各端对"无候选"的判断一致,不需要额外协议。
+	/// </summary>
+	private static async Task ShowNoRuneOptionsScreenAsync(CancellationToken cancellationToken = default)
+	{
+		HextechRuneSelectionScreen? screen = null;
+		try
+		{
+			screen = await CreateRuneSelectionScreenAsync(
+				[],
+				null,
+				titleOverride: new LocString("relic_collection", "HEXTECH_NO_RUNE_OPTIONS_TITLE").GetRawText(),
+				cancellationToken: cancellationToken,
+				continueOnly: true);
+			// 联机批次被取消(断线、换局)时不能一直等玩家点继续。
+			Task completed = await Task.WhenAny(
+				screen.RelicsSelected(removeOverlay: false),
+				Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken));
+			cancellationToken.ThrowIfCancellationRequested();
+			await completed;
+		}
+		finally
+		{
+			if (screen != null)
+			{
+				await screen.DismissAfterSelectionComplete();
+			}
+		}
 	}
 
 	private static async Task<RuneSelectionResult> SelectRuneWithLocalScreen(
@@ -287,8 +318,7 @@ internal static partial class HextechRuneSelectionCoordinator
 	{
 		MarkRelicsSeen(options);
 		modifier.RecordSeenPlayerRunes(player, options);
-		HashSet<ModelId> seenOptionIds = CreateSeenOptionIds(options, monsterHexRelic, modifier.GetSeenPlayerRuneIds(player));
-		AddMonsterHexIconIds(seenOptionIds, GetEnemyHexesExcludedFromPlayerRerolls(enemyHexOptions));
+		HashSet<ModelId> seenOptionIds = CreateSeenOptionIds(options, modifier.GetSeenPlayerRuneIds(player));
 		HextechRuneSelectionScreen screen = await CreateRuneSelectionScreenAsync(
 			options,
 			monsterHexRelic,
@@ -426,18 +456,6 @@ internal static partial class HextechRuneSelectionCoordinator
 	{
 		await task.WaitAsync(cancellationToken);
 		await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
-	}
-
-	private static IEnumerable<MonsterHexKind>? GetEnemyHexesExcludedFromPlayerRerolls(HextechEnemyHexAdjustmentOptions? enemyHexOptions)
-	{
-		if (enemyHexOptions == null)
-		{
-			return null;
-		}
-
-		return enemyHexOptions.ExcludedHexes.Count > 0
-			? enemyHexOptions.ExcludedHexes
-			: enemyHexOptions.InitialHexes;
 	}
 
 	private static bool TryCreateSyncedRuneOptions(

@@ -127,9 +127,9 @@ internal static class HextechPlayerRuneRegistry
 		Rune<LoopRune>(HextechRarityTier.Gold, tagKey: "RESOURCE"),
 		Rune<VitalitySurgeRune>(HextechRarityTier.Gold, tagKey: "RESOURCE"),
 		Rune<OkBoomerangRune>(HextechRarityTier.Gold, flags: PlayerRuneFlags.Disabled, tagKey: "OUTPUT"),
-		Rune<DivineInterventionRune>(HextechRarityTier.Gold, tagKey: "SURVIVAL"),
-		Rune<SonataRune>(HextechRarityTier.Gold, tagKey: "COMPREHENSIVE"),
-		Rune<OurHealingRune>(HextechRarityTier.Gold, tagKey: "SURVIVAL"),
+		Rune<DivineInterventionRune>(HextechRarityTier.Gold, tagKey: "MULTIPLAYER"),
+		Rune<SonataRune>(HextechRarityTier.Gold, tagKey: "MULTIPLAYER"),
+		Rune<OurHealingRune>(HextechRarityTier.Gold, tagKey: "MULTIPLAYER"),
 		Rune<ArchmageRune>(HextechRarityTier.Gold, tagKey: "RESOURCE"),
 		Rune<NatureIsHealingRune>(HextechRarityTier.Gold, tagKey: "SURVIVAL"),
 		Rune<PorcupineRune>(HextechRarityTier.Gold, flags: PlayerRuneFlags.Disabled, tagKey: "SURVIVAL"),
@@ -203,7 +203,7 @@ internal static class HextechPlayerRuneRegistry
 		Rune<VoidFormUpgradeRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Regent, characterOrder: 19, tagKey: "COMPREHENSIVE"),
 		Rune<EchoFormUpgradeRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Defect, characterOrder: 21, tagKey: "COMPREHENSIVE"),
 		Rune<SerpentFormUpgradeRune>(HextechRarityTier.Prismatic, characterPool: PlayerRuneCharacterPool.Silent, characterOrder: 19, tagKey: "COMPREHENSIVE"),
-		Rune<DemonFormUpgradeRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Ironclad, characterOrder: 20, tagKey: "COMPREHENSIVE"),
+		Rune<DemonFormUpgradeRune>(HextechRarityTier.Prismatic, characterPool: PlayerRuneCharacterPool.Ironclad, characterOrder: 20, tagKey: "COMPREHENSIVE"),
 		Rune<ReaperFormUpgradeRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Necrobinder, characterOrder: 23, tagKey: "COMPREHENSIVE"),
 		Rune<SwordFlightRune>(HextechRarityTier.Gold, flags: PlayerRuneFlags.Disabled, characterPool: PlayerRuneCharacterPool.Regent, characterOrder: 13, tagKey: "COMPREHENSIVE"),
 		Rune<ElectrodynamicsRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Defect, characterOrder: 15, tagKey: "ORB"),
@@ -377,7 +377,10 @@ internal static class HextechPlayerRuneRegistry
 		Rune<RebootUpgradeRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Defect, characterOrder: 38, tagKey: "DRAW"),
 		Rune<SmokestackUpgradeRune>(HextechRarityTier.Gold, characterPool: PlayerRuneCharacterPool.Defect, characterOrder: 39, tagKey: "STATUS"),
 		Rune<RoyaltiesUpgradeRune>(HextechRarityTier.Prismatic, characterPool: PlayerRuneCharacterPool.Regent, characterOrder: 34, tagKey: "ECONOMY"),
-		Rune<VakuuMockeryRune>(HextechRarityTier.Gold, tagKey: "RANDOM")
+		Rune<VakuuMockeryRune>(HextechRarityTier.Gold, tagKey: "RANDOM"),
+		Rune<DiveBomberRune>(HextechRarityTier.Silver, tagKey: "MULTIPLAYER"),
+		Rune<AllForYouRune>(HextechRarityTier.Gold, tagKey: "MULTIPLAYER"),
+		Rune<BlossomBladeRune>(HextechRarityTier.Prismatic, tagKey: "MULTIPLAYER")
 	];
 
 	private static PlayerRuneRegistration Rune<TRune>(

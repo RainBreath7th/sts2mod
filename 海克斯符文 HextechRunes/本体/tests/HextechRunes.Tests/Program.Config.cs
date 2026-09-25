@@ -431,6 +431,16 @@ internal static partial class Program
 		Equal(0, context.CombatTracking.EnemyProtectiveVeilTurnCounter, "endless reset should clear combat tracking");
 	}
 
+	// "已见"只存条目名;还原出的 ID 必须和候选池里遗物的真实 ID 相等,否则跨幕排除永远匹配不上。
+	private static void SeenRuneIdsRoundTripToRealRelicIds()
+	{
+		RelicModel rune = CreateMutableTestModel<BigStrengthRune>();
+		ModelId realId = rune.CanonicalInstance?.Id ?? rune.Id;
+		Equal(realId, HextechMayhemChoiceHistoryState.ToSeenRelicId(realId.Entry), "seen entry restores to the pool's relic id");
+		Expect(new HashSet<ModelId> { HextechMayhemChoiceHistoryState.ToSeenRelicId(realId.Entry) }.Contains(realId),
+			"seen exclusion set matches candidates by id");
+	}
+
 	private static void MayhemActStateSupportsExtraActsAndStableExtraStageIds()
 	{
 		HextechMayhemActState state = new();

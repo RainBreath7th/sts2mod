@@ -40,6 +40,12 @@ internal static class HextechRunePoolBuilder
 		bool useEndlessTagWindow = false)
 	{
 		List<RelicModel> pool = BuildSelectableRunePool(player, rarity, runState, excludedIds);
+		if (pool.Count == 0 && excludedIds is { Count: > 0 })
+		{
+			// 未见过的已经抽完:改从见过但没选的里抽(仍排除已拥有/互斥/禁用),与联机的稳定生成同一口径。
+			pool = BuildSelectableRunePool(player, rarity, runState, null);
+		}
+
 		Dictionary<string, int> tagCounts = BuildOwnedRuneTagCounts(player, useEndlessTagWindow);
 
 		List<RelicModel> options = [];

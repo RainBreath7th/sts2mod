@@ -2,7 +2,9 @@ namespace HextechRunes;
 
 public sealed class BlueCandleMedkitRune : HextechRelicBase
 {
-	public override bool TryModifyEnergyCostInCombat(CardModel card, decimal originalCost, out decimal modifiedCost)
+	// 0 费放在 Late 阶段:要盖过常规阶段里敌方蓝烛药箱的基础费用 +1(敌方修饰器在监听顺序里排在遗物之后,
+	// 常规阶段先设 0 会被它加回 1)。同在 Late 的敌方开悟排在遗物之后,1 费下限仍优先。
+	public override bool TryModifyEnergyCostInCombatLate(CardModel card, decimal originalCost, out decimal modifiedCost)
 	{
 		modifiedCost = originalCost;
 		if (!CanAffect(card) || card.EnergyCost.CostsX)

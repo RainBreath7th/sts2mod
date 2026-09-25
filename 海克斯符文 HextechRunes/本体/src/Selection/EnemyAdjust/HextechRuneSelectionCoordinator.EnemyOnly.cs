@@ -11,7 +11,8 @@ internal static partial class HextechRuneSelectionCoordinator
 
 	private static async Task<IReadOnlyList<MonsterHexKind>> SelectEnemyHexesOnly(
 		RunState runState, HextechMayhemModifier modifier, int actIndex, HextechRarityTier rarity,
-		IReadOnlyList<MonsterHexKind> previousHexes, IReadOnlyList<MonsterHexKind> newHexes)
+		IReadOnlyList<MonsterHexKind> previousHexes, IReadOnlyList<MonsterHexKind> newHexes,
+		string? titleOverride = null)
 	{
 		RunManager manager = RunManager.Instance;
 		EnemyHexAdjustmentSyncContext? sync = null;
@@ -32,13 +33,12 @@ internal static partial class HextechRuneSelectionCoordinator
 			HextechEnemyHexAdjustmentOptions options = new()
 			{
 				InitialHexes = newHexes,
-				ExcludedHexes = CombineMonsterHexes(previousHexes, newHexes),
 				RerollLimit = modifier.MonsterHexRerollLimit,
 				ControlsEnabled = authority,
 				RerollFunc = authority
 					? (hexes, slot, ordinal) => RerollEnemyHexForAct(modifier, rarity, runState, actIndex,
 						GetMonsterHexSlot(hexes, slot), ordinal,
-						CreateEnemyHexRerollExcludedIds(new HashSet<ModelId>(), hexes, slot), seenHexes)
+						CreateEnemyHexRerollExcludedIds(hexes, slot), seenHexes)
 					: null,
 				Changed = authority && sync != null
 					? (hexes, counts) => SendEnemyHexAdjustment(sync, hexes, counts, isFinal: false)
@@ -49,7 +49,7 @@ internal static partial class HextechRuneSelectionCoordinator
 			};
 			// 空的玩家候选只显示敌方调整和确认，不抽取、同步或发放虚拟的玩家遗物。
 			screen = await CreateRuneSelectionScreenAsync([], null, enemyHexOptions: options,
-				titleOverride: new LocString("relic_collection", "HEXTECH_ENEMY_PREVIEW_LABEL").GetRawText(),
+				titleOverride: titleOverride ?? new LocString("relic_collection", "HEXTECH_ENEMY_PREVIEW_LABEL").GetRawText(),
 				cancellationToken: cancellation.Token);
 			if (!authority)
 			{

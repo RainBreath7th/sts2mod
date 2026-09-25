@@ -82,6 +82,9 @@ internal static class HextechPlayerCoefficientHelper
 			multiplier *= nineDragonPowerRune.SustainMultiplier;
 		}
 
+		// 全心为你是全队效果,按全队存活持有者计,不只看自己的遗物。
+		multiplier *= AllForYouRune.GetTeamHealingMultiplier(player);
+
 		foreach (RelicModel relic in player.Relics)
 		{
 			if (relic is not IHextechHealingMultiplierProvider provider)
@@ -132,7 +135,8 @@ internal static class HextechPlayerCoefficientHelper
 		return MultiplyRelicModifiers(
 			player,
 			"block",
-			static (relic, owner) => relic.ModifyBlockMultiplicative(owner.Creature, 1m, ValueProp.Unpowered, null, null));
+			static (relic, owner) => relic.ModifyBlockMultiplicative(owner.Creature, 1m, ValueProp.Unpowered, null, null))
+			* AllForYouRune.GetBlockMultiplierFromTeammates(player);
 	}
 
 	private static decimal MultiplyRelicModifiers(

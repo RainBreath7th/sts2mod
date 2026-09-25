@@ -3,6 +3,9 @@ namespace HextechRunes;
 public sealed class KingdomArmyRune : HextechRelicBase
 {
 	private int _generatedMinionsThisCombat;
+	// 生成仆从牌期间嵌套进来的铸造不再生成。否则与凝辉(生成牌→辉星)、王令(辉星→铸造)构成无终点的循环,
+	// 遥测里三件同持的对局集中卡在拿到第三件后的第一场战斗。
+	private bool _generating;
 
 	protected override IEnumerable<IHoverTip> ExtraHoverTips =>
 	[
@@ -27,7 +30,7 @@ public sealed class KingdomArmyRune : HextechRelicBase
 
 	public override async Task AfterForge(decimal amount, Player forger, AbstractModel? source)
 	{
-		if (Owner == null || forger != Owner || amount <= 0m || Owner.Creature.IsDead
+		if (_generating || Owner == null || forger != Owner || amount <= 0m || Owner.Creature.IsDead
 			|| Owner.PlayerCombatState == null || Owner.Creature.CombatState is not HextechCombatState combatState)
 		{
 			return;
@@ -37,6 +40,14 @@ public sealed class KingdomArmyRune : HextechRelicBase
 		int ordinal = ConsumeCombatProcOrdinal(nameof(KingdomArmyRune), ref _generatedMinionsThisCombat);
 		CardModel card = HextechStableRandom.CreateMinionCard(combatState, Owner, "kingdom-army", ordinal);
 		Flash();
-		await HextechCardGeneration.AddGeneratedCardToCombat(card, PileType.Hand, addedByPlayer: true);
+		_generating = true;
+		try
+		{
+			await HextechCardGeneration.AddGeneratedCardToCombat(card, PileType.Hand, addedByPlayer: true);
+		}
+		finally
+		{
+			_generating = false;
+		}
 	}
 }

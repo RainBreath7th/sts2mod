@@ -79,7 +79,7 @@ internal sealed class HextechMayhemChoiceHistoryState
 		{
 			try
 			{
-				result.Add(new ModelId(ModInfo.Id, entry));
+				result.Add(ToSeenRelicId(entry));
 			}
 			catch (Exception ex)
 			{
@@ -88,6 +88,15 @@ internal sealed class HextechMayhemChoiceHistoryState
 		}
 
 		return result;
+	}
+
+	/// <summary>
+	/// 存档里只记条目名;还原时必须用遗物的真实分类(RELIC)。ModelId 是 record,分类不同就永远不相等——
+	/// 早期版本用模组名当分类,导致"已见"排除从未匹配上任何候选。
+	/// </summary>
+	internal static ModelId ToSeenRelicId(string entry)
+	{
+		return new ModelId(ModelId.SlugifyCategory<RelicModel>(), entry);
 	}
 
 	public void RecordSeenPlayerRunes(Player player, IEnumerable<RelicModel> relics, RunState runState)

@@ -99,14 +99,30 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		}
 
 		RebuildCards();
+		if (_continueOnly)
+		{
+			MegaLabel hint = new()
+			{
+				HorizontalAlignment = HorizontalAlignment.Center,
+				SizeFlagsHorizontal = SizeFlags.ExpandFill,
+				MaxFontSize = 24,
+				MinFontSize = 16
+			};
+			HextechUiTheme.ApplyDefaultMegaLabelTheme(hint);
+			hint.Modulate = new Color(0.88f, 0.92f, 0.97f, 0.86f);
+			hint.SetTextAutoSize(new LocString(LocTable, "HEXTECH_NO_RUNE_OPTIONS_HINT").GetRawText());
+			root.AddChild(hint);
+		}
+
 		if (_enemyOnly)
 		{
+			bool confirmEnabled = _enemyHexControlsEnabled || _continueOnly;
 			_enemyOnlyConfirm = CreateConfirmButton("EnemyOnlyConfirm", new Vector2(260f, 60f), out MegaLabel confirmLabel);
-			confirmLabel.SetTextAutoSize(new LocString(LocTable, "HEXTECH_ENEMY_CONFIRM").GetRawText());
-			_enemyOnlyConfirm.Disabled = !_enemyHexControlsEnabled;
+			confirmLabel.SetTextAutoSize(new LocString(LocTable, _continueOnly ? "HEXTECH_CONTINUE" : "HEXTECH_ENEMY_CONFIRM").GetRawText());
+			_enemyOnlyConfirm.Disabled = !confirmEnabled;
 			_enemyOnlyConfirm.Pressed += () =>
 			{
-				if (_enemyHexControlsEnabled && !IsSelectionConfirmGuardActive())
+				if (confirmEnabled && !IsSelectionConfirmGuardActive())
 				{
 					GetViewport()?.SetInputAsHandled();
 					CompleteEnemyOnlySelection();
@@ -150,7 +166,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		HextechUiTheme.ApplyDefaultMegaLabelTheme(_statusLabel);
 		_statusLabel.Modulate = new Color(0.88f, 0.92f, 0.97f, 0.82f);
 		root.AddChild(_statusLabel);
-		if (_enemyOnly && !_enemyHexControlsEnabled) ShowWaitingForRemotePlayers();
+		if (_enemyOnly && !_enemyHexControlsEnabled && !_continueOnly) ShowWaitingForRemotePlayers();
 	}
 
 	private void RebuildEnemyPreview()

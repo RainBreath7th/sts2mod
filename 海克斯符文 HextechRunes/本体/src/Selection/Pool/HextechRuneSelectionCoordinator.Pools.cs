@@ -52,25 +52,13 @@ internal static partial class HextechRuneSelectionCoordinator
 		return HextechRunePoolBuilder.CreateSelectableRuneOption(player, relic);
 	}
 
-	private static HashSet<ModelId> CreateBaseExcludedIds(HextechMayhemModifier modifier, Player player, RelicModel? monsterHexRelic)
+	// 玩家候选只排除本局已见过的符文。敌我同名不再互相回避:敌方持有的海克斯照样可以出现在玩家候选里。
+	private static HashSet<ModelId> CreateBaseExcludedIds(HextechMayhemModifier modifier, Player player)
 	{
-		HashSet<ModelId> excludedIds = modifier.GetSeenPlayerRuneIds(player);
-		if (monsterHexRelic != null)
-		{
-			excludedIds.Add(monsterHexRelic.CanonicalInstance?.Id ?? monsterHexRelic.Id);
-		}
-
-		return excludedIds;
+		return modifier.GetSeenPlayerRuneIds(player);
 	}
 
-	private static HashSet<ModelId> CreateBaseExcludedIds(HextechMayhemModifier modifier, Player player, IEnumerable<MonsterHexKind> monsterHexes)
-	{
-		HashSet<ModelId> excludedIds = modifier.GetSeenPlayerRuneIds(player);
-		AddMonsterHexIconIds(excludedIds, monsterHexes);
-		return excludedIds;
-	}
-
-	private static HashSet<ModelId> CreateSeenOptionIds(IEnumerable<RelicModel> options, RelicModel? monsterHexRelic, IEnumerable<ModelId>? alreadySeenIds = null)
+	private static HashSet<ModelId> CreateSeenOptionIds(IEnumerable<RelicModel> options, IEnumerable<ModelId>? alreadySeenIds = null)
 	{
 		HashSet<ModelId> seenOptionIds = options
 			.Select(static relic => relic.CanonicalInstance?.Id ?? relic.Id)
@@ -80,25 +68,7 @@ internal static partial class HextechRuneSelectionCoordinator
 			seenOptionIds.UnionWith(alreadySeenIds);
 		}
 
-		if (monsterHexRelic != null)
-		{
-			seenOptionIds.Add(monsterHexRelic.CanonicalInstance?.Id ?? monsterHexRelic.Id);
-		}
-
 		return seenOptionIds;
-	}
-
-	private static void AddMonsterHexIconIds(HashSet<ModelId> ids, IEnumerable<MonsterHexKind>? monsterHexes)
-	{
-		if (monsterHexes == null)
-		{
-			return;
-		}
-
-		foreach (MonsterHexKind monsterHex in monsterHexes)
-		{
-			ids.Add(GetMonsterHexIconRelicId(monsterHex));
-		}
 	}
 
 	private static MonsterHexKind? FirstMonsterHexOrNull(IEnumerable<MonsterHexKind>? monsterHexes)
@@ -116,16 +86,10 @@ internal static partial class HextechRuneSelectionCoordinator
 		return null;
 	}
 
-	private static HashSet<ModelId> CreateEnemyHexRerollExcludedIds(IEnumerable<RelicModel> options)
+	// 敌方重掷只避开同一界面上其他敌方槽位的海克斯,不看玩家候选。
+	private static HashSet<ModelId> CreateEnemyHexRerollExcludedIds(IReadOnlyList<MonsterHexKind?> currentMonsterHexes, int rerollSlotIndex)
 	{
-		return options
-			.Select(static relic => relic.CanonicalInstance?.Id ?? relic.Id)
-			.ToHashSet();
-	}
-
-	private static HashSet<ModelId> CreateEnemyHexRerollExcludedIds(IReadOnlySet<ModelId> baseExcludedIds, IReadOnlyList<MonsterHexKind?> currentMonsterHexes, int rerollSlotIndex)
-	{
-		HashSet<ModelId> excludedIds = baseExcludedIds.ToHashSet();
+		HashSet<ModelId> excludedIds = [];
 		for (int i = 0; i < currentMonsterHexes.Count; i++)
 		{
 			if (i != rerollSlotIndex && currentMonsterHexes[i].HasValue)

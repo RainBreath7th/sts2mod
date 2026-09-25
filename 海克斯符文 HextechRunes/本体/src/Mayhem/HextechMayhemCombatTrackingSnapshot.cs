@@ -54,7 +54,8 @@ internal sealed class CombatTrackingSnapshot
 	public Dictionary<ulong, int> NightstalkingPlayerCardsDrawnThisCombat { get; set; } = new();
 	public List<ulong> MindOverMatterPlayersTriggeredThisTurn { get; set; } = [];
 	public Dictionary<uint, int> EnemyPorcupineTemporaryThornsThisTurn { get; set; } = new();
-	public Dictionary<uint, int> EnemyPorcupineTriggersThisTurn { get; set; } = new();
+	public Dictionary<uint, int> EnemyPorcupineUnblockedHitsThisCombat { get; set; } = new();
+	public Dictionary<uint, int> EnemyHundredRefinementsUnblockedHitsThisCombat { get; set; } = new();
 	public List<ulong> VakuuControlledPlayersThisCombat { get; set; } = [];
 	public List<ulong> EightPennyGatePlayersTriggeredThisTurn { get; set; } = [];
 	public List<ulong> EightPennyGatePlayersTriggeredSecondThisTurn { get; set; } = [];

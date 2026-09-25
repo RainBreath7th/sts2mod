@@ -32,7 +32,6 @@ internal static partial class HextechRuneSelectionCoordinator
 		HextechRarityTier rarity,
 		IReadOnlyList<MonsterHexKind> activeMonsterHexes,
 		IReadOnlyList<MonsterHexKind> initialNewMonsterHexes,
-		IReadOnlySet<ModelId> enemyRerollExcludedIds,
 		EnemyHexAdjustmentSyncContext? syncContext,
 		PendingRuneSelection selection,
 		CancellationToken cancellationToken)
@@ -51,7 +50,6 @@ internal static partial class HextechRuneSelectionCoordinator
 			// 不能回退到 activeMonsterHexes(前几幕累积集),否则会把历史敌方海克斯一起显示(玩家实报);
 			// 本幕无新增时面板按空集隐藏。纯显示、不触发任何同步。
 			InitialHexes = syncContext?.CurrentMonsterHexes ?? initialNewMonsterHexes,
-			ExcludedHexes = activeMonsterHexes,
 			RerollLimit = modifier.MonsterHexRerollLimit,
 			ControlsEnabled = isAuthorityLocal,
 			RerollFunc = isAuthorityLocal
@@ -62,7 +60,7 @@ internal static partial class HextechRuneSelectionCoordinator
 					actIndex,
 					GetMonsterHexSlot(currentHexes, slotIndex),
 					rerollOrdinal,
-					CreateEnemyHexRerollExcludedIds(enemyRerollExcludedIds, currentHexes, slotIndex),
+					CreateEnemyHexRerollExcludedIds(currentHexes, slotIndex),
 					seenEnemyHexes)
 				: null,
 			Changed = isAuthorityLocal && syncContext != null

@@ -6,8 +6,6 @@ internal sealed class HextechEnemyHexAdjustmentOptions
 
 	public IReadOnlyList<MonsterHexKind> InitialHexes { get; init; } = [];
 
-	public IReadOnlyList<MonsterHexKind> ExcludedHexes { get; init; } = [];
-
 	public bool ControlsEnabled { get; init; }
 
 	public Func<IReadOnlyList<MonsterHexKind?>, int, int, MonsterHexKind?>? RerollFunc { get; init; }

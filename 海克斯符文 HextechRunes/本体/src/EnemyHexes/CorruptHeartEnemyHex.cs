@@ -22,7 +22,7 @@ internal sealed class CorruptHeartEnemyHex : HextechEnemyHexEffect
 		await HextechGameApiCompat.Damage(
 			choiceContext,
 			player.Creature,
-			context.TierValue(Kind, 1, 2, 3),
+			context.TierValue(Kind, 1, 1, 2),
 			ValueProp.Unpowered,
 			null,
 			null);

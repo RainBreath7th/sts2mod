@@ -68,8 +68,9 @@ internal sealed partial class HextechMayhemCombatTrackingState
 	public readonly HashSet<ulong> MindOverMatterPlayersTriggeredThisTurn = new();
 	[CombatTrackingClear(CombatTrackingClearPhase.EveryTurnBoundary)]
 	public readonly Dictionary<uint, int> EnemyPorcupineTemporaryThornsThisTurn = new();
-	[CombatTrackingClear(CombatTrackingClearPhase.PlayerTurnStart)]
-	public readonly Dictionary<uint, int> EnemyPorcupineTriggersThisTurn = new();
+	// 豪猪/百炼成钢按"每 N 次未被格挡伤害"触发:计数按敌人 CombatId 跨回合累积,余数带到下回合,只在战斗结束清空。
+	public readonly Dictionary<uint, int> EnemyPorcupineUnblockedHitsThisCombat = new();
+	public readonly Dictionary<uint, int> EnemyHundredRefinementsUnblockedHitsThisCombat = new();
 	public readonly HashSet<ulong> VakuuControlledPlayersThisCombat = new();
 	[CombatTrackingClear(CombatTrackingClearPhase.PlayerTurnStart)]
 	public readonly HashSet<ulong> EightPennyGatePlayersTriggeredThisTurn = new();

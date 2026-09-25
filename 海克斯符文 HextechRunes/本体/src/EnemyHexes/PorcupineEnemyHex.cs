@@ -2,6 +2,9 @@ namespace HextechRunes;
 
 internal sealed class PorcupineEnemyHex : HextechEnemyHexEffect
 {
+	// 每 3N 次未被格挡伤害(N=联机人数)获得一次本回合荆棘;描述侧由 MonsterHexCatalog 的 HitsNeeded 阈值同步显示。
+	internal const int HitsPerTriggerPerPlayer = 3;
+
 	internal override MonsterHexKind Kind => MonsterHexKind.Porcupine;
 
 	internal override async Task AfterEnemyDamageReceived(HextechEnemyHexContext context, Creature target, uint combatId, DamageResult result, Creature? dealer, CardModel? cardSource)
@@ -11,15 +14,12 @@ internal sealed class PorcupineEnemyHex : HextechEnemyHexEffect
 			return;
 		}
 
-		int maxTriggers = context.TierValue(Kind, 1, 2, 2);
-		int triggers = context.Tracking.EnemyPorcupineTriggersThisTurn.GetValueOrDefault(combatId, 0);
-		if (triggers >= maxTriggers)
+		if (!ReachesHitThreshold(context.Tracking.EnemyPorcupineUnblockedHitsThisCombat, combatId, HitsPerTriggerPerPlayer * context.ScalingPlayerCount))
 		{
 			return;
 		}
 
-		context.Tracking.EnemyPorcupineTriggersThisTurn[combatId] = triggers + 1;
-		int thorns = context.TierValue(Kind, 1, 1, 2);
+		int thorns = context.TierValue(Kind, 1, 2, 3);
 		context.Tracking.EnemyPorcupineTemporaryThornsThisTurn[combatId] =
 			context.Tracking.EnemyPorcupineTemporaryThornsThisTurn.GetValueOrDefault(combatId, 0) + thorns;
 		await PowerCmd.Apply<ThornsPower>(target, thorns, target, cardSource);
@@ -29,7 +29,6 @@ internal sealed class PorcupineEnemyHex : HextechEnemyHexEffect
 	{
 		if (combatRoom == null)
 		{
-			context.Tracking.EnemyPorcupineTriggersThisTurn.Clear();
 			return;
 		}
 

@@ -2,42 +2,52 @@ namespace HextechRunes;
 
 internal sealed class BlueCandleMedkitEnemyHex : HextechEnemyHexEffect
 {
-	private static readonly Lazy<IReadOnlyList<CardModel>> CursePool = new(BuildCursePool);
+	internal const int CostIncrease = 1;
+
+	private static readonly FieldInfo BaseCostField = HextechHookReflection.RequireField(typeof(CardEnergyCost), "_base");
+	private static readonly FieldInfo LocalModifiersField = HextechHookReflection.RequireField(typeof(CardEnergyCost), "_localModifiers");
 
 	internal override MonsterHexKind Kind => MonsterHexKind.BlueCandleMedkit;
 
-	internal override async Task ApplyCombatStartPlayerDebuffs(HextechEnemyHexContext context, CombatRoom room, IReadOnlyList<Creature> players)
+	// 玩家的状态牌与诅咒牌耗能 +1,优先级最低:视同加在基础费用上,轮转不息一类的本回合定费会覆盖它;
+	// 我方蓝烛药箱的 0 费与敌方开悟的 1 费下限都在 Late 阶段,晚于这里生效。
+	// 原版无法打出的状态/诅咒基础费用是 -1(无费用标记),原版费用 Hook 对负费用直接跳过,这里也不处理。
+	internal override int GetBaseEnergyCostIncrease(HextechEnemyHexContext context, CardModel card)
 	{
-		if (room.CombatState is not HextechCombatState combatState || CursePool.Value.Count == 0)
+		if (card.Type is not (CardType.Status or CardType.Curse)
+			|| card.Owner?.Creature.Side != CombatSide.Player
+			|| card.Owner.Creature.CombatState?.RunState != context.RunState
+			|| card.EnergyCost.CostsX)
 		{
-			return;
+			return 0;
 		}
 
-		foreach (Player player in players
-			.Select(static creature => creature.Player)
-			.OfType<Player>()
-			.OrderBy(static player => player.NetId))
-		{
-			CardModel canonical = HextechStableRandom.Pick(
-				CursePool.Value,
-				context.RunState,
-				HextechStableRandom.CardKey,
-				"blue-candle-medkit-curse",
-				HextechStableRandom.PlayerKey(player));
-			CardModel curse = combatState.CreateCard(canonical, player);
-			await HextechCardGeneration.AddGeneratedCardToCombat(
-				curse,
-				PileType.Discard,
-				addedByPlayer: false,
-				CardPilePosition.Top);
-		}
+		return GetIncreaseSurvivingLocalModifiers(card.EnergyCost, CostIncrease);
 	}
 
-	private static IReadOnlyList<CardModel> BuildCursePool()
+	/// <summary>
+	/// 把增量加到基础费用上再走一遍卡牌自身的临时修正,返回最终还剩多少:
+	/// 绝对定费(如本回合 0 费)吃掉增量,相对加减费照常叠加。临时修正列表原版未公开,只读不写。
+	/// </summary>
+	internal static int GetIncreaseSurvivingLocalModifiers(CardEnergyCost energyCost, int increase)
 	{
-		return ModelDb.AllCards
-			.Where(static card => card.Type == CardType.Curse && card.CanBeGeneratedByModifiers)
-			.OrderBy(HextechStableRandom.CardKey, StringComparer.Ordinal)
-			.ToList();
+		int baseCost = (int)BaseCostField.GetValue(energyCost)!;
+		if (baseCost < 0)
+		{
+			return 0;
+		}
+
+		int withIncrease = baseCost + increase;
+		int withoutIncrease = baseCost;
+		if (LocalModifiersField.GetValue(energyCost) is IEnumerable<LocalCostModifier> modifiers)
+		{
+			foreach (LocalCostModifier modifier in modifiers)
+			{
+				withIncrease = modifier.Modify(withIncrease);
+				withoutIncrease = modifier.Modify(withoutIncrease);
+			}
+		}
+
+		return withIncrease - withoutIncrease;
 	}
 }

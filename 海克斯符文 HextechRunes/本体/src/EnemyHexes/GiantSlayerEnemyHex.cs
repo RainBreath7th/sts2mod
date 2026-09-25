@@ -2,6 +2,10 @@ namespace HextechRunes;
 
 internal sealed class GiantSlayerEnemyHex : HextechEnemyHexEffect
 {
+	// 每 2 点最大生命值 +1%:常见 66~100 血对应 +33%~+50%,整局高于白银大力的固定 +20%。
+	internal const int PlayerMaxHpPerPercent = 2;
+	internal const decimal MaxBonus = 1.00m;
+
 	internal override MonsterHexKind Kind => MonsterHexKind.GiantSlayer;
 
 	internal override decimal ModifyDamageMultiplicative(HextechEnemyHexContext context, Creature? target, decimal amount, ValueProp props, Creature? dealer, CardModel? cardSource)
@@ -11,15 +15,14 @@ internal sealed class GiantSlayerEnemyHex : HextechEnemyHexEffect
 			return 1m;
 		}
 
-		// 玩家每有 5 点最大生命值,敌人对你的伤害 +1%,最多 +100%。
-		int playerMaxHp = (int)target.MaxHp;
-		if (playerMaxHp <= 0)
-		{
-			return 1m;
-		}
+		return 1m + GetBonus((int)target.MaxHp);
+	}
 
-		decimal bonus = Math.Min(1.00m, playerMaxHp / 5 * 0.01m);
-		return 1m + bonus;
+	internal static decimal GetBonus(int playerMaxHp)
+	{
+		return playerMaxHp <= 0
+			? 0m
+			: Math.Min(MaxBonus, playerMaxHp / PlayerMaxHpPerPercent * 0.01m);
 	}
 
 	internal override Task ApplyCombatStartToEnemy(HextechEnemyHexContext context, Creature enemy, CombatRoom room)

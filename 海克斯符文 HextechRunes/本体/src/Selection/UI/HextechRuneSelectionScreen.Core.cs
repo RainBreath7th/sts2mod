@@ -38,6 +38,8 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 	private readonly List<int> _rerollHistory = new();
 	private readonly bool _enemyHexControlsEnabled;
 	private readonly bool _enemyOnly;
+	// 本稀有度已无任何可选海克斯:只显示说明和"继续"按钮,确认后以空结果完成,不发放遗物。
+	private readonly bool _continueOnly;
 	private Button? _enemyOnlyConfirm;
 	private Button? _playerRuneConfirm;
 	private Button? _playerRuneCancel;
@@ -143,10 +145,12 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		string? titleOverride,
 		HextechSelectionMetadataMode metadataMode,
 		HextechGoldenRerollSession? goldenRerollSession,
-		IReadOnlyList<RelicModel>? selfPickPool)
+		IReadOnlyList<RelicModel>? selfPickPool,
+		bool continueOnly)
 	{
 		_relics = HextechWeightedRuneOptions.Copy(relics);
 		_selfPickPool = selfPickPool;
+		_continueOnly = continueOnly && relics.Count == 0;
 		_rerollFunc = rerollFunc;
 		_enemyHexRerollFunc = enemyHexOptions?.RerollFunc;
 		_enemyHexChanged = enemyHexOptions?.Changed;
@@ -157,7 +161,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		_goldenRerollSession = goldenRerollSession;
 		_confirmRuneSelectionPreference = HextechRelicVisibilityHooks.GetConfirmRuneSelection();
 		_enemyHexControlsEnabled = enemyHexOptions?.ControlsEnabled == true || enemyHexOptions?.RerollFunc != null;
-		_enemyOnly = relics.Count == 0 && enemyHexOptions != null;
+		_enemyOnly = relics.Count == 0 && (enemyHexOptions != null || _continueOnly);
 		List<MonsterHexKind> initialMonsterHexes = enemyHexOptions?.InitialHexes?.ToList() ?? [];
 		if (initialMonsterHexes.Count == 0 && enemyHexOptions?.InitialHex is { } initialHex)
 		{
@@ -196,9 +200,10 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		string? titleOverride = null,
 		HextechSelectionMetadataMode metadataMode = HextechSelectionMetadataMode.PlayerRune,
 		HextechGoldenRerollSession? goldenRerollSession = null,
-		IReadOnlyList<RelicModel>? selfPickPool = null)
+		IReadOnlyList<RelicModel>? selfPickPool = null,
+		bool continueOnly = false)
 	{
-		HextechLog.Info($"[{ModInfo.Id}][Mayhem] SelectionScreen.Create: count={relics.Count} selfPickPool={selfPickPool?.Count ?? 0}");
+		HextechLog.Info($"[{ModInfo.Id}][Mayhem] SelectionScreen.Create: count={relics.Count} selfPickPool={selfPickPool?.Count ?? 0} continueOnly={continueOnly}");
 		return new HextechRuneSelectionScreen(
 			relics,
 			monsterHexRelic,
@@ -208,7 +213,8 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 			titleOverride,
 			metadataMode,
 			goldenRerollSession,
-			selfPickPool);
+			selfPickPool,
+			continueOnly);
 	}
 
 	public override void _ExitTree()

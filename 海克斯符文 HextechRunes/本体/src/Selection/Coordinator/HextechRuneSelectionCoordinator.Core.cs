@@ -1,5 +1,6 @@
 using Godot;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
@@ -112,6 +113,8 @@ internal static partial class HextechRuneSelectionCoordinator
 			MonsterHexKind? visibleMonsterHex = FirstMonsterHexOrNull(newMonsterHexes);
 			RelicModel? monsterHexRelic = CreateMonsterHexRelic(visibleMonsterHex);
 			NetGameType gameType = RunManager.Instance.NetService.Type;
+			// 候选池一旦抽空,本幕后续几次选择也必然为空:每名玩家本幕只弹一次"继续"界面。
+			HashSet<ulong> playersNotifiedNoOptions = [];
 			for (int choiceOrdinal = 0; choiceOrdinal < playerHexCount; choiceOrdinal++)
 			{
 				bool allowEnemyHexAdjustment = choiceOrdinal == 0
@@ -120,7 +123,7 @@ internal static partial class HextechRuneSelectionCoordinator
 				{
 					foreach (Player player in runState.Players)
 					{
-						HashSet<ModelId> excludedIds = CreateBaseExcludedIds(modifier, player, finalMonsterHexes);
+						HashSet<ModelId> excludedIds = CreateBaseExcludedIds(modifier, player);
 						List<RelicModel> options = BuildSelectableRunesForRarity(
 							player,
 							rarity,
@@ -130,10 +133,34 @@ internal static partial class HextechRuneSelectionCoordinator
 						if (options.Count == 0)
 						{
 							Log.Warn($"[{ModInfo.Id}][Mayhem] HandleHextechActSelection no options: player={player.NetId} act={actIndex} ordinal={choiceOrdinal} rarity={rarity}");
+							// 本稀有度已无可选:仍要给玩家一个界面交代,并保留本幕敌方海克斯的调整机会。
+							if (!playersNotifiedNoOptions.Add(player.NetId))
+							{
+								continue;
+							}
+
+							if (allowEnemyHexAdjustment && newMonsterHexes.Count > 0)
+							{
+								newMonsterHexes = await SelectEnemyHexesOnly(runState, modifier, actIndex, rarity, previousMonsterHexes, newMonsterHexes,
+									new LocString("relic_collection", "HEXTECH_NO_RUNE_OPTIONS_TITLE").GetRawText());
+								finalMonsterHexes = CombineMonsterHexes(previousMonsterHexes, newMonsterHexes);
+								visibleMonsterHex = FirstMonsterHexOrNull(newMonsterHexes);
+								monsterHexRelic = CreateMonsterHexRelic(visibleMonsterHex);
+							}
+							else
+							{
+								await ShowNoRuneOptionsScreenAsync();
+							}
+
+							if (!IsCurrentRun(runState))
+							{
+								HextechLog.Info($"[{ModInfo.Id}][Mayhem] HandleHextechActSelection abort: no-options screen returned for stale run");
+								return;
+							}
+
 							continue;
 						}
 
-						HashSet<ModelId> enemyRerollExcludedIds = CreateEnemyHexRerollExcludedIds(options);
 						HashSet<MonsterHexKind> seenEnemyHexes = modifier.GetKnownMonsterHexes().ToHashSet();
 						seenEnemyHexes.UnionWith(newMonsterHexes);
 						HextechLog.Info($"[{ModInfo.Id}][Mayhem] HandleHextechActSelection options: player={player.NetId} ordinal={choiceOrdinal} count={options.Count} ids={string.Join(",", options.Select(o => (o.CanonicalInstance?.Id ?? o.Id).Entry))}");
@@ -144,7 +171,6 @@ internal static partial class HextechRuneSelectionCoordinator
 							? new HextechEnemyHexAdjustmentOptions
 							{
 								InitialHexes = newMonsterHexes,
-								ExcludedHexes = finalMonsterHexes,
 								RerollLimit = modifier.MonsterHexRerollLimit,
 								ControlsEnabled = allowEnemyHexAdjustment && newMonsterHexes.Count > 0,
 								RerollFunc = allowEnemyHexAdjustment && newMonsterHexes.Count > 0
@@ -155,7 +181,7 @@ internal static partial class HextechRuneSelectionCoordinator
 										actIndex,
 										GetMonsterHexSlot(currentHexes, slotIndex),
 										rerollOrdinal,
-										CreateEnemyHexRerollExcludedIds(enemyRerollExcludedIds, currentHexes, slotIndex),
+										CreateEnemyHexRerollExcludedIds(currentHexes, slotIndex),
 										seenEnemyHexes)
 									: null
 							}
@@ -202,7 +228,8 @@ internal static partial class HextechRuneSelectionCoordinator
 						newMonsterHexes,
 						monsterHexRelic,
 						choiceOrdinal,
-						allowEnemyHexAdjustment);
+						allowEnemyHexAdjustment,
+						playersNotifiedNoOptions);
 					if (allowEnemyHexAdjustment)
 					{
 						newMonsterHexes = finalMonsterHexes

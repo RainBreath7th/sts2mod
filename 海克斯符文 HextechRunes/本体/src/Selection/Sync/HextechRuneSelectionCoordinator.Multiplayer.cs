@@ -14,13 +14,14 @@ internal static partial class HextechRuneSelectionCoordinator
 		IReadOnlyList<MonsterHexKind> initialNewMonsterHexes,
 		RelicModel? monsterHexRelic,
 		int choiceOrdinal,
-		bool allowEnemyHexAdjustment)
+		bool allowEnemyHexAdjustment,
+		HashSet<ulong> playersNotifiedNoOptions)
 	{
 		RunManager runManager = RunManager.Instance;
+		bool localHasNoOptions = false;
 		IReadOnlyList<MonsterHexKind> initialActiveMonsterHexes = CombineMonsterHexes(previousMonsterHexes, initialNewMonsterHexes);
 		PlayerChoiceSynchronizer synchronizer = await WaitForPlayerChoiceSynchronizerAsync(runManager);
 
-		HashSet<ModelId> enemyRerollExcludedIdsForAllPlayers = new();
 		List<PendingRuneSelection> pendingSelections = [];
 		List<(Player Player, RelicModel SelectedRelic, bool Applied)> resolvedSelections = [];
 		foreach (Player player in runState.Players)
@@ -62,7 +63,7 @@ internal static partial class HextechRuneSelectionCoordinator
 				continue;
 			}
 
-			HashSet<ModelId> excludedIds = CreateBaseExcludedIds(modifier, player, initialActiveMonsterHexes);
+			HashSet<ModelId> excludedIds = CreateBaseExcludedIds(modifier, player);
 			List<RelicModel> options = BuildStableSelectableRunesForRarity(
 				player,
 				rarity,
@@ -73,10 +74,15 @@ internal static partial class HextechRuneSelectionCoordinator
 			if (options.Count == 0)
 			{
 				Log.Warn($"[{ModInfo.Id}][Mayhem] No rune options for player={player.NetId} act={actIndex} ordinal={choiceOrdinal} rarity={rarity}; skipping this selection.", 2);
+				// 各端对"无候选"的判断一致,都跳过这名玩家的同步选择;本机玩家额外看到一次"继续"界面(纯本机,不同步)。
+				if (IsLocalPlayer(runManager, player) && playersNotifiedNoOptions.Add(player.NetId))
+				{
+					localHasNoOptions = true;
+				}
+
 				continue;
 			}
 
-			enemyRerollExcludedIdsForAllPlayers.UnionWith(CreateEnemyHexRerollExcludedIds(options));
 			MarkRelicsSeen(options);
 			modifier.RecordSeenPlayerRunes(player, options);
 
@@ -85,8 +91,13 @@ internal static partial class HextechRuneSelectionCoordinator
 			HextechLog.Info($"[{ModInfo.Id}][Mayhem] RuneChoice pending: act={actIndex} ordinal={choiceOrdinal} player={player.NetId} choiceId={choiceId} local={IsLocalPlayer(runManager, player)} options={string.Join(",", options.Select(o => (o.CanonicalInstance?.Id ?? o.Id).Entry))}");
 		}
 
+		// 敌方调整由固定的权威玩家在自己的选择界面里完成;他本次没有候选(不会弹选择界面)时,
+		// 其余客户端会一直等他的调整结果,所以这种情况下本幕不开放敌方调整。各端对 pending 的判断一致。
+		Player? enemyHexAuthority = GetActRollAuthorityPlayer(runManager, runState);
 		EnemyHexAdjustmentSyncContext? enemyHexSync =
-			allowEnemyHexAdjustment && pendingSelections.Count > 0 && initialNewMonsterHexes.Count > 0
+			allowEnemyHexAdjustment
+			&& initialNewMonsterHexes.Count > 0
+			&& pendingSelections.Any(selection => selection.Player == enemyHexAuthority)
 				? CreateEnemyHexAdjustmentSyncContext(
 					runManager,
 					runState,
@@ -125,7 +136,6 @@ internal static partial class HextechRuneSelectionCoordinator
 						rarity,
 						initialActiveMonsterHexes,
 						initialNewMonsterHexes,
-						enemyRerollExcludedIdsForAllPlayers,
 						enemyHexSync,
 						selection,
 						batchCancellation.Token),
@@ -146,7 +156,12 @@ internal static partial class HextechRuneSelectionCoordinator
 			Task<RuneSelectionResult>[] selectionTasks = pendingSelections
 				.Select(RunSelection)
 				.ToArray();
-			selectedRelics = await Task.WhenAll(selectionTasks);
+			// "继续"界面与其他玩家的选择并行显示;任一选择失败时 RunSelection 会取消批次,界面随之关闭。
+			Task noOptionsScreen = localHasNoOptions
+				? ShowNoRuneOptionsScreenAsync(batchCancellation.Token)
+				: Task.CompletedTask;
+			await Task.WhenAll(selectionTasks.Cast<Task>().Append(noOptionsScreen));
+			selectedRelics = selectionTasks.Select(static task => task.Result).ToArray();
 			for (int i = 0; i < pendingSelections.Count; i++)
 			{
 				PendingRuneSelection selection = pendingSelections[i];

@@ -1,5 +1,6 @@
 using System.Reflection;
 using HextechRunes;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models.Cards;
 
 namespace HextechRunes.Tests;
@@ -14,6 +15,8 @@ internal static partial class Program
 	{
 		const BindingFlags declared = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
 		Expect(typeof(BackToBasicsRune).GetMethod("ShouldPlay", declared) != null, "Back to Basics rune should block via ShouldPlay");
+		// 自动打出在读费用和持有者之前就放行,所以无持有者的实例也能验证;3 费形态牌开局自动打出依赖这一点。
+		Expect(new BackToBasicsRune().ShouldPlay(new DemonForm(), AutoPlayType.Default), "Back to Basics should not block auto-played 3-cost cards");
 		Expect(typeof(KakaRune).GetMethod("ShouldPlay", declared) != null, "Kaka rune should block via ShouldPlay");
 		Expect(typeof(HextechMayhemModifier).GetMethod("ShouldPlay", declared) != null, "enemy hexes should block via the modifier's ShouldPlay");
 		Expect(typeof(BackToBasicsEnemyHex).GetMethod("ShouldPlay", declared) != null, "enemy Back to Basics should implement the hex-level ShouldPlay");

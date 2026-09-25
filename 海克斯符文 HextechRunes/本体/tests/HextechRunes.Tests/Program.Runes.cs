@@ -772,4 +772,35 @@ internal static partial class Program
 		Equal(1, forge.Count(m => m.Name == nameof(HextechStableRandom.CreateMinionCard)), "one minion per forge event");
 		Expect(forge.Any(m => m.Name == nameof(HextechCardGeneration.AddGeneratedCardToCombat)), "generated minions use normal hand and overflow handling");
 	}
+
+	private static void MultiplayerSupportRunesHaveRequestedRaritiesAndNumbers()
+	{
+		(Type Type, HextechRarityTier Rarity)[] expected =
+		[
+			(typeof(DiveBomberRune), HextechRarityTier.Silver),
+			(typeof(AllForYouRune), HextechRarityTier.Gold),
+			(typeof(BlossomBladeRune), HextechRarityTier.Prismatic),
+			(typeof(OurHealingRune), HextechRarityTier.Gold)
+		];
+		foreach (var entry in expected)
+		{
+			PlayerRuneRegistration actual = HextechPlayerRuneRegistry.Registrations.Single(row => row.Type == entry.Type);
+			Equal(entry.Rarity, actual.Rarity, entry.Type.Name + " rarity");
+			Equal(PlayerRuneFlags.None, actual.Flags, entry.Type.Name + " enabled");
+			Equal(null, actual.CharacterPool, entry.Type.Name + " is not character-specific");
+		}
+
+		// 测试进程不是联机局,仅联机的海克斯必须不可用。
+		Player solo = CreateOrdinalTestPlayer(1);
+		Expect(!CreateMutableTestModel<DiveBomberRune>().IsAvailableForPlayer(solo), "dive bomber is multiplayer-only");
+		Expect(!CreateMutableTestModel<AllForYouRune>().IsAvailableForPlayer(solo), "all for you is multiplayer-only");
+		Expect(!CreateMutableTestModel<BlossomBladeRune>().IsAvailableForPlayer(solo), "blossom blade is multiplayer-only");
+
+		Equal(40m, DiveBomberRune.GetDamage(80m, 50m), "dive bomber deals half of max HP");
+		Equal(37m, DiveBomberRune.GetDamage(75m, 50m), "odd max HP rounds down");
+		Equal(1.25m, AllForYouRune.SustainMultiplier, "all for you is +25%");
+		Equal(1m, BlossomBladeRune.GetHealAmount(80m, 2m), "2% of 80 rounds down to 1");
+		Equal(3m, BlossomBladeRune.GetHealAmount(150m, 2m), "2% of 150 is 3");
+		Equal(1m, BlossomBladeRune.GetHealAmount(20m, 2m), "heal is at least 1");
+	}
 }

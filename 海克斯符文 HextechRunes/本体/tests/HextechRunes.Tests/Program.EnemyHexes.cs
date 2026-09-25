@@ -471,6 +471,74 @@ internal static partial class Program
 		Expect(row.Rarity == HextechRarityTier.Gold && !row.Disabled && row.IconRelicType == typeof(MoreTheMerrierRune), "enabled gold with matching icon");
 	}
 
+	private static void BalanceAdjustmentsSeptember25()
+	{
+		Dictionary<uint, int> hits = new();
+		bool[] fired = Enumerable.Range(0, 6).Select(_ => HextechEnemyHexEffect.ReachesHitThreshold(hits, 7, 3)).ToArray();
+		SequenceEqual(new[] { false, false, true, false, false, true }, fired, "every third unblocked hit on the same enemy triggers");
+		Expect(!HextechEnemyHexEffect.ReachesHitThreshold(hits, 8, 3), "each enemy keeps its own count");
+		Equal(6, hits[7], "remainder carries forward instead of resetting");
+		Expect(!HextechEnemyHexEffect.ReachesHitThreshold(new Dictionary<uint, int>(), 1, 0), "a zero threshold never triggers");
+		Expect(HextechEnemyHexEffect.ReachesHitThreshold(new Dictionary<uint, int>(), 1, 1), "threshold one triggers on every hit");
+		Equal(3, PorcupineEnemyHex.HitsPerTriggerPerPlayer, "porcupine needs 3N hits");
+		Equal(1, HundredRefinementsEnemyHex.HitsPerTriggerPerPlayer, "hundred refinements needs N hits");
+
+		// 描述里的 {HitsNeeded} 靠按人数缩放的阈值表填值,漏登记就会原样显示占位符。
+		var thresholds = (System.Collections.IDictionary)typeof(MonsterHexCatalog)
+			.GetField("PlayerCountScaledThresholds", BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!;
+		Equal(("HitsNeeded", PorcupineEnemyHex.HitsPerTriggerPerPlayer), ((string, int))thresholds[MonsterHexKind.Porcupine]!,
+			"porcupine description threshold matches the effect");
+		Equal(("HitsNeeded", HundredRefinementsEnemyHex.HitsPerTriggerPerPlayer), ((string, int))thresholds[MonsterHexKind.HundredRefinements]!,
+			"hundred refinements description threshold matches the effect");
+
+		Equal(HextechRarityTier.Prismatic,
+			HextechPlayerRuneRegistry.Registrations.Single(row => row.Type == typeof(DemonFormUpgradeRune)).Rarity,
+			"Upgrade: Demon Form is prismatic");
+
+		// 王国军势生成仆从牌期间嵌套进来的铸造直接返回,凝辉/王令无法把它再次点燃。
+		KingdomArmyRune kingdomArmy = CreateMutableTestModel<KingdomArmyRune>();
+		typeof(KingdomArmyRune).GetField("_generating", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(kingdomArmy, true);
+		Expect(kingdomArmy.AfterForge(3m, null!, null).IsCompletedSuccessfully, "nested forge during minion generation is ignored");
+	}
+
+	private static void EnemyGiantSlayerScalesWithPlayerMaxHp()
+	{
+		Equal(0.33m, GiantSlayerEnemyHex.GetBonus(66), "66 max HP gives +33%");
+		Equal(0.40m, GiantSlayerEnemyHex.GetBonus(80), "80 max HP gives +40%");
+		Equal(0.40m, GiantSlayerEnemyHex.GetBonus(81), "partial steps round down");
+		Equal(1.00m, GiantSlayerEnemyHex.GetBonus(260), "bonus caps at +100%");
+		Equal(0m, GiantSlayerEnemyHex.GetBonus(0), "no max HP, no bonus");
+		Expect(GiantSlayerEnemyHex.GetBonus(66) > 0.20m, "stays above silver Big Strength's flat +20% at the lowest starting max HP");
+	}
+
+	private static void EnemyBlueCandleRaisesPlayerStatusAndCurseCosts()
+	{
+		var (context, first, _) = CreatePrismaticEnemyFixture();
+		BlueCandleMedkitEnemyHex effect = new();
+		CardModel slimed = CreateMutableTestModel<Slimed>();
+		slimed.Owner = first;
+		Equal(1, effect.GetBaseEnergyCostIncrease(context, slimed), "playable status cards cost one more");
+		slimed.EnergyCost.AddThisTurn(-1, false);
+		Equal(1, effect.GetBaseEnergyCostIncrease(context, slimed), "relative discounts still stack on top of the increase");
+		slimed.EnergyCost.SetThisTurn(0);
+		Equal(0, effect.GetBaseEnergyCostIncrease(context, slimed), "a this-turn free cost (Endless Rotation style) overrides the increase");
+		CardModel regret = CreateMutableTestModel<Regret>();
+		regret.Owner = first;
+		Equal(0, effect.GetBaseEnergyCostIncrease(context, regret), "the unplayable -1 marker is left alone");
+		CardModel strike = CreateMutableTestModel<StrikeIronclad>();
+		strike.Owner = first;
+		Equal(0, effect.GetBaseEnergyCostIncrease(context, strike), "ordinary cards are unaffected");
+		// 优先级靠阶段保证:本效果在常规阶段,我方蓝烛药箱的 0 费与敌方开悟的下限都在 Late 阶段。
+		const BindingFlags declared = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
+		Expect(typeof(BlueCandleMedkitRune).GetMethod(nameof(RelicModel.TryModifyEnergyCostInCombatLate), declared) != null
+			&& typeof(BlueCandleMedkitRune).GetMethod(nameof(RelicModel.TryModifyEnergyCostInCombat), declared) == null,
+			"our Blue Candle zeroes costs in the Late phase so the enemy increase cannot re-add one");
+		Expect(typeof(BlueCandleMedkitEnemyHex).GetMethod(nameof(HextechEnemyHexEffect.ModifyEnergyCostInCombatLate), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly) == null,
+			"the enemy increase must stay out of the Late phase");
+		var row = HextechMonsterHexRegistry.Registrations.Single(r => r.Kind == effect.Kind);
+		Expect(row.Rarity == HextechRarityTier.Gold && !row.Disabled && row.IconRelicType == typeof(BlueCandleMedkitRune), "enabled gold with matching icon");
+	}
+
 	private static void EnemyEnlightenmentFloorsDiscountedCostsWithoutChangingBase()
 	{
 		var (context, first, _) = CreatePrismaticEnemyFixture();

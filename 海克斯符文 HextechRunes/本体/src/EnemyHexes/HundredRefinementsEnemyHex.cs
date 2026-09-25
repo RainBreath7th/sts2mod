@@ -2,6 +2,9 @@ namespace HextechRunes;
 
 internal sealed class HundredRefinementsEnemyHex : HextechEnemyHexEffect
 {
+	// 每 N 次未被格挡伤害(N=联机人数)失去一次临时缓慢;描述侧由 MonsterHexCatalog 的 HitsNeeded 阈值同步显示。
+	internal const int HitsPerTriggerPerPlayer = 1;
+
 	internal override MonsterHexKind Kind => MonsterHexKind.HundredRefinements;
 
 	internal override Task AfterEnemyDamageReceivedAny(
@@ -14,7 +17,9 @@ internal sealed class HundredRefinementsEnemyHex : HextechEnemyHexEffect
 		if (!target.IsAlive
 			|| target.Side != CombatSide.Enemy
 			|| target.CombatState?.RunState != context.RunState
-			|| result.UnblockedDamage <= 0m)
+			|| result.UnblockedDamage <= 0m
+			|| target.CombatId is not uint combatId
+			|| !ReachesHitThreshold(context.Tracking.EnemyHundredRefinementsUnblockedHitsThisCombat, combatId, HitsPerTriggerPerPlayer * context.ScalingPlayerCount))
 		{
 			return Task.CompletedTask;
 		}

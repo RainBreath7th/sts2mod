@@ -527,6 +527,12 @@ internal static partial class HextechRuneConfigMenuHooks
 			{
 				FindAncestor<ScrollContainer>(control)?.EnsureControlVisible(control);
 			};
+
+			// 手柄焦点要看得见:没有自定义焦点样式的按钮(步进按钮等)补一圈描边;鼠标玩家不会获得焦点,看不到它。
+			if (control is BaseButton && !control.HasThemeStyleboxOverride("focus"))
+			{
+				control.AddThemeStyleboxOverride("focus", HextechControllerInput.CreateFocusRing(6));
+			}
 		}
 
 		foreach (Node child in node.GetChildren())

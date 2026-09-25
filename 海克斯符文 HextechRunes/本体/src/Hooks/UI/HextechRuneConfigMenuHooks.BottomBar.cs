@@ -114,7 +114,8 @@ internal static partial class HextechRuneConfigMenuHooks
 						PendingFields.Details | PendingFields.ModEnabled | PendingFields.UiPreferences,
 						HextechRelicVisibilityHooks.GetDefaultShowHiddenRelicsToggle(),
 						HextechRelicVisibilityHooks.GetDefaultShowUpdateNotice(),
-						HextechRelicVisibilityHooks.GetDefaultCollapseEnemyHexes());
+						HextechRelicVisibilityHooks.GetDefaultCollapseEnemyHexes(),
+						HextechRelicVisibilityHooks.GetDefaultConfirmRuneSelection());
 					UpdateNumericLabels(numericBindings);
 					UpdateBooleanToggles(booleanBindings);
 					break;
@@ -129,6 +130,7 @@ internal static partial class HextechRuneConfigMenuHooks
 			HextechRelicVisibilityHooks.SetShowHiddenRelicsToggle(pending.ShowHiddenRelicsToggle);
 			HextechRelicVisibilityHooks.SetShowUpdateNotice(pending.ShowUpdateNotice);
 			HextechRelicVisibilityHooks.SetCollapseEnemyHexes(pending.CollapseEnemyHexes);
+			HextechRelicVisibilityHooks.SetConfirmRuneSelection(pending.ConfirmRuneSelection);
 			HextechUpdateChecker.ApplyNoticeVisibility(overlay);
 			HextechCollectionHooks.RefreshOpenRelicCollections();
 			string runeWeights = string.Join("/", pending.RuneWeightsByAct.Select(static weights => string.Join(",", weights)));

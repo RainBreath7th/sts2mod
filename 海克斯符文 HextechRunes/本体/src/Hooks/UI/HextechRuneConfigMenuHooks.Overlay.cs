@@ -77,6 +77,7 @@ internal static partial class HextechRuneConfigMenuHooks
 
 		overlay.SetMeta("hextech_closing", true);
 		overlay.MouseFilter = Control.MouseFilterEnum.Ignore;
+		(overlay as HextechControllerOverlay)?.ReleaseHostFocusBlock();
 		Control? panel = overlay.GetNodeOrNull<Control>(ConfigPanelName);
 		if (panel != null)
 		{
@@ -99,8 +100,9 @@ internal static partial class HextechRuneConfigMenuHooks
 				overlay.QueueFree();
 			}
 
-			// 覆盖层不是原版 SubmenuStack 的一员,焦点要自己还给打开它的按钮。
-			if (opener != null && GodotObject.IsInstanceValid(opener) && opener.IsInsideTree() && opener.IsVisibleInTree())
+			// 覆盖层不是原版 SubmenuStack 的一员,焦点要自己还给打开它的按钮;鼠标玩家不抢焦点,免得主菜单按钮停在焦点态。
+			if (HextechControllerInput.IsDirectionalNavigation
+				&& opener != null && GodotObject.IsInstanceValid(opener) && opener.IsInsideTree() && opener.IsVisibleInTree())
 			{
 				opener.GrabFocus();
 			}
@@ -167,7 +169,8 @@ internal static partial class HextechRuneConfigMenuHooks
 			HextechRuneConfiguration.GetSnapshot(),
 			HextechRelicVisibilityHooks.GetShowHiddenRelicsToggle(),
 			HextechRelicVisibilityHooks.GetShowUpdateNotice(),
-			HextechRelicVisibilityHooks.GetCollapseEnemyHexes());
+			HextechRelicVisibilityHooks.GetCollapseEnemyHexes(),
+			HextechRelicVisibilityHooks.GetConfirmRuneSelection());
 		List<NumericValueBinding> numericBindings = [];
 		List<BooleanValueBinding> booleanBindings = [];
 		bool configReadOnly = IsEnemyHexCountConfigReadOnly();
@@ -290,6 +293,7 @@ internal static partial class HextechRuneConfigMenuHooks
 		AddConfigTab(tabs, tabButtons, L("HEXTECH_CONFIG_TAB_RUNE_POOLS"), () => selectPage(1), compactLayout);
 		AddConfigTab(tabs, tabButtons, L("HEXTECH_CONFIG_TAB_FORGES"), () => selectPage(2), compactLayout);
 		AddConfigTab(tabs, tabButtons, L("HEXTECH_CONFIG_TAB_DETAILS"), () => selectPage(3), compactLayout);
+		overlay.CycleTab = delta => selectPage(((selectedPageIndex + delta) % pageArray.Length + pageArray.Length) % pageArray.Length);
 
 		ScrollContainer scroll = new()
 		{

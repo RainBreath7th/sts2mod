@@ -367,6 +367,13 @@ internal static partial class HextechRuneConfigMenuHooks
 			booleanBindings,
 			compactLayout));
 		section.AddChild(CreateBooleanOption(
+			L("HEXTECH_CONFIRM_RUNE_SELECTION_TOGGLE_TITLE"),
+			L("HEXTECH_CONFIRM_RUNE_SELECTION_TOGGLE_DESCRIPTION"),
+			() => pending.ConfirmRuneSelection,
+			value => pending.ConfirmRuneSelection = value,
+			booleanBindings,
+			compactLayout));
+		section.AddChild(CreateBooleanOption(
 			L("HEXTECH_SHOW_HIDDEN_RELICS_TOGGLE_TITLE"),
 			L("HEXTECH_SHOW_HIDDEN_RELICS_TOGGLE_DESCRIPTION"),
 			() => pending.ShowHiddenRelicsToggle,
@@ -808,7 +815,7 @@ internal static partial class HextechRuneConfigMenuHooks
 		button.AddThemeStyleboxOverride("normal", CreateTabSegmentStyle(active, false));
 		button.AddThemeStyleboxOverride("hover", CreateTabSegmentStyle(active, true));
 		button.AddThemeStyleboxOverride("pressed", CreateTabSegmentStyle(active, true));
-		button.AddThemeStyleboxOverride("focus", CreateTabSegmentStyle(active, true));
+		button.AddThemeStyleboxOverride("focus", HextechControllerInput.CreateFocusRing());
 		if (button.GetChildCount() > 0 && button.GetChild(0) is Label label)
 		{
 			label.Modulate = active

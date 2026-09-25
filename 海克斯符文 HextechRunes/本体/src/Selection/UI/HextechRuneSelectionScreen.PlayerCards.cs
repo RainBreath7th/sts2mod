@@ -42,7 +42,7 @@ internal sealed partial class HextechRuneSelectionScreen
 
 	private Button CreateCardButton(RelicModel relic, int slotIndex)
 	{
-		bool usePendingSelection = ShouldUsePlayerRuneConfirmation(_metadataMode, _enemyOnly);
+		bool usePendingSelection = UsesPlayerRuneConfirmation;
 		string rarityKey = DetermineCardRarityKey(relic, _metadataMode);
 		Color accent = GetAccentColor(rarityKey);
 		Texture2D? cardFrameTexture = GetCardFrameTexture(rarityKey);

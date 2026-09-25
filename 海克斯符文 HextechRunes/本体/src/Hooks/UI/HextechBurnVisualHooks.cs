@@ -3,6 +3,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
+using MegaCrit.Sts2.Core.Nodes.Vfx;
 
 namespace HextechRunes;
 
@@ -213,6 +214,55 @@ internal sealed class HextechBurnVisual
 		float scale = Mathf.Lerp(0.85f, 1.12f, smooth);
 		_backRoot.Scale = Vector2.One * scale;
 		_frontRoot.Scale = Vector2.One * scale;
+	}
+
+	/// <summary>
+	/// 灼烧结算的瞬间:在生物脚下升起原版地面火(状态牌"灼伤"结算时的同一特效),约 2.5 秒后自行销毁。
+	/// 纯本地表现:延后一帧、异常只记日志,不影响灼烧伤害结算。
+	/// </summary>
+	internal static void PlayTickBurst(Creature creature)
+	{
+		try
+		{
+			if (HextechCreatureNodeRegistry.TryGet(creature) == null)
+			{
+				return;
+			}
+
+			Callable.From(() =>
+			{
+				try
+				{
+					Control? container = NCombatRoom.Instance?.CombatVfxContainer;
+					if (container == null || !GodotObject.IsInstanceValid(container) || !container.IsInsideTree())
+					{
+						return;
+					}
+
+					NGroundFireVfx? burst = NGroundFireVfx.Create(creature);
+					if (burst != null)
+					{
+						container.AddChildSafely(burst);
+					}
+				}
+				catch (Exception ex)
+				{
+					LogTickBurstFailure(ex);
+				}
+			}).CallDeferred();
+		}
+		catch (Exception ex)
+		{
+			LogTickBurstFailure(ex);
+		}
+	}
+
+	private static void LogTickBurstFailure(Exception ex)
+	{
+		if (HextechRunLogBudget.TryConsume("visual.burn-tick-burst", 3))
+		{
+			Log.Warn($"[{ModInfo.Id}][Burn] Burn tick burst failed: {ex.GetType().Name}: {ex.Message}");
+		}
 	}
 
 	/// <summary>

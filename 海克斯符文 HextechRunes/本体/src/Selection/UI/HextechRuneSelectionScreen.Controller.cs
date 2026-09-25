@@ -1,4 +1,5 @@
 using Godot;
+using MegaCrit.Sts2.Core.ControllerInput;
 using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
 using MegaCrit.Sts2.Core.Nodes.Screens.ScreenContext;
 
@@ -12,6 +13,14 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		ConfigureControllerNavigation();
 	}
 
+	public override void _Input(InputEvent inputEvent)
+	{
+		if (!_closed && IsVisibleInTree())
+		{
+			HextechControllerInput.TryTranslateSelectToAccept(this, inputEvent);
+		}
+	}
+
 	public override void _UnhandledInput(InputEvent inputEvent)
 	{
 		if (_closed || !IsVisibleInTree())
@@ -19,17 +28,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 			return;
 		}
 
-		if (!_controllerNavigationActivated && HextechControllerInput.IsIntentional(inputEvent))
-		{
-			_controllerNavigationActivated = true;
-			ConfigureControllerNavigation();
-			Control? initialFocus = _holders.FirstOrDefault() ?? _enemyOnlyConfirm;
-			RestoreFocusDeferred(initialFocus ?? this);
-			GetViewport()?.SetInputAsHandled();
-			return;
-		}
-
-		if (!inputEvent.IsActionPressed("ui_cancel"))
+		if (!inputEvent.IsActionPressed(MegaInput.cancel))
 		{
 			return;
 		}
@@ -193,7 +192,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 
 	private void RestoreFocusDeferred(Control? target)
 	{
-		if (!_controllerNavigationActivated || target == null)
+		if (!HextechControllerInput.IsDirectionalNavigation || target == null)
 		{
 			return;
 		}

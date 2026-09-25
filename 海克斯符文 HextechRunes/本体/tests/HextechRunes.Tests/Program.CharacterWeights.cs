@@ -60,6 +60,23 @@ internal static partial class Program
 		Equal(150, restored.GetCharacterWeight(11), "old journal has no weight and uses initial value");
 	}
 
+	// 自选模式(玩家重随次数无限):最终候选只剩玩家所选的一个,选中序号 0、无重随历史,角色权重原样沿用。
+	// 远端只按 ID 还原,不需要本机的自选池;这里锁住这种单候选形态在现有协议里能完整往返。
+	private static void SelfPickSelectionRoundTripsAsSingleFinalOption()
+	{
+		RelicModel chosen = CreateRuneSelectionTestOptions(2)[1];
+		ModelId chosenId = chosen.CanonicalInstance?.Id ?? chosen.Id;
+		HextechWeightedRuneOptions finalOptions = new([chosen], 170);
+		PlayerChoiceResult result = HextechChoiceCodec.CreateRuneSelection(2, 0, 0, [], finalOptions);
+		Expect(HextechChoiceCodec.TryDecodeRuneSelection(result, 2, 0, out int selectedIndex, out List<int> history, out List<ModelId> ids),
+			"self-pick selection decodes");
+		Equal(0, selectedIndex, "the only final option is the selected one");
+		Equal(0, history.Count, "self-pick carries no reroll history");
+		Expect(ids.Count == 1 && ids[0] == chosenId, "the chosen rune is the single authoritative option");
+		Expect(HextechRuneWeightCodec.TryRestore(result, [chosen], out List<RelicModel> remote), "weight restores for a single option");
+		Equal(170, HextechWeightedRuneOptions.GetWeight(remote), "self-pick keeps the character weight unchanged");
+	}
+
 	private static void CharacterWeightProtocolPreservesRerollProgressAndRecipes()
 	{
 		RelicModel[] models = CreateRuneSelectionTestOptions(3);

@@ -2,6 +2,7 @@ using System.Text;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Vfx;
@@ -439,5 +440,78 @@ internal static partial class HextechCombatVfx
 	{
 		Creature[] snapshot = [.. targets];
 		Callable.From(() => RunQuantumPulse(owner, snapshot)).CallDeferred();
+	}
+
+	// 原版小鬼佣兵偷钱时的金币爆炸场景;根节点是 NVfxParticleSystem,进树即播放、到时自行销毁。
+	private const string CoinExplosionScenePath = "res://scenes/vfx/vfx_coin_explosion_regular.tscn";
+
+	/// <summary>
+	/// 夺金:被命中的敌人身上爆出原版小鬼佣兵偷钱时的金币特效(同一资源)。
+	/// 命中当下实例化该场景,挂到目标生物的父节点并定位到碰撞框中心。
+	/// 不用原版 PlayOnCreatureCenter:它会跳过已死目标,击杀那一击就没有金币。
+	/// 读取节点坐标必须在主线程:Godot 在其他线程读全局坐标会返回原点,特效就跑到屏幕左上角;
+	/// 不在主线程时把"读坐标 + 播放"整体推到主线程执行。
+	/// </summary>
+	internal static void CoinBurst(Creature target)
+	{
+		try
+		{
+			// 先查注册表:测试进程与非战斗场景没有节点,直接返回,不触碰任何 Godot 单例。
+			if (HextechCreatureNodeRegistry.TryGet(target) == null)
+			{
+				return;
+			}
+
+			if (NGame.IsMainThread())
+			{
+				PlayCoinBurstNow(target);
+			}
+			else
+			{
+				Callable.From(() => PlayCoinBurstNow(target)).CallDeferred();
+			}
+		}
+		catch (Exception ex)
+		{
+			LogCoinBurstFailure(ex);
+		}
+	}
+
+	private static void PlayCoinBurstNow(Creature target)
+	{
+		try
+		{
+			// 与本模组其他实机验证过的特效同一挂法:挂到生物节点的父节点(角色所在的画布坐标系),
+			// 定位到碰撞框中心,再调到所有角色之上。不挂 CombatVfxContainer、不用 Visuals 的 VfxSpawnPosition
+			// 标记:这两者组合在实机上把金币放到了屏幕左上角。
+			NCreature? node = HextechCreatureNodeRegistry.TryGet(target);
+			Node? parent = node?.GetParent();
+			if (node == null || parent == null || !node.IsInsideTree())
+			{
+				return;
+			}
+
+			PackedScene? scene = ResourceLoader.Load<PackedScene>(CoinExplosionScenePath, cacheMode: ResourceLoader.CacheMode.Reuse);
+			if (scene?.Instantiate() is not Node2D burst)
+			{
+				return;
+			}
+
+			parent.AddChildSafely(burst);
+			burst.GlobalPosition = CreatureCenter(node);
+			PlaceAboveCreatures(parent, burst);
+		}
+		catch (Exception ex)
+		{
+			LogCoinBurstFailure(ex);
+		}
+	}
+
+	private static void LogCoinBurstFailure(Exception ex)
+	{
+		if (HextechRunLogBudget.TryConsume("visual.goldrend-coin-burst", 3))
+		{
+			Log.Warn($"[{ModInfo.Id}][Vfx] Goldrend coin burst failed: {ex.GetType().Name}: {ex.Message}");
+		}
 	}
 }

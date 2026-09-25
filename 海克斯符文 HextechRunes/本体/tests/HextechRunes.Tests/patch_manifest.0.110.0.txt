@@ -118,6 +118,7 @@ rune.flak-cannon.fuel | MegaCrit.Sts2.Core.Models.Cards.FlakCannon.OnPlay(Player
 rune.flame-barrier.burn | MegaCrit.Sts2.Core.Models.Powers.FlameBarrierPower.AfterDamageReceived(*) | prefix?(200)
 rune.flying-kick.corpse-launch | MegaCrit.Sts2.Core.Nodes.Combat.NCreature.StartDeathAnim(Boolean) | postfix(400)
 rune.flying-kick.description | MegaCrit.Sts2.Core.Models.RelicModel.DynamicDescription(*) [Getter] | prefix(400)
+rune.goldrend.gold-sfx | MegaCrit.Sts2.Core.Commands.SfxCmd.Play(String,Single) | prefix?(400)
 rune.grand-finale | MegaCrit.Sts2.Core.Models.Cards.GrandFinale.OnPlay(PlayerChoiceContext,CardPlay) | prefix?(200)
 rune.grand-finale.playable | MegaCrit.Sts2.Core.Models.Cards.GrandFinale.IsPlayable(*) [Getter] | postfix(400)
 rune.hang.all-damage | MegaCrit.Sts2.Core.Models.Cards.Hang.OnPlay(PlayerChoiceContext,CardPlay) | prefix?(200)

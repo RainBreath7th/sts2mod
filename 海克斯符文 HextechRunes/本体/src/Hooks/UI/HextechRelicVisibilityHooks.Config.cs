@@ -11,6 +11,7 @@ internal static partial class HextechRelicVisibilityHooks
 	private const bool DefaultShowHiddenRelicsToggle = false;
 	private const bool DefaultShowUpdateNotice = true;
 	private const bool DefaultCollapseEnemyHexes = false;
+	private const bool DefaultConfirmRuneSelection = false;
 
 	// 折叠敌方海克斯(纯 UI 偏好,默认关):开=顶栏地图按钮左侧一个折叠按钮,点开在下方弹出敌方海克斯窗口;
 	// 关=旧版行为(敌方海克斯直接平铺在顶栏 modifiers 里)。读取见 HextechEnemyUi。
@@ -29,6 +30,25 @@ internal static partial class HextechRelicVisibilityHooks
 		_config.CollapseEnemyHexes = collapse;
 		SaveConfig(_config);
 		HextechLog.Info($"[{ModInfo.Id}][Mayhem] collapse_enemy_hexes={collapse}.");
+	}
+
+	// 海克斯选择二次确认(纯本机 UI 偏好,默认关):开=点卡片只标记待定,按"确认"才提交;关=点卡片立即选定。
+	// 只改变本机界面何时提交,提交内容与同步协议不变,所以不进本局冻结配置,联机各端可以不同。
+	internal static bool GetConfirmRuneSelection()
+	{
+		return _config.ConfirmRuneSelection;
+	}
+
+	internal static bool GetDefaultConfirmRuneSelection()
+	{
+		return DefaultConfirmRuneSelection;
+	}
+
+	internal static void SetConfirmRuneSelection(bool confirm)
+	{
+		_config.ConfirmRuneSelection = confirm;
+		SaveConfig(_config);
+		HextechLog.Info($"[{ModInfo.Id}][Mayhem] confirm_rune_selection={confirm}.");
 	}
 
 	internal static bool GetShowHiddenRelicsToggle()
@@ -192,6 +212,9 @@ internal static partial class HextechRelicVisibilityHooks
 
 		[JsonPropertyName("collapse_enemy_hexes")]
 		public bool CollapseEnemyHexes { get; set; } = DefaultCollapseEnemyHexes;
+
+		[JsonPropertyName("confirm_rune_selection")]
+		public bool ConfirmRuneSelection { get; set; } = DefaultConfirmRuneSelection;
 
 		[JsonPropertyName("hide_relics")]
 		public bool HideRelics { get; set; }

@@ -75,17 +75,19 @@ internal static partial class HextechRuneConfigMenuHooks
 		internal bool PreventConsecutiveSilverRunes;
 		internal bool ModEnabled;
 
-		// 三个 UI 偏好不属于运行配置快照,单独走 HextechRelicVisibilityHooks 的持久化路径。
+		// UI 偏好不属于运行配置快照,单独走 HextechRelicVisibilityHooks 的持久化路径。
 		internal bool ShowHiddenRelicsToggle;
 		internal bool ShowUpdateNotice;
 		internal bool CollapseEnemyHexes;
+		internal bool ConfirmRuneSelection;
 
 		/// <summary>打开菜单时从当前配置快照 + 当前 UI 偏好建立编辑态(数组与集合一律复制一份)。</summary>
 		internal static PendingConfig From(
 			HextechRunConfigurationSnapshot snapshot,
 			bool showHiddenRelicsToggle,
 			bool showUpdateNotice,
-			bool collapseEnemyHexes)
+			bool collapseEnemyHexes,
+			bool confirmRuneSelection)
 		{
 			return new PendingConfig(
 				snapshot.PlayerHexCountsByAct.ToArray(),
@@ -106,7 +108,8 @@ internal static partial class HextechRuneConfigMenuHooks
 				ModEnabled = snapshot.ModEnabled,
 				ShowHiddenRelicsToggle = showHiddenRelicsToggle,
 				ShowUpdateNotice = showUpdateNotice,
-				CollapseEnemyHexes = collapseEnemyHexes
+				CollapseEnemyHexes = collapseEnemyHexes,
+				ConfirmRuneSelection = confirmRuneSelection
 			};
 		}
 
@@ -133,14 +136,15 @@ internal static partial class HextechRuneConfigMenuHooks
 
 		/// <summary>
 		/// 用快照覆盖 <paramref name="fields"/> 指定的那几组字段,其余字段原样保留。
-		/// 三个 UI 偏好不在快照里,只有带 <see cref="PendingFields.UiPreferences"/> 时才用入参覆盖。
+		/// UI 偏好不在快照里,只有带 <see cref="PendingFields.UiPreferences"/> 时才用入参覆盖。
 		/// </summary>
 		internal void LoadFrom(
 			HextechRunConfigurationSnapshot snapshot,
 			PendingFields fields,
 			bool showHiddenRelicsToggle = false,
 			bool showUpdateNotice = false,
-			bool collapseEnemyHexes = false)
+			bool collapseEnemyHexes = false,
+			bool confirmRuneSelection = false)
 		{
 			if ((fields & PendingFields.ActCounts) != 0)
 			{
@@ -186,6 +190,7 @@ internal static partial class HextechRuneConfigMenuHooks
 				ShowHiddenRelicsToggle = showHiddenRelicsToggle;
 				ShowUpdateNotice = showUpdateNotice;
 				CollapseEnemyHexes = collapseEnemyHexes;
+				ConfirmRuneSelection = confirmRuneSelection;
 			}
 		}
 

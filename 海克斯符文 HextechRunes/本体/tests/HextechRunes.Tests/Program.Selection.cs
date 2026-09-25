@@ -332,7 +332,9 @@ internal static partial class Program
 		}
 	}
 
-	private static void SelectionUiWaitsForControllerInputBeforeFocusing()
+	// 手柄焦点只跟随游戏自己的输入模式(NControllerManager 的方向导航):鼠标玩家打开界面不出焦点框;
+	// 原版确认键 A 是 ui_select,本模组 Godot 按钮只认 ui_accept,选择界面必须做转换。
+	private static void SelectionUiFocusesOnlyInDirectionalNavigation()
 	{
 		MethodInfo defaultFocusGetter = typeof(HextechRuneSelectionScreen)
 			.GetProperty(nameof(HextechRuneSelectionScreen.DefaultFocusedControl))!
@@ -340,20 +342,20 @@ internal static partial class Program
 		Expect(
 			PatchProcessor.GetOriginalInstructions(defaultFocusGetter)
 				.Select(static instruction => instruction.operand)
-				.OfType<FieldInfo>()
-				.Any(static field => field.Name == "_controllerNavigationActivated"),
-			"selection overlay should not expose an initial focus target before controller navigation activates");
+				.OfType<MethodInfo>()
+				.Any(static method => method.DeclaringType == typeof(HextechControllerInput) && method.Name == "get_" + nameof(HextechControllerInput.IsDirectionalNavigation)),
+			"selection overlay should expose an initial focus target only in the game's directional navigation mode");
 
 		MethodInfo selectionInput = typeof(HextechRuneSelectionScreen).GetMethod(
-			nameof(HextechRuneSelectionScreen._UnhandledInput),
+			nameof(HextechRuneSelectionScreen._Input),
 			BindingFlags.Instance | BindingFlags.Public)
-			?? throw new MissingMethodException(nameof(HextechRuneSelectionScreen), nameof(HextechRuneSelectionScreen._UnhandledInput));
+			?? throw new MissingMethodException(nameof(HextechRuneSelectionScreen), nameof(HextechRuneSelectionScreen._Input));
 		Expect(
 			PatchProcessor.GetOriginalInstructions(selectionInput)
 				.Select(static instruction => instruction.operand)
 				.OfType<MethodInfo>()
-				.Any(static method => method.DeclaringType == typeof(HextechControllerInput) && method.Name == nameof(HextechControllerInput.IsIntentional)),
-			"selection overlay should activate focus from real joypad input");
+				.Any(static method => method.DeclaringType == typeof(HextechControllerInput) && method.Name == nameof(HextechControllerInput.TryTranslateSelectToAccept)),
+			"selection overlay should translate the controller confirm (ui_select) for its Godot buttons");
 
 		MethodInfo openConfig = typeof(HextechRuneConfigMenuHooks).GetMethod(
 			"OpenOverlay",
@@ -374,31 +376,30 @@ internal static partial class Program
 	private static void PlayerRuneSelectionUsesPendingSlotUntilConfirmation()
 	{
 		Expect(
-			HextechRuneSelectionScreen.ShouldUsePlayerRuneConfirmation(HextechSelectionMetadataMode.PlayerRune, enemyOnly: false),
-			"normal player rune selection should expose confirmation");
+			HextechRuneSelectionScreen.ShouldUsePlayerRuneConfirmation(HextechSelectionMetadataMode.PlayerRune, enemyOnly: false, selfPickMode: false, preferenceEnabled: true),
+			"normal player rune selection uses confirmation when the preference is on");
 		Expect(
-			!HextechRuneSelectionScreen.ShouldUsePlayerRuneConfirmation(HextechSelectionMetadataMode.Forge, enemyOnly: false),
+			!HextechRuneSelectionScreen.ShouldUsePlayerRuneConfirmation(HextechSelectionMetadataMode.PlayerRune, enemyOnly: false, selfPickMode: false, preferenceEnabled: false),
+			"preference off keeps one-click selection");
+		Expect(
+			!HextechRuneSelectionScreen.ShouldUsePlayerRuneConfirmation(HextechSelectionMetadataMode.PlayerRune, enemyOnly: false, selfPickMode: true, preferenceEnabled: true),
+			"self-pick already confirms; its confirm must not be swallowed as a slotless pending pick");
+		Expect(
+			!HextechRuneSelectionScreen.ShouldUsePlayerRuneConfirmation(HextechSelectionMetadataMode.Forge, enemyOnly: false, selfPickMode: false, preferenceEnabled: true),
 			"forge selection should remain immediate");
 		Expect(
-			!HextechRuneSelectionScreen.ShouldUsePlayerRuneConfirmation(HextechSelectionMetadataMode.PlayerRune, enemyOnly: true),
+			!HextechRuneSelectionScreen.ShouldUsePlayerRuneConfirmation(HextechSelectionMetadataMode.PlayerRune, enemyOnly: true, selfPickMode: false, preferenceEnabled: true),
 			"enemy-only selection should keep its existing confirmation");
 		Equal(
 			1,
-			HextechRuneSelectionScreen.ResolvePendingPlayerRuneSlot(HextechSelectionMetadataMode.PlayerRune, enemyOnly: false, slotIndex: 1, slotCount: 3),
+			HextechRuneSelectionScreen.ResolvePendingPlayerRuneSlot(confirmationEnabled: true, slotIndex: 1, slotCount: 3),
 			"card click should record its slot without completing the selection");
 		Equal(
 			0,
-			HextechRuneSelectionScreen.ResolvePendingPlayerRuneSlot(HextechSelectionMetadataMode.PlayerRune, enemyOnly: false, slotIndex: 0, slotCount: 3),
+			HextechRuneSelectionScreen.ResolvePendingPlayerRuneSlot(confirmationEnabled: true, slotIndex: 0, slotCount: 3),
 			"a second card click should replace the pending slot");
-		Equal<int?>(null, HextechRuneSelectionScreen.ResolvePendingPlayerRuneSlot(HextechSelectionMetadataMode.Forge, enemyOnly: false, slotIndex: 0, slotCount: 3), "forge has no pending slot");
-
-		MethodInfo buildUi = typeof(HextechRuneSelectionScreen).GetMethod("BuildUi", BindingFlags.Instance | BindingFlags.NonPublic)!;
-		string[] localizedKeys = PatchProcessor.GetOriginalInstructions(buildUi)
-			.Select(static instruction => instruction.operand)
-			.OfType<string>()
-			.ToArray();
-		Expect(localizedKeys.Contains("HEXTECH_ENEMY_CONFIRM"), "player confirm should reuse the existing confirm key");
-		Expect(localizedKeys.Contains("HEXTECH_CONFIG_CANCEL"), "player cancel should reuse the existing cancel key");
+		Equal<int?>(null, HextechRuneSelectionScreen.ResolvePendingPlayerRuneSlot(confirmationEnabled: false, slotIndex: 0, slotCount: 3), "no pending slot without confirmation");
+		Equal<int?>(null, HextechRuneSelectionScreen.ResolvePendingPlayerRuneSlot(confirmationEnabled: true, slotIndex: 3, slotCount: 3), "out-of-range slot is not pending");
 	}
 
 	private static void PlayerRuneRerollClearsOnlyCurrentPendingSlot()

@@ -28,6 +28,28 @@ namespace HextechRunes.Tests;
 
 internal static partial class Program
 {
+	// 夺金只在自己发钱的异步作用域内、且是金币音效时静音;作用域外与其他音效不受影响。
+	private static void GoldrendSfxMuteIsScopedToGoldSounds()
+	{
+		FieldInfo scopeField = AccessTools.Field(typeof(GoldrendRune), "SuppressGoldSfx");
+		AsyncLocal<bool> scope = (AsyncLocal<bool>)scopeField.GetValue(null)!;
+		Expect(!GoldrendRune.ShouldSuppressSfx("event:/sfx/ui/gold/gold_1"), "outside the Goldrend scope gold sounds play");
+
+		bool previous = scope.Value;
+		scope.Value = true;
+		try
+		{
+			Expect(GoldrendRune.ShouldSuppressSfx("event:/sfx/ui/gold/gold_1"), "inside the scope the small gold sound is muted");
+			Expect(GoldrendRune.ShouldSuppressSfx("event:/sfx/ui/gold/gold_3"), "inside the scope the big gold sound is muted");
+			Expect(!GoldrendRune.ShouldSuppressSfx("event:/sfx/heal"), "other sounds are never muted");
+			Expect(!GoldrendRune.ShouldSuppressSfx(null), "null path is ignored");
+		}
+		finally
+		{
+			scope.Value = previous;
+		}
+	}
+
 	private static void FortuneForgeRewardScalesByStacks()
 	{
 		FortuneForge forge = CreateMutableTestModel<FortuneForge>();

@@ -174,6 +174,7 @@ internal static partial class HextechRuneConfigMenuHooks
 		}
 
 		overlay.AddChild(blocker);
+		HextechControllerOverlay.RegisterModal(blocker, tabButtons.FirstOrDefault());
 		selectTab("featured");
 	}
 
@@ -515,6 +516,7 @@ internal static partial class HextechRuneConfigMenuHooks
 		body.AddChild(buttons);
 
 		blocker.AddChild(dialogBlocker);
+		HextechControllerOverlay.RegisterModal(dialogBlocker, titleInput);
 		titleInput.GrabFocus();
 	}
 

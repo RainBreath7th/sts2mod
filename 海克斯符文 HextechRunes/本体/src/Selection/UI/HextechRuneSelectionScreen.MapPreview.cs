@@ -256,7 +256,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 
 	private void TryGrabOverlayFocus()
 	{
-		if (!_controllerNavigationActivated || _closed || !IsInsideTree() || !IsVisibleInTree() || FocusMode == FocusModeEnum.None)
+		if (!HextechControllerInput.IsDirectionalNavigation || _closed || !IsInsideTree() || !IsVisibleInTree() || FocusMode == FocusModeEnum.None)
 		{
 			return;
 		}

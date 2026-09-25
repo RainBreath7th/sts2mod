@@ -42,7 +42,8 @@ internal static partial class HextechRuneSelectionCoordinator
 					GetGoldenRerollOverride(goldenReroll), rerollOrdinal),
 				enemyHexOptions,
 				modifier.PlayerRuneRerollLimit,
-				goldenRerollSession: goldenReroll);
+				goldenRerollSession: goldenReroll,
+				selfPickPool: BuildSelfPickPool(modifier, player, options));
 			RelicModel? selectedRelic = (await screen.RelicsSelected()).FirstOrDefault();
 			return new RuneSelectionResult(selectedRelic, HextechWeightedRuneOptions.Copy(screen.CurrentRelics), screen.RerollHistory.Count, screen.CurrentMonsterHex, screen.CurrentMonsterHexes);
 		}
@@ -76,7 +77,8 @@ internal static partial class HextechRuneSelectionCoordinator
 					GetGoldenRerollOverride(goldenReroll)),
 				enemyHexOptions,
 				modifier.PlayerRuneRerollLimit,
-				goldenRerollSession: goldenReroll);
+				goldenRerollSession: goldenReroll,
+				selfPickPool: BuildSelfPickPool(modifier, player, options));
 			RelicModel? selectedRelic;
 			try
 			{
@@ -167,7 +169,8 @@ internal static partial class HextechRuneSelectionCoordinator
 				enemyHexOptions,
 				modifier.PlayerRuneRerollLimit,
 				goldenRerollSession: goldenReroll,
-				cancellationToken: cancellationToken);
+				cancellationToken: cancellationToken,
+				selfPickPool: BuildSelfPickPool(modifier, selection.Player, selection.Options));
 			screenCreated?.Invoke(screen);
 			RelicModel? selectedRelic;
 			try
@@ -249,7 +252,8 @@ internal static partial class HextechRuneSelectionCoordinator
 		int playerRuneRerollLimit = 1,
 		string? titleOverride = null,
 		HextechGoldenRerollSession? goldenRerollSession = null,
-		CancellationToken cancellationToken = default)
+		CancellationToken cancellationToken = default,
+		IReadOnlyList<RelicModel>? selfPickPool = null)
 	{
 		await WaitForSingletonAsync(static () => NOverlayStack.Instance, cancellationToken: cancellationToken);
 		HextechRuneSelectionScreen selectionScreen = HextechRuneSelectionScreen.Create(
@@ -259,7 +263,8 @@ internal static partial class HextechRuneSelectionCoordinator
 			enemyHexOptions,
 			playerRuneRerollLimit,
 			titleOverride,
-			goldenRerollSession: goldenRerollSession);
+			goldenRerollSession: goldenRerollSession,
+			selfPickPool: selfPickPool);
 		if (NOverlayStack.Instance == null)
 		{
 			throw new InvalidOperationException("NOverlayStack is not available for rune selection.");
@@ -295,6 +300,34 @@ internal static partial class HextechRuneSelectionCoordinator
 			titleOverride);
 		RelicModel? selectedRelic = (await screen.RelicsSelected(removeOverlay)).FirstOrDefault();
 		return new RuneSelectionResult(selectedRelic, HextechWeightedRuneOptions.Copy(screen.CurrentRelics), screen.RerollHistory.Count, screen.CurrentMonsterHex, screen.CurrentMonsterHexes, removeOverlay ? null : screen);
+	}
+
+	/// <summary>
+	/// 玩家海克斯重随次数为无限时,选择界面改为自选:列出本次候选稀有度的全部合法海克斯。
+	/// 合法池与重随同一套规则(配置启用、版本可用、本幕允许、角色可用、已拥有与互斥排除),不排除"已见",不消耗随机数。
+	/// 只在本机构造给界面用;远端只收到最终候选与选中序号,按 ID 还原,不需要这份池。
+	/// </summary>
+	private static IReadOnlyList<RelicModel>? BuildSelfPickPool(HextechMayhemModifier modifier, Player player, IReadOnlyList<RelicModel> options)
+	{
+		if (modifier.PlayerRuneRerollLimit != HextechRuneConfiguration.InfiniteRerollLimit || options.Count == 0)
+		{
+			return null;
+		}
+
+		try
+		{
+			HextechRarityTier rarity = GetRarityForOptions(options);
+			List<RelicModel> pool = BuildSelectableRunePool(player, rarity, (RunState)player.RunState)
+				.Select(relic => CreateSelectableRuneOption(player, relic))
+				.ToList();
+			return pool.Count > 0 ? pool : null;
+		}
+		catch (Exception ex)
+		{
+			// 构造失败就退回普通的三选一界面,不阻断本幕选择。
+			Log.Warn($"[{ModInfo.Id}][Mayhem] Self-pick pool unavailable, falling back to regular choices: player={player.NetId} error={ex.GetType().Name}: {ex.Message}");
+			return null;
+		}
 	}
 
 	private static PlayerChoiceResult CreateRuneChoiceResult(int actIndex, int choiceOrdinal, HextechRuneSelectionScreen screen, RelicModel? selectedRelic)

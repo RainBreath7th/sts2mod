@@ -47,9 +47,10 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 	private MegaLabel? _statusLabel;
 	private bool _choiceLocked;
 	private int? _pendingPlayerRuneSlot;
+	// 打开界面时读一次,界面存续期间不随配置菜单变化,避免已建好的按钮与行为不一致。
+	private readonly bool _confirmRuneSelectionPreference;
 	private bool _blockMapUntilDismissed;
 	private bool _closed;
-	private bool _controllerNavigationActivated;
 	private bool _selectionConfirmGuardStarted;
 	private ulong _selectionConfirmGuardEndsAtMsec;
 
@@ -57,7 +58,12 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 
 	public bool UseSharedBackstop => true;
 
-	public Control? DefaultFocusedControl => _controllerNavigationActivated ? _holders.FirstOrDefault() ?? _enemyOnlyConfirm : null;
+	// 只在游戏处于手柄/纯键盘方向导航时给默认焦点:原版切进手柄模式与界面切换时都会聚焦它;鼠标玩家返回 null,不出焦点框。
+	public Control? DefaultFocusedControl => HextechControllerInput.IsDirectionalNavigation
+		? _holders.FirstOrDefault(CanReceiveFocus)
+			?? _selfPickButtons.FirstOrDefault(CanReceiveFocus)
+			?? (_enemyOnlyConfirm != null && CanReceiveFocus(_enemyOnlyConfirm) ? _enemyOnlyConfirm : null)
+		: null;
 
 	public bool RequestedReroll => false;
 
@@ -89,20 +95,34 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 
 	internal int? PendingPlayerRuneSlot => _pendingPlayerRuneSlot;
 
+	private bool UsesPlayerRuneConfirmation => ShouldUsePlayerRuneConfirmation(
+		_metadataMode,
+		_enemyOnly,
+		SelfPickMode,
+		_confirmRuneSelectionPreference);
+
+	/// <summary>
+	/// 二次确认只在玩家开了本机偏好时用于普通的每幕三选一:锻造器保持点即选,只选敌方海克斯有自己的确认按钮,
+	/// 自选模式本身就是"点选 + 确认"。自选的确认走同一个选定入口且不带卡槽,这里若不排除会被当成无效待定而吞掉。
+	/// </summary>
 	internal static bool ShouldUsePlayerRuneConfirmation(
 		HextechSelectionMetadataMode metadataMode,
-		bool enemyOnly)
+		bool enemyOnly,
+		bool selfPickMode,
+		bool preferenceEnabled)
 	{
-		return metadataMode == HextechSelectionMetadataMode.PlayerRune && !enemyOnly;
+		return preferenceEnabled
+			&& metadataMode == HextechSelectionMetadataMode.PlayerRune
+			&& !enemyOnly
+			&& !selfPickMode;
 	}
 
 	internal static int? ResolvePendingPlayerRuneSlot(
-		HextechSelectionMetadataMode metadataMode,
-		bool enemyOnly,
+		bool confirmationEnabled,
 		int slotIndex,
 		int slotCount)
 	{
-		return ShouldUsePlayerRuneConfirmation(metadataMode, enemyOnly)
+		return confirmationEnabled
 			&& slotIndex >= 0
 			&& slotIndex < slotCount
 			? slotIndex
@@ -122,9 +142,11 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		int playerRuneRerollLimit,
 		string? titleOverride,
 		HextechSelectionMetadataMode metadataMode,
-		HextechGoldenRerollSession? goldenRerollSession)
+		HextechGoldenRerollSession? goldenRerollSession,
+		IReadOnlyList<RelicModel>? selfPickPool)
 	{
 		_relics = HextechWeightedRuneOptions.Copy(relics);
+		_selfPickPool = selfPickPool;
 		_rerollFunc = rerollFunc;
 		_enemyHexRerollFunc = enemyHexOptions?.RerollFunc;
 		_enemyHexChanged = enemyHexOptions?.Changed;
@@ -133,6 +155,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		_titleOverride = titleOverride;
 		_metadataMode = metadataMode;
 		_goldenRerollSession = goldenRerollSession;
+		_confirmRuneSelectionPreference = HextechRelicVisibilityHooks.GetConfirmRuneSelection();
 		_enemyHexControlsEnabled = enemyHexOptions?.ControlsEnabled == true || enemyHexOptions?.RerollFunc != null;
 		_enemyOnly = relics.Count == 0 && enemyHexOptions != null;
 		List<MonsterHexKind> initialMonsterHexes = enemyHexOptions?.InitialHexes?.ToList() ?? [];
@@ -172,9 +195,10 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		int playerRuneRerollLimit = 1,
 		string? titleOverride = null,
 		HextechSelectionMetadataMode metadataMode = HextechSelectionMetadataMode.PlayerRune,
-		HextechGoldenRerollSession? goldenRerollSession = null)
+		HextechGoldenRerollSession? goldenRerollSession = null,
+		IReadOnlyList<RelicModel>? selfPickPool = null)
 	{
-		HextechLog.Info($"[{ModInfo.Id}][Mayhem] SelectionScreen.Create: count={relics.Count}");
+		HextechLog.Info($"[{ModInfo.Id}][Mayhem] SelectionScreen.Create: count={relics.Count} selfPickPool={selfPickPool?.Count ?? 0}");
 		return new HextechRuneSelectionScreen(
 			relics,
 			monsterHexRelic,
@@ -183,7 +207,8 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 			playerRuneRerollLimit,
 			titleOverride,
 			metadataMode,
-			goldenRerollSession);
+			goldenRerollSession,
+			selfPickPool);
 	}
 
 	public override void _ExitTree()

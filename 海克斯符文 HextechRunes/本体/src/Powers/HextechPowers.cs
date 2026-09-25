@@ -45,6 +45,8 @@ public sealed class HextechBurnPower : HextechPowerBase
 		int hpLoss = Math.Max(stacks, percentHpLoss);
 		int stackLoss = Math.Max(1, (int)Math.Ceiling(stacks * StackDecayPercent));
 		Flash();
+		// 纯本地表现:延后一帧播放、自带异常隔离,不影响下面的共享伤害结算。
+		HextechBurnVisual.PlayTickBurst(Owner);
 		await RunWithDamageResolutionGuard(async () =>
 		{
 			ValueProp valueProps = ValueProp.Unpowered;

@@ -20,6 +20,11 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 
 	private void OnHolderSelected(RelicModel relic)
 	{
+		OnHolderSelected(relic, -1);
+	}
+
+	private void OnHolderSelected(RelicModel relic, int slotIndex)
+	{
 		if (_choiceLocked)
 		{
 			return;
@@ -27,12 +32,38 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 
 		if (IsSelectionConfirmGuardActive())
 		{
+			UpdatePendingPlayerRuneVisuals();
 			HextechLog.Info($"[{ModInfo.Id}][Mayhem] SelectionScreen.OnHolderSelected: ignored early selection relic={(relic.CanonicalInstance?.Id ?? relic.Id).Entry}");
 			GetViewport()?.SetInputAsHandled();
 			return;
 		}
 
+		if (ShouldUsePlayerRuneConfirmation(_metadataMode, _enemyOnly))
+		{
+			_pendingPlayerRuneSlot = ResolvePendingPlayerRuneSlot(_metadataMode, _enemyOnly, slotIndex, _relics.Count);
+			if (!_pendingPlayerRuneSlot.HasValue)
+			{
+				return;
+			}
+
+			UpdatePlayerRuneActionButtons();
+			GetViewport()?.SetInputAsHandled();
+			return;
+		}
+
+		CompleteHolderSelection(relic);
+	}
+
+	private void CompleteHolderSelection(RelicModel relic)
+	{
+		if (_choiceLocked)
+		{
+			return;
+		}
+
 		_choiceLocked = true;
+		_pendingPlayerRuneSlot = null;
+		UpdatePlayerRuneActionButtons();
 		foreach (Button holder in _holders)
 		{
 			holder.Disabled = true;
@@ -50,6 +81,84 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		PlayRuneSelectSfx(relic);
 		GetViewport()?.SetInputAsHandled();
 		_completionSource.TrySetResult([relic]);
+	}
+
+	private void OnPlayerRuneConfirmPressed()
+	{
+		if (_choiceLocked || !ShouldUsePlayerRuneConfirmation(_metadataMode, _enemyOnly))
+		{
+			return;
+		}
+
+		if (IsSelectionConfirmGuardActive())
+		{
+			GetViewport()?.SetInputAsHandled();
+			return;
+		}
+
+		if (_pendingPlayerRuneSlot is not int pendingSlot
+			|| pendingSlot < 0
+			|| pendingSlot >= _relics.Count)
+		{
+			ClearPendingPlayerRuneSelection();
+			return;
+		}
+
+		GetViewport()?.SetInputAsHandled();
+		CompleteHolderSelection(_relics[pendingSlot]);
+	}
+
+	private void OnPlayerRuneCancelPressed()
+	{
+		if (_choiceLocked || !ShouldUsePlayerRuneConfirmation(_metadataMode, _enemyOnly))
+		{
+			return;
+		}
+
+		if (_pendingPlayerRuneSlot is not int pendingSlot)
+		{
+			return;
+		}
+
+		ClearPendingPlayerRuneSelection();
+		GetViewport()?.SetInputAsHandled();
+		RestoreFocusDeferred(GetHolderForSlot(pendingSlot));
+	}
+
+	private void ClearPendingPlayerRuneSelection()
+	{
+		_pendingPlayerRuneSlot = null;
+		UpdatePlayerRuneActionButtons();
+	}
+
+	private void UpdatePlayerRuneActionButtons()
+	{
+		UpdatePendingPlayerRuneVisuals();
+		if (_playerRuneConfirm != null)
+		{
+			_playerRuneConfirm.Disabled = _choiceLocked || !_pendingPlayerRuneSlot.HasValue;
+		}
+		if (_playerRuneCancel != null)
+		{
+			_playerRuneCancel.Disabled = _choiceLocked || !_pendingPlayerRuneSlot.HasValue;
+		}
+		if (IsInsideTree())
+		{
+			ConfigureControllerNavigation();
+		}
+	}
+
+	private void UpdatePendingPlayerRuneVisuals()
+	{
+		if (!ShouldUsePlayerRuneConfirmation(_metadataMode, _enemyOnly))
+		{
+			return;
+		}
+
+		for (int i = 0; i < _holders.Count; i++)
+		{
+			_pendingSelectionOutlines[i].Visible = _pendingPlayerRuneSlot == i;
+		}
 	}
 
 	private void EnsureSelectionConfirmGuardStarted()
@@ -103,6 +212,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		_relics = HextechWeightedRuneOptions.Copy(rerolled);
 		_playerRuneRerollCounts[slotIndex]++;
 		_rerollHistory.Add(slotIndex);
+		_pendingPlayerRuneSlot = ResolvePendingSlotAfterReroll(_pendingPlayerRuneSlot, slotIndex);
 		if (goldenRerollWasActive)
 		{
 			_goldenRerollSession!.Consume();

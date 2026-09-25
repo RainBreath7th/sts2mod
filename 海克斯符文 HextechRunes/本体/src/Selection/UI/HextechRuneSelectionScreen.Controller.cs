@@ -47,6 +47,9 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		}
 
 		List<Control> cards = _holders.Cast<Control>().Where(CanReceiveFocus).ToList();
+		List<Control> playerActions = [];
+		if (_playerRuneConfirm != null && CanReceiveFocus(_playerRuneConfirm)) playerActions.Add(_playerRuneConfirm);
+		if (_playerRuneCancel != null && CanReceiveFocus(_playerRuneCancel)) playerActions.Add(_playerRuneCancel);
 		if (_enemyOnlyConfirm != null && CanReceiveFocus(_enemyOnlyConfirm)) cards.Add(_enemyOnlyConfirm);
 		List<Control> rerolls = _rerollButtons.Cast<Control>().Where(CanReceiveFocus).ToList();
 		List<Control> enemyActions = [];
@@ -64,6 +67,7 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 		}
 
 		ConfigureHorizontalNeighbors(cards);
+		ConfigureHorizontalNeighbors(playerActions);
 		ConfigureHorizontalNeighbors(rerolls);
 		ConfigureHorizontalNeighbors(enemyActions);
 		if (_enemyOnlyConfirm != null && CanReceiveFocus(_enemyOnlyConfirm))
@@ -85,9 +89,28 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 				: card;
 			Control down = i < _rerollButtons.Count && CanReceiveFocus(_rerollButtons[i])
 				? _rerollButtons[i]
+				: playerActions.Count > 0
+					? playerActions[Math.Min(i, playerActions.Count - 1)]
 				: card;
 			card.FocusNeighborTop = up.GetPath();
 			card.FocusNeighborBottom = down.GetPath();
+		}
+
+		for (int i = 0; i < playerActions.Count; i++)
+		{
+			Control action = playerActions[i];
+			int slotIndex = Math.Min(i, Math.Max(_holders.Count, _rerollButtons.Count) - 1);
+			Control up = slotIndex >= 0
+				&& slotIndex < _rerollButtons.Count
+				&& CanReceiveFocus(_rerollButtons[slotIndex])
+				? _rerollButtons[slotIndex]
+				: slotIndex >= 0
+					&& slotIndex < _holders.Count
+					&& CanReceiveFocus(_holders[slotIndex])
+					? _holders[slotIndex]
+					: action;
+			action.FocusNeighborTop = up.GetPath();
+			action.FocusNeighborBottom = action.GetPath();
 		}
 
 		for (int i = 0; i < _rerollButtons.Count; i++)
@@ -100,7 +123,10 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 
 			Control card = _holders[Math.Min(i, _holders.Count - 1)];
 			reroll.FocusNeighborTop = card.GetPath();
-			reroll.FocusNeighborBottom = reroll.GetPath();
+			Control down = playerActions.Count > 0
+				? playerActions[Math.Min(i, playerActions.Count - 1)]
+				: reroll;
+			reroll.FocusNeighborBottom = down.GetPath();
 		}
 
 		for (int i = 0; i < enemyActions.Count; i++)

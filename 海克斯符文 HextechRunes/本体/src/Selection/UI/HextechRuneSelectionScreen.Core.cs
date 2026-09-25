@@ -39,11 +39,14 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 	private readonly bool _enemyHexControlsEnabled;
 	private readonly bool _enemyOnly;
 	private Button? _enemyOnlyConfirm;
+	private Button? _playerRuneConfirm;
+	private Button? _playerRuneCancel;
 	public bool EnemyOnlySelectionConfirmed => _enemyOnly && _choiceLocked;
 	private HBoxContainer? _cardsRow;
 	private VBoxContainer? _enemyPreviewHost;
 	private MegaLabel? _statusLabel;
 	private bool _choiceLocked;
+	private int? _pendingPlayerRuneSlot;
 	private bool _blockMapUntilDismissed;
 	private bool _closed;
 	private bool _controllerNavigationActivated;
@@ -83,6 +86,33 @@ internal sealed partial class HextechRuneSelectionScreen : Control, IOverlayScre
 	public IReadOnlyList<int> EnemyHexRerollCounts => _enemyHexRerollCounts.ToArray();
 
 	public int EnemyHexRerollCount => _enemyHexRerollCounts.Sum();
+
+	internal int? PendingPlayerRuneSlot => _pendingPlayerRuneSlot;
+
+	internal static bool ShouldUsePlayerRuneConfirmation(
+		HextechSelectionMetadataMode metadataMode,
+		bool enemyOnly)
+	{
+		return metadataMode == HextechSelectionMetadataMode.PlayerRune && !enemyOnly;
+	}
+
+	internal static int? ResolvePendingPlayerRuneSlot(
+		HextechSelectionMetadataMode metadataMode,
+		bool enemyOnly,
+		int slotIndex,
+		int slotCount)
+	{
+		return ShouldUsePlayerRuneConfirmation(metadataMode, enemyOnly)
+			&& slotIndex >= 0
+			&& slotIndex < slotCount
+			? slotIndex
+			: null;
+	}
+
+	internal static int? ResolvePendingSlotAfterReroll(int? pendingSlot, int rerolledSlot)
+	{
+		return pendingSlot == rerolledSlot ? null : pendingSlot;
+	}
 
 	private HextechRuneSelectionScreen(
 		IReadOnlyList<RelicModel> relics,
